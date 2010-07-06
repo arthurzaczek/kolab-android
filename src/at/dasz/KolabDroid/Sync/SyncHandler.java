@@ -22,13 +22,13 @@
 package at.dasz.KolabDroid.Sync;
 
 import java.io.IOException;
+import java.util.Set;
 
 import javax.mail.Folder;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.xml.parsers.ParserConfigurationException;
 
-import android.database.Cursor;
 import at.dasz.KolabDroid.Provider.LocalCacheProvider;
 
 /**
@@ -49,14 +49,14 @@ public interface SyncHandler
 	 * Retrieves a list of all local items.
 	 * @return
 	 */
-	public abstract Cursor getAllLocalItemsCursor();
+	public abstract Set<Integer> getAllLocalItemsIDs();
 
+	
 	/**
-	 * Returns the local ID column index of the specified cursor 
-	 * @param c
-	 * @return
+	 * fetches all local items and store them in a local, private cache
+	 * @throws SyncException 
 	 */
-	public abstract int getIdColumnIndex(Cursor c);
+	public abstract void fetchAllLocalItems() throws SyncException;
 
 	/**
 	 * Returns the folder name where the items are stored in the IMAP server.

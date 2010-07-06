@@ -22,7 +22,6 @@
 package at.dasz.KolabDroid.Sync;
 
 import android.content.Context;
-import android.database.Cursor;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.StatusHandler;
 import at.dasz.KolabDroid.Calendar.SyncCalendarHandler;
@@ -71,25 +70,13 @@ public class ResetWorker extends BaseWorker
 			int currentItemNo)
 	{
 		SyncCalendarHandler calendar = new SyncCalendarHandler(context);
-		Cursor c = calendar.getAllLocalItemsCursor();
-		if (c != null)
+		for (int id : calendar.getAllLocalItemsIDs())
 		{
-			try
+			calendar.deleteLocalItem(id);
+			if (++currentItemNo % 10 == 0)
 			{
-				final int idIdx = calendar.getIdColumnIndex(c);
-				while (c.moveToNext())
-				{
-					calendar.deleteLocalItem(c.getInt(idIdx));
-					if (++currentItemNo % 10 == 0)
-					{
-						StatusHandler.writeStatus(String.format(
-								deleteMessageFormat, currentItemNo));
-					}
-				}
-			}
-			finally
-			{
-				if (c != null) c.close();
+				StatusHandler.writeStatus(String.format(deleteMessageFormat,
+						currentItemNo));
 			}
 		}
 		return currentItemNo;
@@ -99,28 +86,16 @@ public class ResetWorker extends BaseWorker
 			int currentItemNo)
 	{
 		SyncContactsHandler contacts = new SyncContactsHandler(context);
-		Cursor c = contacts.getAllLocalItemsCursor();
-		if (c != null)
+		for (int id : contacts.getAllLocalItemsIDs())
 		{
-			try
+			contacts.deleteLocalItem(id);
+			if (++currentItemNo % 10 == 0)
 			{
-				final int idIdx = contacts.getIdColumnIndex(c);
-				while (c.moveToNext())
-				{
-					contacts.deleteLocalItem(c.getInt(idIdx));
-
-					if (++currentItemNo % 10 == 0)
-					{
-						StatusHandler.writeStatus(String.format(
-								deleteMessageFormat, currentItemNo));
-					}
-				}
-			}
-			finally
-			{
-				if (c != null) c.close();
+				StatusHandler.writeStatus(String.format(deleteMessageFormat,
+						currentItemNo));
 			}
 		}
+
 		return currentItemNo;
 	}
 }
