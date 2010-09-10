@@ -35,6 +35,7 @@ import javax.mail.Flags.Flag;
 import javax.xml.parsers.ParserConfigurationException;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.util.Log;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.StatusHandler;
@@ -46,7 +47,7 @@ import at.dasz.KolabDroid.Provider.StatusProvider;
 import at.dasz.KolabDroid.Settings.Settings;
 
 /**
- * The background worker that implements the main synchronization algorithm.
+ * The background worker that implements the main synchronization algorithm. 
  */
 public class SyncWorker extends BaseWorker
 {
@@ -60,28 +61,69 @@ public class SyncWorker extends BaseWorker
 	}
 
 	private static StatusEntry	status;
+
 	public static StatusEntry getStatus()
 	{
 		return status;
 	}
-	
-	private Settings settings;
-	private StatusProvider statProvider;
 
 	@Override
 	protected void runWorker()
 	{
 		setRunningMessage(R.string.syncisrunning);
-
-		settings = new Settings(this.context);
-		statProvider = new StatusProvider(context);
-		
+		StatusProvider statProvider = new StatusProvider(context);
 		try
 		{
 			StatusHandler.writeStatus(R.string.startsync);
 
-			runHandler(new SyncContactsHandler(this.context));
-			runHandler(new SyncCalendarHandler(this.context));
+			Settings settings = new Settings(this.context);
+			SyncHandler handler = null;
+
+			handler = new SyncContactsHandler(this.context);
+			if (shouldProcess(handler))
+			{
+				status = handler.getStatus();
+				try
+				{
+					sync(settings, handler);
+				}
+				catch(Exception ex)
+				{
+					// Save fatal sync exception
+					status.setFatalErrorMsg(ex.toString());
+					throw ex;
+				}
+				finally
+				{
+					statProvider.saveStatusEntry(status);
+				}
+			}
+
+			if (isStopping())
+			{
+				StatusHandler.writeStatus(R.string.syncaborted);
+				return;
+			}
+
+			handler = new SyncCalendarHandler(this.context);
+			if (shouldProcess(handler))
+			{
+				status = handler.getStatus();
+				try
+				{
+					sync(settings, handler);
+				}
+				catch(Exception ex)
+				{
+					// Save fatal sync exception
+					status.setFatalErrorMsg(ex.toString());
+					throw ex;
+				}
+				finally
+				{
+					statProvider.saveStatusEntry(status);
+				}
+			}
 
 			if (isStopping())
 			{
@@ -108,29 +150,6 @@ public class SyncWorker extends BaseWorker
 			StatusHandler.notifySyncFinished();
 		}
 	}
-	
-	private void runHandler(SyncHandler handler) throws Exception
-	{
-		if (shouldProcess(handler))
-		{
-			status = handler.getStatus();
-			try
-			{
-				sync(handler);
-			}
-			catch (Exception ex)
-			{ 
-				// Save fatal sync exception
-				status.setFatalErrorMsg(ex.toString());
-				throw ex;
-			}
-			finally
-			{
-				statProvider.saveStatusEntry(status);
-			}
-		}
-
-	}
 
 	private boolean shouldProcess(SyncHandler handler)
 	{
@@ -138,43 +157,35 @@ public class SyncWorker extends BaseWorker
 				&& !"".equals(handler.getDefaultFolderName());
 	}
 
-	private void sync(SyncHandler handler)
+	private void sync(Settings settings, SyncHandler handler)
 			throws MessagingException, IOException,
 			ParserConfigurationException, SyncException
 	{
-		if (isStopping()) return;
-		
+		StatusHandler.writeStatus(R.string.connect_server);
 		Store server = null;
 		Folder sourceFolder = null;
 		try
 		{
-			StatusHandler.writeStatus(R.string.fetching_local_items);
-			handler.fetchAllLocalItems();
-			if (isStopping()) return;
-
-			StatusHandler.writeStatus(R.string.connect_server);
 			Session session = ImapClient.getDefaultImapSession(settings
 					.getPort(), settings.getUseSSL());
 			server = ImapClient.openServer(session, settings.getHost(),
 					settings.getUsername(), settings.getPassword());
-			if (isStopping()) return;
-			
+
 			StatusHandler.writeStatus(R.string.fetching_messages);
 
 			// Numbers in comments and messages reference Gargan's Algorithm and
 			// the wiki
-
+			
 			// 1. retrieve list of all imap message headers
 			sourceFolder = server.getFolder(handler.getDefaultFolderName());
 			sourceFolder.open(Folder.READ_WRITE);
 			Message[] msgs = sourceFolder.getMessages();
 			FetchProfile fp = new FetchProfile();
 			fp.add(FetchProfile.Item.CONTENT_INFO);
-			fp.add(FetchProfile.Item.FLAGS);
-			fp.add(FetchProfile.Item.ENVELOPE);
+			fp.add("Subject");
+			fp.add("Date");
 			sourceFolder.fetch(msgs, fp);
-			if (isStopping()) return;
-			
+
 			LocalCacheProvider cache = handler.getLocalCacheProvider();
 			Set<Integer> processedEntries = new HashSet<Integer>(
 					(int) (msgs.length * 1.2));
@@ -294,24 +305,27 @@ public class SyncWorker extends BaseWorker
 			// 9.a upload/delete
 			Log.d("sync", "9. process unprocessed local items");
 
-			Set<Integer> localIDs = handler.getAllLocalItemsIDs();
-			if (localIDs == null) throw new SyncException("getAllLocalItems",
+			Cursor c = handler.getAllLocalItemsCursor();
+			if (c == null) throw new SyncException("getAllLocalItems",
 					"cr.query returned null");
 			int currentLocalItemNo = 1;
-			int itemsCount = localIDs.size();
 			try
 			{
+				final int idColIdx = handler.getIdColumnIndex(c);
+
 				final String processItemFormat = this.context.getResources()
 						.getString(R.string.processing_item_format);
 
-				for (int localId : localIDs)
+				while (c.moveToNext())
 				{
 					if (isStopping()) return;
+
+					int localId = c.getInt(idColIdx);
 
 					Log.d("sync", "9. processing #" + localId);
 
 					StatusHandler.writeStatus(String.format(processItemFormat,
-							currentLocalItemNo++, itemsCount));
+							currentLocalItemNo++));
 
 					if (processedEntries.contains(localId))
 					{
@@ -344,6 +358,13 @@ public class SyncWorker extends BaseWorker
 			{
 				Log.e("sync", ex.toString());
 				status.incrementErrors();
+			}
+			finally
+			{
+				if (!c.isClosed())
+				{
+					c.close();
+				}
 			}
 		}
 		finally

@@ -28,7 +28,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.text.format.DateUtils;
 import android.text.format.Time;
-import android.util.Log;
 import at.dasz.KolabDroid.Sync.SyncException;
 
 public class CalendarProvider
@@ -38,7 +37,7 @@ public class CalendarProvider
 															.parse("content://com.android.calendar/events");
 	public static final String		_ID				= "_id";
 
-	public static final String[]	PROJECTION		= new String[] { "_id",
+	private static final String[]	projection		= new String[] { "_id",
 			"calendar_id", "title", "allDay", "dtstart", "dtend",
 			"description", "eventLocation", "visibility", "hasAlarm", "rrule" };
 	private ContentResolver			cr;
@@ -47,12 +46,35 @@ public class CalendarProvider
 	{
 		this.cr = cr;
 	}
+//
+//	public List<CalendarEntry> loadAllCalendarEntries(int calendar_id) throws SyncException
+//	{
+//		List<CalendarEntry> result = new ArrayList<CalendarEntry>();
+//
+//		Cursor cur = cr.query(CALENDAR_URI, projection, null, null, null);
+//		if (cur == null) throw new SyncException(Integer.toString(calendar_id), "cr.query returned null");
+//		try
+//		{
+//			if (cur.moveToFirst())
+//			{
+//				do
+//				{
+//					result.add(loadCalendarEntry(cur));
+//				} while (cur.moveToNext());
+//			}
+//			return result;
+//		}
+//		finally
+//		{
+//			cur.close();
+//		}
+//	}
 
 	public CalendarEntry loadCalendarEntry(int id, String uid) throws SyncException
 	{
 		if (id == 0) return null;
 		Uri uri = ContentUris.withAppendedId(CALENDAR_URI, id);
-		Cursor cur = cr.query(uri, PROJECTION, null, null, null);
+		Cursor cur = cr.query(uri, projection, null, null, null);
 		if (cur == null) throw new SyncException(Integer.toString(id), "cr.query returned null");
 		try
 		{
@@ -62,19 +84,17 @@ public class CalendarProvider
 		finally
 		{
 			cur.close();
-			Log.d("Calendar Provider", "cursor closed");
 		}
 	}
 
-	public CalendarEntry loadCalendarEntry(Cursor cur, String uid)
+	private CalendarEntry loadCalendarEntry(Cursor cur, String uid)
 	{
 		CalendarEntry e = new CalendarEntry();
 		e.setId(cur.getInt(0));
 		e.setUid(uid);
 		e.setCalendar_id(cur.getInt(1));
 		e.setTitle(cur.getString(2));
-		boolean allDay = cur.getInt(3) != 0;
-		e.setAllDay(allDay);
+		e.setAllDay(cur.getInt(3) != 0);
 
 		Time start = new Time();
 		start.set(cur.getLong(4));

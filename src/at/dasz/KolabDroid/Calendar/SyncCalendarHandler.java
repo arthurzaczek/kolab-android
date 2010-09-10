@@ -23,8 +23,6 @@ package at.dasz.KolabDroid.Calendar;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 
@@ -50,13 +48,11 @@ import at.dasz.KolabDroid.Sync.SyncException;
 
 public class SyncCalendarHandler extends AbstractSyncHandler
 {
-	private final String					defaultFolderName;
-	private final LocalCacheProvider		cacheProvider;
+	private final String				defaultFolderName;
+	private final LocalCacheProvider	cacheProvider;
 
-	private final CalendarProvider			calendarProvider;
-	private final ContentResolver			cr;
-
-	private HashMap<Integer, CalendarEntry>	localItemsCache;
+	private final CalendarProvider		calendarProvider;
+	private final ContentResolver		cr;
 
 	public SyncCalendarHandler(Context context)
 	{
@@ -78,30 +74,16 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	{
 		return cacheProvider;
 	}
-	
-	public Set<Integer> getAllLocalItemsIDs()
+
+	public int getIdColumnIndex(Cursor c)
 	{
-		return localItemsCache.keySet();
+		return c.getColumnIndex(CalendarProvider._ID);
 	}
 
-	public void fetchAllLocalItems()
+	public Cursor getAllLocalItemsCursor()
 	{
-		localItemsCache = new HashMap<Integer, CalendarEntry>();
-		Cursor cur = cr.query(CalendarProvider.CALENDAR_URI,
-				CalendarProvider.PROJECTION, null, null, null);
-		try
-		{
-			while (cur.moveToNext())
-			{
-				CalendarEntry e = calendarProvider.loadCalendarEntry(cur,
-						"empty");
-				localItemsCache.put(e.getId(), e);
-			}
-		}
-		finally
-		{
-			cur.close();
-		}
+		return cr.query(CalendarProvider.CALENDAR_URI,
+				new String[] { CalendarProvider._ID }, null, null, null);
 	}
 
 	@Override
@@ -244,8 +226,6 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		result.setLocalId(cal.getId());
 		result.setLocalHash(cal.getLocalHash());
 		result.setRemoteId(cal.getUid());
-		
-		localItemsCache.put(cal.getId(), cal);
 		return result;
 	}
 
@@ -257,8 +237,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	}
 
 	@Override
-	protected void updateServerItemFromLocal(SyncContext sync, Document xml)
-			throws SyncException
+	protected void updateServerItemFromLocal(SyncContext sync, Document xml) throws SyncException
 	{
 		CalendarEntry source = getLocalItem(sync);
 		CacheEntry entry = sync.getCacheEntry();
@@ -445,12 +424,8 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	{
 		if (sync.getLocalItem() != null) return (CalendarEntry) sync
 				.getLocalItem();
-		CalendarEntry c = localItemsCache
-				.get(sync.getCacheEntry().getLocalId());
-		if (c != null)
-		{
-			c.setUid(sync.getCacheEntry().getRemoteId());
-		}
+		CalendarEntry c = calendarProvider.loadCalendarEntry(sync
+				.getCacheEntry().getLocalId(), sync.getCacheEntry().getRemoteId());
 		sync.setLocalItem(c);
 		return c;
 	}
@@ -470,12 +445,12 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 		sb.append("Start: ");
 		sb.append(cal.getDtstart().format("%c")); // TODO: Change format for
-		// allDay events
+													// allDay events
 		sb.append("\n");
 
 		sb.append("End: ");
 		sb.append(cal.getDtend().format("%c"));// TODO: Change format for allDay
-		// events
+												// events
 		sb.append("\n");
 
 		sb.append("Recurrence: ");

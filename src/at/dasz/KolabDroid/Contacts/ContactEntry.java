@@ -95,6 +95,11 @@ public class ContactEntry implements Comparable<ContactEntry>, Serializable
 	private static final String MAIL_FORMAT_PLAINTEXT = "1";
 	private static final String MAIL_FORMAT_HTML = "2";
 	
+	
+	// index holders for android urls TODO: extend this to all thats required to save as much as possible
+	private String contactURI;
+	private String emailURI;
+	
 	public ContactEntry (StringBuffer data, Document xmlData) {
 		this.data = data;
 		this.xmlData = xmlData;
