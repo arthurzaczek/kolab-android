@@ -266,12 +266,11 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 	private final static java.util.regex.Pattern	regFREQ				= java.util.regex.Pattern
 																				.compile("FREQ=(\\w*);.*");
-	// private final static java.util.regex.Pattern regUntil =
-	// java.util.regex.Pattern
-	// .compile(";UNTIL=(\\w*)");
 	// private final static java.util.regex.Pattern regWKST =
 	// java.util.regex.Pattern
 	// .compile(";WKST=(\\w*)");
+	private final static java.util.regex.Pattern    regUNTIL            = java.util.regex.Pattern
+																				.compile(".*;UNTIL=(\\d{8})T(\\d*)");
 	private final static java.util.regex.Pattern	regBYDAY			= java.util.regex.Pattern
 																				.compile(".*;BYDAY=([\\+\\-\\,0-9A-Z]*);?.*");
 	private final static java.util.regex.Pattern	regBYDAYSubPattern	= java.util.regex.Pattern
@@ -437,11 +436,26 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			}
 			Utils.setXmlElementValue(xml, recurrence, "month", month);
 
-			// TODO: Android does not know until?
-			// we will use a "never-ending" event for now
-			
-			Element range = Utils.getOrCreateXmlElement(xml, recurrence, "range");
-			Utils.setXmlAttributeValue(xml, range, "type",	"none");			
+			// Android does know UNTIL but only if an event and following recurrences have
+			// been deleted
+			Element range = Utils.getOrCreateXmlElement(xml, recurrence,
+					"range");
+			result = regUNTIL.matcher(rrule);
+			if (result.matches())
+			{
+				Time rangeEndDate = new Time("UTC");
+				Utils.setXmlAttributeValue(xml, range, "type", "date");
+				rangeEndDate.parse(result.group(1));
+				rangeEndDate.monthDay -= 1;
+				rangeEndDate.normalize(true);
+				Utils.setXmlElementValue(xml, recurrence, "range", rangeEndDate
+						.format3339(true));
+			}
+			else
+			{
+				Utils.setXmlAttributeValue(xml, range, "type", "none");
+				Utils.setXmlElementValue(xml, recurrence, "range", "");
+			}
 		}
 	}
 
