@@ -52,6 +52,7 @@ public final class Utils
 	public static final String LOG_TAG_IMAPCLIENT 			= "KolabDroid-IMAPClient";
 	public static final String LOG_TAG_TRUSTMANAGERFACTORY	= "KolabDroid-TrustManagerFactory";
 	public static final String LOG_TAG_SETTINGSVIEW			= "KolabDroid-SettingsView";
+	public static final String LOG_TAG_SPECIAL_KEYSTORE_SSL_SOCKETFACTORY = "KolabDroid-SpecialKeystoreSSLSocketFactory";
 	
 	public static String join(final String delimiter, final Object[] objects)
 	{
