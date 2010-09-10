@@ -24,6 +24,7 @@ package at.dasz.KolabDroid;
 import javax.activation.DataHandler;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -45,6 +46,7 @@ import at.dasz.KolabDroid.Sync.SyncServiceManager;
 
 public class Main extends Activity implements MainActivity {
 	
+	public static Application app = null;
 	private StatusListAdapter statusAdapter = null;
 	private TextView status = null;
 
@@ -53,6 +55,7 @@ public class Main extends Activity implements MainActivity {
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+		app = this.getApplication();
 		
 		if (!DataHandler.hasDataContentHandlerFactory())
 		{
