@@ -33,9 +33,9 @@ import at.dasz.KolabDroid.Sync.SyncException;
 public class CalendarProvider
 {
 	public static final Uri			CALENDAR_URI	= Uri
-															.parse("content://calendar/events");
-	public static final Uri CALENDAR_ALERT_URI = Uri.parse("content://calendar/calendar_alerts");
-	public static final Uri CALENDAR_REMINDER_URI = Uri.parse("content://calendar/reminders");
+															.parse("content://com.android.calendar/events");
+	public static final Uri CALENDAR_ALERT_URI = Uri.parse("content://com.android.calendar/calendar_alerts");
+	public static final Uri CALENDAR_REMINDER_URI = Uri.parse("content://com.android.calendar/reminders");
 	public static final String		_ID				= "_id";
 
 	private static final String[]	projection		= new String[] { "_id",
