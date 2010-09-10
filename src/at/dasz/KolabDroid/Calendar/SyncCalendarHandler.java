@@ -312,6 +312,13 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		Time endTime = source.getDtend();
 		endTime.switchTimezone("UTC");
 		
+		if (source.getAllDay())
+		{
+		  // whole day events (1 day) do start and end on the same day in kolab XML.
+		  // so subtract one day to get proper XML.
+		  endTime.monthDay -= 1;
+		  endTime.normalize(true);
+		}
 		Utils.setXmlElementValue(xml, root, "end-date", endTime
 				.format3339(source.getAllDay()));
 
