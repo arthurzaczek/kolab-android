@@ -45,4 +45,16 @@
 <string name="mergeContactsByName">Merge Contacts by Name</string>
 <string name="targetAccount">Target Account</string>
 <string name="syncCalendar">Sync Calendar only</string>
+<string name="checkSettings">Check Settings</string>
+<string name="settingsSave">Save settings</string>
+<string name="settingsReset">Reset settings</string>
+<string name="checkSettingsProgressDialogTitle">Please wait...</string>
+<string name="checkSettingsProgressDialogMessage">Checking settings...</string>
+<string name="checkSettingsTestFailedInvalidCertificateTitle">Invalid or unknown certificate</string>
+<string name="checkSettingsTestFailedInvalidCertificateBtnAccept">Accept</string>
+<string name="checkSettingsTestFailedInvalidCertificateBtnReject">Reject</string>
+<string name="settingsHeadlineCalendar">Calendar Settings</string>
+<string name="settingsHeadlineContacts">Contact Settings</string>
+<string name="checkSettingsTestFailedInvalidCertificateMessage">Cannot safely connect to server.\n</string>
+<string name="checkSettingsTestFailedInvalidCertificateDefaultErrorMsg">Unknown error</string>
 </resources>

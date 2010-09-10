@@ -1,6 +1,7 @@
 /*
  * Copyright 2010 Arthur Zaczek <arthur@dasz.at>, dasz.at OG; All rights reserved.
  * Copyright 2010 David Schmitt <david@dasz.at>, dasz.at OG; All rights reserved.
+ * Copyright 2010 Sönke Schwardt-Krummrich <soenke@schwardtnet.de>; All rights reserved.
  *
  *  This file is part of Kolab Sync for Android.
 
@@ -17,6 +18,10 @@
  *  You should have received a copy of the GNU General Public License
  *  along with Kolab Sync for Android.
  *  If not, see <http://www.gnu.org/licenses/>.
+ *  
+ *  This code contains some code snippets of the k9mail project that is licensed 
+ *  under Apache License 2.0: http://k9mail.googlecode.com/svn/k9mail/trunk (SVN Rev 2337)
+ *  Thanks to the k9mail project for their great work!
  */
 
 package at.dasz.KolabDroid.Settings;
@@ -24,15 +29,29 @@ package at.dasz.KolabDroid.Settings;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Process;
+import android.view.View;
+import android.util.Log;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.Toast;
 import at.dasz.KolabDroid.R;
+import at.dasz.KolabDroid.Imap.ImapClient;
+import at.dasz.KolabDroid.Imap.TrustManagerFactory;
+import javax.mail.Session;
+import javax.mail.Store;
+import javax.mail.MessagingException;
+import javax.net.ssl.SSLException;
 
-public class SettingsView extends Activity {
+public class SettingsView extends Activity implements Runnable {
 	public static final String EDIT_SETTINGS_ACTION = "at.dasz.KolabDroid.Settings.action.EDIT_TITLE";
 
 	private EditText txtHost;
@@ -46,8 +65,11 @@ public class SettingsView extends Activity {
 	private CheckBox cbMergeContactsByName;
 	private Spinner spAccount;
 		
+	private Handler mHandler = new Handler();
+	private ProgressDialog mProgDialog = null;
 	private Settings pref;
 	private boolean isInitializing = true;
+	private boolean mDestroyed = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -64,7 +86,7 @@ public class SettingsView extends Activity {
         cbCreateRemoteHash = (CheckBox)findViewById(R.id.createRemoteHash);
         cbMergeContactsByName = (CheckBox)findViewById(R.id.mergeContactsByName);
         spAccount = (Spinner)findViewById(R.id.selectAccount);
-        
+
         pref = new Settings(this);
         
         cbUseSSL.setOnCheckedChangeListener(new OnCheckedChangeListener() {
@@ -117,6 +139,13 @@ public class SettingsView extends Activity {
 
 		super.onPause();
 	}
+
+	@Override
+	public void onDestroy()
+	{
+		super.onDestroy();
+		mDestroyed = true;
+	}
 	
 	private void setFirstAccount()
 	{
@@ -136,4 +165,197 @@ public class SettingsView extends Activity {
         }
 	}
 	
+	public void onClick(View v) {
+        try
+        {
+            switch (v.getId())
+            {
+                case R.id.BtnTestSettings:
+                	onClickCheckSettings(v);
+                    break;
+            }
+        }
+        catch (Exception e)
+        {
+            failure(e);
+        }
+    }
+
+	private void failure(final Exception use)
+    {
+		failure(use, "Something bad happened here");
+    }
+	
+	private void failure(final Exception use, final String msg)
+    {
+        Log.e("SettingsView", "failure():" + msg, use);
+        mHandler.post( new Runnable()
+        { 
+        	public void run() {
+        		if (mDestroyed) {
+        			return;
+        		}
+        		Toast toast = Toast.makeText(getApplication(), msg, Toast.LENGTH_LONG);
+                toast.show();        		
+        	}
+        });
+        
+    }
+    
+    public void run() {
+    	Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+    	// Looper.prepare();
+		Store server = null;
+		try
+		{
+			Session session = ImapClient.getDefaultImapSession(
+					pref.getPort(), 
+					pref.getUseSSL());
+			server = ImapClient.openServer(session, 
+					pref.getHost(), 
+					pref.getUsername(), 
+					pref.getPassword());
+		}
+		catch (final MessagingException e) {
+			Exception ne = e.getNextException();
+			if (ne instanceof SSLException) {
+			// if ((ne != null) && (ne.getClass().getName() == "javax.net.ssl.SSLException")) {
+				showAcceptKeyDialog(e);
+			} else {
+				failure(e, "Failed to connect to " + pref.getHost());
+			}
+		}
+		try {
+			if (server != null) server.close();
+		}
+		catch (final MessagingException e) {
+			failure(e, "Failed to close connection to " + pref.getHost());
+		}
+		mProgDialog.dismiss();
+	}
+    
+    private void showAcceptKeyDialog(final Object... args) {
+        mHandler.post(new Runnable()
+        {
+            public void run()
+            {
+                if (mDestroyed)
+                {
+                    return;
+                }
+
+                final java.security.cert.X509Certificate[] chain = TrustManagerFactory.getLastUsedChain();
+                String exMessage = getString(R.string.checkSettingsTestFailedInvalidCertificateDefaultErrorMsg);
+
+                Exception ex = ((Exception)args[0]);
+                Log.v("showAcceptKeyDialog", "Got following exception: ", ex);
+                if (ex != null)
+                {
+                	if (ex.getCause() != null)
+                	{
+                		if (ex.getCause().getCause() != null)
+                		{
+                			exMessage = ex.getCause().getCause().getMessage();
+
+                		}
+                		else
+                		{
+                			exMessage = ex.getCause().getMessage();
+                		}
+                	}
+                	else
+                	{
+                		exMessage = ex.getMessage();
+                	}
+                }
+
+                StringBuffer chainInfo = new StringBuffer(100);
+                if (chain != null) {
+                	for (int i = 0; i < chain.length; i++)
+                	{
+                		// display certificate chain information
+                        chainInfo.append("Certificate chain[" + i + "]:\n");
+                        chainInfo.append("Subject: " + chain[i].getSubjectDN().toString() + "\n");
+                        chainInfo.append("Issuer: " + chain[i].getIssuerDN().toString() + "\n");
+                	}
+                } else {
+                	Log.e("SettingsView", "internal error: chain is null");
+                	chainInfo.append("Internal error: chain is null");
+                }
+
+                new AlertDialog.Builder(SettingsView.this)
+                .setTitle(getString(R.string.checkSettingsTestFailedInvalidCertificateTitle))
+                .setMessage(getString(R.string.checkSettingsTestFailedInvalidCertificateMessage) + 
+                			exMessage + ":\n" + chainInfo.toString() )
+                .setCancelable(true)
+                .setPositiveButton(
+                		getString(R.string.checkSettingsTestFailedInvalidCertificateBtnAccept),
+                		new DialogInterface.OnClickListener()
+                		{
+                			public void onClick(DialogInterface dialog, int which)
+                			{
+                				try
+                				{
+                					TrustManagerFactory.addCertificateChainToKeystore(chain);
+                				}
+								catch (java.security.cert.CertificateException e)
+                				{
+                					Log.e("SettingsView", "Adding certificate chain to local keystore failed: ", e);
+                					showErrorDialog("Keystore error", "Adding certificate chain to keystore failed.");
+                				}
+                			}
+                		})
+                		.setNegativeButton(
+                				getString(R.string.checkSettingsTestFailedInvalidCertificateBtnReject),
+                				new DialogInterface.OnClickListener()
+                				{
+                					public void onClick(DialogInterface dialog, int which)
+                					{
+                						Log.v("SettingsView", "User declined certificate");
+                					}
+                				})
+                				.show();
+            }
+        });
+    }
+
+    private void showErrorDialog(final String title, final String msg) {
+        mHandler.post(new Runnable()
+        {
+            public void run()
+            {
+                if (mDestroyed)
+                {
+                    return;
+                }
+
+                new AlertDialog.Builder(SettingsView.this)
+                .setTitle(title)
+                .setMessage(msg)
+                .setCancelable(true)
+                .setNeutralButton(
+                		"OK",
+                		new DialogInterface.OnClickListener()
+                		{
+                			public void onClick(DialogInterface dialog, int which)
+                			{
+                				;
+                			}
+                		}).show();
+            }
+        });
+    }
+
+    
+    private void onClickCheckSettings(View v) {
+    	String title = getResources().getString(R.string.checkSettingsProgressDialogTitle);
+    	String msg = getResources().getString(R.string.checkSettingsProgressDialogMessage);
+    	mProgDialog = ProgressDialog.show(this, 
+    			title, 
+    			msg, 
+    			true,   // no time limit 
+    			false); // user cannot cancel
+    	new Thread(this).start();
+    }
+        
 }
