@@ -25,12 +25,16 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 
+import android.util.Log;
+
 public class ImapClient
 {
-
+	private static final String LOG_TAG = at.dasz.KolabDroid.Utils.LOG_TAG_IMAPCLIENT;
+	
 	public static Store openServer(Session session, String hostname,
 			String username, String password) throws MessagingException
 	{
+		Log.v(LOG_TAG, "Opening session to " + hostname + " with user " + username);
 		Store store = session.getStore("imap");
 		store.connect(hostname, username, password);
 		return store;
@@ -38,17 +42,21 @@ public class ImapClient
 
 	public static Session getDefaultImapSession(int port, boolean useSsl)
 	{
+		java.security.Security.setProperty("ssl.SocketFactory.provider", "at.dasz.KolabDroid.Imap.SpecialKeystoreSSLSocketFactory");
+
+		Log.v(LOG_TAG, "useSSL=" + useSsl);
 		java.util.Properties props = new java.util.Properties();
 		if (useSsl)
 		{
-			props.setProperty("mail.imap.socketFactory.class",
-					"javax.net.ssl.SSLSocketFactory");
+			props.setProperty("mail.imap.socketFactory.fallback", "false");
+			props.setProperty("mail.imap.ssl.enable", "true");
+			props.put("mail.imap.ssl.socketFactory", new SpecialKeystoreSSLSocketFactory());
+		} else {
+			props.setProperty("mail.imap.ssl.enable", "false");
 		}
+		
 		props.setProperty("mail.imap.socketFactory.fallback", "false");
-		props.setProperty("mail.imap.socketFactory.port", Integer
-				.toString(port));
-		props.setProperty("mail.imap.port", Integer
-				.toString(port));
+		props.setProperty("mail.imap.port", Integer.toString(port));
 
 		Session session = Session.getDefaultInstance(props);
 		return session;
