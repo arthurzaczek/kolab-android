@@ -47,6 +47,8 @@ public class ImapClient
 		props.setProperty("mail.imap.socketFactory.fallback", "false");
 		props.setProperty("mail.imap.socketFactory.port", Integer
 				.toString(port));
+		props.setProperty("mail.imap.port", Integer
+				.toString(port));
 
 		Session session = Session.getDefaultInstance(props);
 		return session;
