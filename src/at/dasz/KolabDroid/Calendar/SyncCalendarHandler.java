@@ -225,8 +225,57 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 				sb.append(";INTERVAL=" + interval);
 			}
 
+			Element range = Utils.getXmlElement(recurrence, "range");
+			if (range != null)
+			{
+				String rangestr = Utils.getXmlElementString(range);
+				String rangeType = Utils.getXmlAttributeString(range, "type");
+				Log.d("sync", "rangeType=" + rangeType + "   value=" + rangestr);
+				if ("date".equals(rangeType)) {
+					Time rangeEndDate = new Time("UTC");
+					rangeEndDate.parse3339(rangestr);
+					rangeEndDate.allDay = false;
+					// jump to last second of current day 
+					// (== next day minus 1 second)
+					// otherwise daily recurrences last one day too much
+					rangeEndDate.monthDay += 1;
+					rangeEndDate.second -= 1;
+					rangeEndDate.normalize(true);
+					sb.append(";UNTIL=" + rangeEndDate.format2445());
+				} else {
+					Log.e("sync", "rangeType=" + rangeType + " is not implemented!");
+				}
+			}
+
+			String exclusionDateString = new String();
+			NodeList exclusions = Utils.getXmlElements(recurrence, "exclusion");
+			int exclusionNumber = exclusions.getLength();
+			for (int i = 0; i < exclusionNumber; i++)
+			{
+				Element exclusion = (Element) exclusions.item(i);
+				String day = Utils.getXmlElementString(exclusion);
+				Time exclusionDate = new Time("UTC");
+				exclusionDate.parse3339(day);
+				exclusionDate.allDay = false;
+				if (!(start.allDay)) {
+					// if event is not a whole-day-event then use specific
+					// date+time as exception instead of date-only.
+					exclusionDate.hour = start.hour;
+					exclusionDate.minute = start.minute;
+					exclusionDate.second = start.second;
+				}
+				if (exclusionDateString.length() > 0) {
+					exclusionDateString = exclusionDateString + ",";
+				}
+				exclusionDateString = exclusionDateString + exclusionDate.format2445();
+			}
+			if (exclusionDateString.length() > 0) {
+				cal.setexDate(exclusionDateString);
+			}
+
 			cal.setrRule(sb.toString());
 			Log.d("sync", "RRule = " + cal.getrRule());
+			Log.d("sync", "ExDate = " + cal.getexDate());
 		}
 
 		sync.setCacheEntry(saveCalender(cal));
