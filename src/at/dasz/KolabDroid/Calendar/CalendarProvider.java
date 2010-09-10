@@ -32,9 +32,8 @@ import at.dasz.KolabDroid.Sync.SyncException;
 
 public class CalendarProvider
 {
-	// changed in 2.2 from content://calendar/events
 	public static final Uri			CALENDAR_URI	= Uri
-															.parse("content://com.android.calendar/events");
+															.parse("content://calendar/events");
 	public static final String		_ID				= "_id";
 
 	private static final String[]	projection		= new String[] { "_id",
