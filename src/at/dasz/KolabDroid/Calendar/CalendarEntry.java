@@ -45,6 +45,7 @@ public class CalendarEntry
 	private int					visibility;
 	private int					hasAlarm;
 	private String				rRule;
+	private String				exDate;
 	private String				uid;
 	private int					reminderTime = -1;
 
@@ -180,6 +181,16 @@ public class CalendarEntry
 	public void setrRule(String rRule)
 	{
 		this.rRule = rRule;
+	}
+
+	public String getexDate()
+	{
+		return exDate;
+	}
+
+	public void setexDate(String exDate)
+	{
+		this.exDate = exDate;
 	}
 
 	public int getReminderTime()

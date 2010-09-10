@@ -40,7 +40,7 @@ public class CalendarProvider
 
 	private static final String[]	projection		= new String[] { "_id",
 			"calendar_id", "title", "allDay", "dtstart", "dtend",
-			"description", "eventLocation", "visibility", "hasAlarm", "rrule" };
+			"description", "eventLocation", "visibility", "hasAlarm", "rrule", "exdate" };
 	private ContentResolver			cr;
 
 	public CalendarProvider(ContentResolver cr)
@@ -178,6 +178,7 @@ public class CalendarProvider
 		values.put("visibility", e.getVisibility());
 		values.put("hasAlarm", e.getHasAlarm());
 		values.put("rrule", e.getrRule());
+		values.put("exdate", e.getexDate());
 
 		if (e.getId() == 0)
 		{
