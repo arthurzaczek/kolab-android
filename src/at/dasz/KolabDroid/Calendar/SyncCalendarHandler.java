@@ -70,10 +70,11 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	{
 		return defaultFolderName;
 	}
-	
+
 	public boolean shouldProcess()
 	{
-		boolean hasFolder = (defaultFolderName != null && !"".equals(defaultFolderName));
+		boolean hasFolder = (defaultFolderName != null && !""
+				.equals(defaultFolderName));
 		return settings.getSyncCalendar() && hasFolder;
 	}
 
@@ -121,6 +122,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 	@Override
 	protected void updateLocalItemFromServer(SyncContext sync, Document xml)
+			throws SyncException
 	{
 		CalendarEntry cal = (CalendarEntry) sync.getLocalItem();
 		if (cal == null)
@@ -133,155 +135,176 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		cal.setDescription(Utils.getXmlElementString(root, "body"));
 		cal.setTitle(Utils.getXmlElementString(root, "summary"));
 		cal.setEventLocation(Utils.getXmlElementString(root, "location"));
-		
+
 		int reminderTime = Utils.getXmlElementInt(root, "alarm", -1);
-		if(reminderTime > -1)
+		if (reminderTime > -1)
 		{
 			cal.setHasAlarm(1);
 			cal.setReminderTime(reminderTime);
 		}
 
-		Time start = Utils.getXmlElementTime(root, "start-date");
-		Time end = Utils.getXmlElementTime(root, "end-date");
-
-		cal.setDtstart(start);
-		cal.setDtend(end);
-
-		cal.setAllDay(start.hour == 0 && end.hour == 0 && start.minute == 0
-				&& end.minute == 0 && start.second == 0 && end.second == 0);
-
-		Element recurrence = Utils.getXmlElement(root, "recurrence");
-		if (recurrence != null)
+		try
 		{
-			StringBuilder sb = new StringBuilder();
-			String cycle = Utils.getXmlAttributeString(recurrence, "cycle")
-					.toUpperCase();
-			sb.append("FREQ=");
-			sb.append(cycle);
+			Time start = Utils.getXmlElementTime(root, "start-date");
+			Time end = Utils.getXmlElementTime(root, "end-date");
 
-			sb.append(";WKST=");
-			int firstDayOfWeek = Calendar.getInstance().getFirstDayOfWeek();
-			switch (firstDayOfWeek)
-			{
-			case Calendar.MONDAY:
-				sb.append("MO");
-				break;
-			case Calendar.TUESDAY:
-				sb.append("TU");
-				break;
-			case Calendar.WEDNESDAY:
-				sb.append("WE");
-				break;
-			case Calendar.THURSDAY:
-				sb.append("TH");
-				break;
-			case Calendar.FRIDAY:
-				sb.append("FR");
-				break;
-			case Calendar.SATURDAY:
-				sb.append("SA");
-				break;
-			case Calendar.SUNDAY:
-				sb.append("SU");
-				break;
-			}
+			cal.setDtstart(start);
+			cal.setDtend(end);
 
-			int daynumber = Utils.getXmlElementInt(recurrence, "daynumber", 0);
-			NodeList days = Utils.getXmlElements(recurrence, "day");
-			int daysLength = days.getLength();
-			if (daysLength > 0)
+			cal.setAllDay(start.hour == 0 && end.hour == 0 && start.minute == 0
+					&& end.minute == 0 && start.second == 0 && end.second == 0);
+
+			Element recurrence = Utils.getXmlElement(root, "recurrence");
+			if (recurrence != null)
 			{
-				sb.append(";BYDAY=");
-				for (int i = 0; i < daysLength; i++)
+				StringBuilder sb = new StringBuilder();
+				String cycle = Utils.getXmlAttributeString(recurrence, "cycle")
+						.toUpperCase();
+				sb.append("FREQ=");
+				sb.append(cycle);
+
+				sb.append(";WKST=");
+				int firstDayOfWeek = Calendar.getInstance().getFirstDayOfWeek();
+				switch (firstDayOfWeek)
 				{
-					if (daynumber > 1) sb.append(daynumber);
-
-					Element day = (Element) days.item(i);
-					String d = Utils.getXmlElementString(day);
-					sb.append(CalendarEntry.kolabWeekDayToWeekDay(d));
-
-					if ((i + 1) < daysLength) sb.append(",");
+				case Calendar.MONDAY:
+					sb.append("MO");
+					break;
+				case Calendar.TUESDAY:
+					sb.append("TU");
+					break;
+				case Calendar.WEDNESDAY:
+					sb.append("WE");
+					break;
+				case Calendar.THURSDAY:
+					sb.append("TH");
+					break;
+				case Calendar.FRIDAY:
+					sb.append("FR");
+					break;
+				case Calendar.SATURDAY:
+					sb.append("SA");
+					break;
+				case Calendar.SUNDAY:
+					sb.append("SU");
+					break;
 				}
 
-				if (CalendarEntry.YEARLY.equals(cycle))
+				int daynumber = Utils.getXmlElementInt(recurrence, "daynumber",
+						0);
+				NodeList days = Utils.getXmlElements(recurrence, "day");
+				int daysLength = days.getLength();
+				if (daysLength > 0)
 				{
-					String month = Utils.getXmlElementString(recurrence,
-							"month");
-					if (month != null && !"".equals(month))
+					sb.append(";BYDAY=");
+					for (int i = 0; i < daysLength; i++)
 					{
-						sb.append(";BYMONTH=");
-						sb.append(CalendarEntry.kolabMonthToMonth(month));
+						if (daynumber > 1) sb.append(daynumber);
+
+						Element day = (Element) days.item(i);
+						String d = Utils.getXmlElementString(day);
+						sb.append(CalendarEntry.kolabWeekDayToWeekDay(d));
+
+						if ((i + 1) < daysLength) sb.append(",");
+					}
+
+					if (CalendarEntry.YEARLY.equals(cycle))
+					{
+						String month = Utils.getXmlElementString(recurrence,
+								"month");
+						if (month != null && !"".equals(month))
+						{
+							sb.append(";BYMONTH=");
+							sb.append(CalendarEntry.kolabMonthToMonth(month));
+						}
 					}
 				}
-			}
-			else if (daynumber != 0 && CalendarEntry.MONTHLY.equals(cycle))
-			{
-				sb.append(";BYMONTHDAY=" + daynumber);
-			}
-
-			int interval = Utils.getXmlElementInt(recurrence, "interval", 0);
-			if (interval > 1)
-			{
-				sb.append(";INTERVAL=" + interval);
-			}
-
-			Element range = Utils.getXmlElement(recurrence, "range");
-			if (range != null)
-			{
-				String rangestr = Utils.getXmlElementString(range);
-				String rangeType = Utils.getXmlAttributeString(range, "type");
-				Log.d("sync", "rangeType=" + rangeType + "   value=" + rangestr);
-				if ("date".equals(rangeType)) {
-					Time rangeEndDate = new Time("UTC");
-					rangeEndDate.parse3339(rangestr);
-					rangeEndDate.allDay = false;
-					// jump to last second of current day 
-					// (== next day minus 1 second)
-					// otherwise daily recurrences last one day too much
-					rangeEndDate.monthDay += 1;
-					rangeEndDate.second -= 1;
-					rangeEndDate.normalize(true);
-					sb.append(";UNTIL=" + rangeEndDate.format2445());
-				} else {
-					Log.e("sync", "rangeType=" + rangeType + " is not implemented!");
+				else if (daynumber != 0 && CalendarEntry.MONTHLY.equals(cycle))
+				{
+					sb.append(";BYMONTHDAY=" + daynumber);
 				}
-			}
 
-			String exclusionDateString = new String();
-			NodeList exclusions = Utils.getXmlElements(recurrence, "exclusion");
-			int exclusionNumber = exclusions.getLength();
-			for (int i = 0; i < exclusionNumber; i++)
-			{
-				Element exclusion = (Element) exclusions.item(i);
-				String day = Utils.getXmlElementString(exclusion);
-				Time exclusionDate = new Time("UTC");
-				exclusionDate.parse3339(day);
-				exclusionDate.allDay = false;
-				if (!(start.allDay)) {
-					// if event is not a whole-day-event then use specific
-					// date+time as exception instead of date-only.
-					exclusionDate.hour = start.hour;
-					exclusionDate.minute = start.minute;
-					exclusionDate.second = start.second;
+				int interval = Utils
+						.getXmlElementInt(recurrence, "interval", 0);
+				if (interval > 1)
+				{
+					sb.append(";INTERVAL=" + interval);
 				}
-				if (exclusionDateString.length() > 0) {
-					exclusionDateString = exclusionDateString + ",";
-				}
-				exclusionDateString = exclusionDateString + exclusionDate.format2445();
-			}
-			if (exclusionDateString.length() > 0) {
-				cal.setexDate(exclusionDateString);
-			}
 
-			cal.setrRule(sb.toString());
-			Log.d("sync", "RRule = " + cal.getrRule());
-			Log.d("sync", "ExDate = " + cal.getexDate());
+				Element range = Utils.getXmlElement(recurrence, "range");
+				if (range != null)
+				{
+					String rangestr = Utils.getXmlElementString(range);
+					String rangeType = Utils.getXmlAttributeString(range,
+							"type");
+					Log.d("sync", "rangeType=" + rangeType + "   value="
+							+ rangestr);
+					if ("date".equals(rangeType))
+					{
+						Time rangeEndDate = new Time("UTC");
+						rangeEndDate.parse3339(rangestr);
+						rangeEndDate.allDay = false;
+						// jump to last second of current day
+						// (== next day minus 1 second)
+						// otherwise daily recurrences last one day too much
+						rangeEndDate.monthDay += 1;
+						rangeEndDate.second -= 1;
+						rangeEndDate.normalize(true);
+						sb.append(";UNTIL=" + rangeEndDate.format2445());
+					}
+					else
+					{
+						Log.e("sync", "rangeType=" + rangeType
+								+ " is not implemented!");
+					}
+				}
+
+				String exclusionDateString = new String();
+				NodeList exclusions = Utils.getXmlElements(recurrence,
+						"exclusion");
+				int exclusionNumber = exclusions.getLength();
+				for (int i = 0; i < exclusionNumber; i++)
+				{
+					Element exclusion = (Element) exclusions.item(i);
+					String day = Utils.getXmlElementString(exclusion);
+					Time exclusionDate = new Time("UTC");
+					exclusionDate.parse3339(day);
+					exclusionDate.allDay = false;
+					if (!(start.allDay))
+					{
+						// if event is not a whole-day-event then use specific
+						// date+time as exception instead of date-only.
+						exclusionDate.hour = start.hour;
+						exclusionDate.minute = start.minute;
+						exclusionDate.second = start.second;
+					}
+					if (exclusionDateString.length() > 0)
+					{
+						exclusionDateString = exclusionDateString + ",";
+					}
+					exclusionDateString = exclusionDateString
+							+ exclusionDate.format2445();
+				}
+				if (exclusionDateString.length() > 0)
+				{
+					cal.setexDate(exclusionDateString);
+				}
+
+				cal.setrRule(sb.toString());
+				Log.d("sync", "RRule = " + cal.getrRule());
+				Log.d("sync", "ExDate = " + cal.getexDate());
+			}
+		}
+		catch (Exception ex)
+		{
+			throw new SyncException(cal.getTitle(),
+					"Unable to parse server item: " + ex.getMessage());
 		}
 
 		sync.setCacheEntry(saveCalender(cal));
 	}
 
-	private CacheEntry saveCalender(CalendarEntry cal)
+	private CacheEntry saveCalender(CalendarEntry cal) throws SyncException
 	{
 		cal.setCalendar_id(1);
 		calendarProvider.save(cal);
@@ -300,7 +323,8 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	}
 
 	@Override
-	protected void updateServerItemFromLocal(SyncContext sync, Document xml) throws SyncException
+	protected void updateServerItemFromLocal(SyncContext sync, Document xml)
+			throws SyncException
 	{
 		CalendarEntry source = getLocalItem(sync);
 		CacheEntry entry = sync.getCacheEntry();
@@ -318,7 +342,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	// private final static java.util.regex.Pattern regWKST =
 	// java.util.regex.Pattern
 	// .compile(";WKST=(\\w*)");
-	private final static java.util.regex.Pattern    regUNTIL            = java.util.regex.Pattern
+	private final static java.util.regex.Pattern	regUNTIL			= java.util.regex.Pattern
 																				.compile(".*;UNTIL=(\\d{8})T(\\d*)");
 	private final static java.util.regex.Pattern	regBYDAY			= java.util.regex.Pattern
 																				.compile(".*;BYDAY=([\\+\\-\\,0-9A-Z]*);?.*");
@@ -338,37 +362,39 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 		Utils.setXmlElementValue(xml, root, "uid", source.getUid());
 		Utils.setXmlElementValue(xml, root, "body", source.getDescription());
-		Utils.setXmlElementValue(xml, root, "last-modification-date", Utils
-				.toUtc(lastChanged));
+		Utils.setXmlElementValue(xml, root, "last-modification-date",
+				Utils.toUtc(lastChanged));
 		Utils.setXmlElementValue(xml, root, "summary", source.getTitle());
-		Utils.setXmlElementValue(xml, root, "location", source
-				.getEventLocation());
-		
-		//times have to be in UTC, according to
-		//http://www.kolab.org/doc/kolabformat-2.0rc7-html/x123.html
+		Utils.setXmlElementValue(xml, root, "location",
+				source.getEventLocation());
+
+		// times have to be in UTC, according to
+		// http://www.kolab.org/doc/kolabformat-2.0rc7-html/x123.html
 		Time startTime = source.getDtstart();
 		startTime.switchTimezone("UTC");
-		
-		Utils.setXmlElementValue(xml, root, "start-date", startTime
-				.format3339(source.getAllDay()));
-		
-		if(source.getHasAlarm() != 0)
+
+		Utils.setXmlElementValue(xml, root, "start-date",
+				startTime.format3339(source.getAllDay()));
+
+		if (source.getHasAlarm() != 0)
 		{
-			Utils.setXmlElementValue(xml, root, "alarm", Integer.toString(source.getReminderTime()));
+			Utils.setXmlElementValue(xml, root, "alarm",
+					Integer.toString(source.getReminderTime()));
 		}
-		
+
 		Time endTime = source.getDtend();
 		endTime.switchTimezone("UTC");
-		
+
 		if (source.getAllDay())
 		{
-		  // whole day events (1 day) do start and end on the same day in kolab XML.
-		  // so subtract one day to get proper XML.
-		  endTime.monthDay -= 1;
-		  endTime.normalize(true);
+			// whole day events (1 day) do start and end on the same day in
+			// kolab XML.
+			// so subtract one day to get proper XML.
+			endTime.monthDay -= 1;
+			endTime.normalize(true);
 		}
-		Utils.setXmlElementValue(xml, root, "end-date", endTime
-				.format3339(source.getAllDay()));
+		Utils.setXmlElementValue(xml, root, "end-date",
+				endTime.format3339(source.getAllDay()));
 
 		String rrule = source.getrRule();
 		if (rrule != null && !"".equals(rrule))
@@ -385,10 +411,10 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			if (result.matches())
 			{
 				cycle = result.group(1);
-				Utils.setXmlAttributeValue(xml, recurrence, "cycle", cycle
-						.toLowerCase());
+				Utils.setXmlAttributeValue(xml, recurrence, "cycle",
+						cycle.toLowerCase());
 			}
-			
+
 			// /////////// Interval /////////////
 			result = regINTERVAL.matcher(rrule);
 			if (result.matches())
@@ -398,7 +424,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			}
 			else
 			{
-				//TODO: kmail/kontact need this default value?
+				// TODO: kmail/kontact need this default value?
 				Utils.setXmlElementValue(xml, recurrence, "interval", "1");
 			}
 
@@ -485,7 +511,8 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			}
 			Utils.setXmlElementValue(xml, recurrence, "month", month);
 
-			// Android does know UNTIL but only if an event and following recurrences have
+			// Android does know UNTIL but only if an event and following
+			// recurrences have
 			// been deleted
 			Element range = Utils.getOrCreateXmlElement(xml, recurrence,
 					"range");
@@ -497,8 +524,8 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 				rangeEndDate.parse(result.group(1));
 				rangeEndDate.monthDay -= 1;
 				rangeEndDate.normalize(true);
-				Utils.setXmlElementValue(xml, recurrence, "range", rangeEndDate
-						.format3339(true));
+				Utils.setXmlElementValue(xml, recurrence, "range",
+						rangeEndDate.format3339(true));
 			}
 			else
 			{
@@ -533,7 +560,8 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		if (sync.getLocalItem() != null) return (CalendarEntry) sync
 				.getLocalItem();
 		CalendarEntry c = calendarProvider.loadCalendarEntry(sync
-				.getCacheEntry().getLocalId(), sync.getCacheEntry().getRemoteId());
+				.getCacheEntry().getLocalId(), sync.getCacheEntry()
+				.getRemoteId());
 		sync.setLocalItem(c);
 		return c;
 	}

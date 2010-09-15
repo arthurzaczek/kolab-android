@@ -148,7 +148,7 @@ public class CalendarProvider
 		//cr.delete(CALENDAR_ALERT_URI, "event_id=?", new String[]{Integer.toString(id)});		
 	}
 
-	public void save(CalendarEntry e)
+	public void save(CalendarEntry e) throws SyncException
 	{
 		ContentValues values = new ContentValues();
 		long start = e.getDtstart().toMillis(true);
@@ -183,6 +183,7 @@ public class CalendarProvider
 		if (e.getId() == 0)
 		{
 			Uri newUri = cr.insert(CALENDAR_URI, values);
+			if(newUri == null) throw new SyncException(e.getTitle(), "Unable to create new Calender Entry, provider returned null uri.");
 			e.setId((int) ContentUris.parseId(newUri));
 		}
 		else
