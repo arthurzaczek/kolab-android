@@ -148,11 +148,18 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			Time start = Utils.getXmlElementTime(root, "start-date");
 			Time end = Utils.getXmlElementTime(root, "end-date");
 
-			cal.setDtstart(start);
-			cal.setDtend(end);
-
 			cal.setAllDay(start.hour == 0 && end.hour == 0 && start.minute == 0
 					&& end.minute == 0 && start.second == 0 && end.second == 0);
+
+			cal.setDtstart(start);
+			
+			// allday events of length n days have dtend == dtstart + (n-1) in kolab,
+			// android calendar has dtend == dtstart + n.
+			if (cal.getAllDay()) {
+				end.monthDay += 1;
+				end.toMillis(true);
+			}
+			cal.setDtend(end);
 
 			Element recurrence = Utils.getXmlElement(root, "recurrence");
 			if (recurrence != null)
