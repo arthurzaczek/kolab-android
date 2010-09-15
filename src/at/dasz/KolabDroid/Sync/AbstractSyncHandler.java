@@ -54,7 +54,7 @@ import at.dasz.KolabDroid.Utils;
 import at.dasz.KolabDroid.Settings.Settings;
 
 /**
- * This class contains common code for all local data stores and defines the 
+ * This class contains common code for all local data stores and defines the
  * store-specific functionality that has to be implemented by the store.
  */
 public abstract class AbstractSyncHandler implements SyncHandler
@@ -70,8 +70,8 @@ public abstract class AbstractSyncHandler implements SyncHandler
 
 	protected StatusEntry	status;
 	protected Context		context;
-	
-	protected Settings settings;
+
+	protected Settings		settings;
 
 	protected abstract String getMimeType();
 
@@ -85,28 +85,34 @@ public abstract class AbstractSyncHandler implements SyncHandler
 	 * @throws MessagingException
 	 */
 	protected abstract String writeXml(SyncContext sync)
-			throws ParserConfigurationException, SyncException, MessagingException;
+			throws ParserConfigurationException, SyncException,
+			MessagingException;
 
 	/**
 	 * Create a human readable description of the specified item to be displayed
-	 * as text/plain part in the mail.  
+	 * as text/plain part in the mail.
+	 * 
 	 * @param sync
 	 * @return
 	 * @throws SyncException
 	 * @throws MessagingException
 	 */
-	protected abstract String getMessageBodyText(SyncContext sync) throws SyncException, MessagingException;
+	protected abstract String getMessageBodyText(SyncContext sync)
+			throws SyncException, MessagingException;
 
 	/**
 	 * Create a short human readable string describing an item for log messages.
+	 * 
 	 * @param sync
 	 * @return
 	 * @throws MessagingException
 	 */
-	public abstract String getItemText(SyncContext sync) throws MessagingException;
+	public abstract String getItemText(SyncContext sync)
+			throws MessagingException;
 
 	/**
-	 * Update the local item from the specified XML Document. 
+	 * Update the local item from the specified XML Document.
+	 * 
 	 * @param sync
 	 * @param xml
 	 * @throws SyncException
@@ -116,6 +122,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 
 	/**
 	 * Update the specified XML Document from the local item.
+	 * 
 	 * @param sync
 	 * @param xml
 	 * @throws SyncException
@@ -126,6 +133,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 
 	/**
 	 * Delete the local item with the specified ID.
+	 * 
 	 * @param localId
 	 * @throws SyncException
 	 */
@@ -136,10 +144,10 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		return status;
 	}
 
-	//public void createLocalItemFromServer(SyncContext sync)
-	public void createLocalItemFromServer(Session session, Folder folder, SyncContext sync)
-			throws MessagingException, ParserConfigurationException,
-			IOException, SyncException
+	// public void createLocalItemFromServer(SyncContext sync)
+	public void createLocalItemFromServer(Session session, Folder folder,
+			SyncContext sync) throws MessagingException,
+			ParserConfigurationException, IOException, SyncException
 	{
 		Log.d("sync", "Downloading item ...");
 		try
@@ -188,66 +196,22 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		c.setRemoteChangedDate(dt);
 		c.setRemoteId(m.getSubject());
 		c.setRemoteSize(m.getSize());
-		
-		//set correct remote hash
-		InputStream is = null;
+
+		// set correct remote hash
+		InputStream is = extractXml(m);
+		Document doc = null;
 		try
 		{
-			DataSource mainDataSource = m.getDataHandler()
-					.getDataSource();
-			if ((mainDataSource instanceof MultipartDataSource))
-			{
-
-				MultipartDataSource multipart = (MultipartDataSource) mainDataSource;
-				for (int idx = 0; idx < multipart.getCount(); idx++)
-				{
-					BodyPart p = multipart.getBodyPart(idx);
-	
-					if (!p.isMimeType("text/plain"))
-					{
-						is = p.getInputStream();
-						break;
-					}
-				}
-			}
-			else
-			{
-				MimeMultipart multipart = (MimeMultipart) m.getContent();
-				
-				for (int idx = 0; idx < multipart.getCount(); idx++)
-				{
-					BodyPart p = multipart.getBodyPart(idx);
-	
-					if (!p.isMimeType("text/plain"))
-					{
-						is = p.getInputStream();
-						break;
-					}
-				}				
-			}
+			doc = Utils.getDocument(is);
+			String docText = Utils.getXml(doc.getDocumentElement());
+			byte[] remoteHash = Utils.sha1Hash(docText);
+			c.setRemoteHash(remoteHash);
 		}
 		catch (Exception ex)
 		{
-			ex.printStackTrace();
+			Log.e("EE", ex.toString());
 		}
-		
-		if(is != null)
-		{
-			Document doc = null;
-			try
-			{
-				doc = Utils.getDocument(is);
-				String docText = Utils.getXml(doc.getDocumentElement());			
-				byte[] remoteHash = Utils.sha1Hash(docText);
-				c.setRemoteHash(remoteHash);
-			}
-			catch (Exception ex)
-			{
-				Log.e("EE", ex.toString());
-			}						
-		}
-		
-		
+
 		getLocalCacheProvider().saveEntry(c);
 	}
 
@@ -263,7 +227,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		entry.setLocalId(localId);
 		sync.setCacheEntry(entry);
 
-		String xml = writeXml(sync);		
+		String xml = writeXml(sync);
 		Message m = wrapXmlInMessage(session, sync, xml);
 		targetFolder.appendMessages(new Message[] { m });
 		m.saveChanges();
@@ -323,9 +287,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 	public void deleteServerItem(SyncContext sync) throws MessagingException,
 			SyncException
 	{
-		Log
-				.d("sync", "Deleting from server: "
-						+ sync.getMessage().getSubject());
+		Log.d("sync", "Deleting from server: " + sync.getMessage().getSubject());
 		sync.getMessage().setFlag(Flag.DELETED, true);
 		// remove contents too, to avoid confusing the butchered JAF
 		// message.setContent("", "text/plain");
@@ -333,7 +295,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		getLocalCacheProvider().deleteEntry(sync.getCacheEntry());
 	}
 
-	//private InputStream extractXml(Message message)
+	// private InputStream extractXml(Message message)
 	protected InputStream extractXml(Message message)
 	{
 		try
@@ -368,7 +330,8 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		result.setSubject(sync.getCacheEntry().getRemoteId());
 		result.setSentDate(sync.getCacheEntry().getRemoteChangedDate());
 		result.setFrom(new InternetAddress("kolab-android@dasz.at"));
-		result.setRecipient(RecipientType.TO, new InternetAddress("kolab-android@dasz.at"));
+		result.setRecipient(RecipientType.TO, new InternetAddress(
+				"kolab-android@dasz.at"));
 		result.setHeader("User-Agent", "kolab-android 0.1");
 		result.setHeader("X-Kolab-Type", getMimeType());
 		MimeMultipart mp = new MimeMultipart();
@@ -399,12 +362,12 @@ public abstract class AbstractSyncHandler implements SyncHandler
 
 		return result;
 	}
-	
+
 	public Settings getSettings()
 	{
 		return this.settings;
 	}
-	
+
 	public void setSettings(Settings settings)
 	{
 		this.settings = settings;
