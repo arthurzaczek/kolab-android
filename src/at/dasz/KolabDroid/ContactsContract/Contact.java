@@ -1,6 +1,7 @@
 package at.dasz.KolabDroid.ContactsContract;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -16,6 +17,8 @@ public class Contact
 	private String				uid;
 	private String				givenName, familyName;
 	private String				birthday = ""; //string as in android for now
+	private byte[]				photo;
+	private String				notes;
 	
 	public String getBirthday()
 	{
@@ -44,7 +47,7 @@ public class Contact
 
 	public void setFamilyName(String familyName)
 	{
-		this.familyName = familyName;		
+		this.familyName = familyName;
 	}
 
 	private List<ContactMethod>	contactMethods	= new ArrayList<ContactMethod>();
@@ -78,6 +81,24 @@ public class Contact
 	{
 		return givenName + " " + familyName;
 		//return fullName;
+	}
+	
+	public byte[] getPhoto()
+	{
+		return photo;
+	}
+	
+	public void setPhoto(byte[] photo)
+	{
+		this.photo = photo;
+	}
+	
+	public String getNotes() {
+		return notes;
+	}
+	
+	public void setNote(String notes) {
+		this.notes = notes;
 	}
 
 	public List<ContactMethod> getContactMethods()
@@ -125,6 +146,21 @@ public class Contact
 		else
 		{
 			contents.add("noBday");
+		}
+		
+		if (!"".equals(photo))
+		{
+			contents.add(String.valueOf(Arrays.hashCode(photo)));
+		}
+		else
+		{
+			contents.add("noPhoto");
+		}
+		
+		if (!"".equals(notes)) {
+			contents.add(notes);
+		} else {
+			contents.add("noNotes");
 		}
 
 		return Utils.join("|", contents.toArray());
