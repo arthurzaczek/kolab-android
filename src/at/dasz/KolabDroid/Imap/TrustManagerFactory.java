@@ -16,8 +16,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with Kolab Sync for Android.
  *  If not, see <http://www.gnu.org/licenses/>.
- *  
- *  This code contains some code snippets of the k9mail project that is licensed 
+ * 
+ *  This code contains some code snippets of the k9mail project that is licensed
  *  under Apache License 2.0: http://k9mail.googlecode.com/svn/k9mail/trunk (SVN Rev 2337)
  *  Thanks to the k9mail project for their great work!
  */
@@ -36,9 +36,8 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import android.content.Context;
+import android.os.Environment;
 import android.util.Log;
-import at.dasz.KolabDroid.Main;
 
 public class TrustManagerFactory
 {
@@ -163,15 +162,41 @@ public class TrustManagerFactory
         {
             Log.e(LOG_TAG, "NoSuchAlgorithmException while getting X509 instance: ", e);
         }
-		return (X509TrustManager)null;
+		return null;
 	}
-    
 	
 	public static void loadLocalKeystore() throws CertificateException {
 		try {
 	    	java.io.FileInputStream filestream;
-	  
-	    	fileKeystore = new File(Main.app.getDir("keystore", Context.MODE_PRIVATE) + File.separator + "kolabdroid.bks");
+	    	File sdCardFile = Environment.getExternalStorageDirectory();
+	    	
+	    	File androidDir = new File(sdCardFile, "Android");
+	    	if (!androidDir.exists()) {
+	    		if (!androidDir.mkdir())
+	    			Log.e(TrustManagerFactory.class.getSimpleName(), "Couldn't create directory " + androidDir.toString());
+	    	}
+	    	
+	    	File dataDir = new File(androidDir, "data");
+	    	if (!dataDir.exists()) {
+	    		if (!dataDir.mkdir())
+	    			Log.e(TrustManagerFactory.class.getSimpleName(), "Couldn't create directory " + dataDir.toString());
+	    	}
+	    	
+	    	File kolabDir = new File(dataDir, "at.dasz.KolabDroid");
+	    	if (!kolabDir.exists()) {
+	    		if (!kolabDir.mkdir())
+	    			Log.e(TrustManagerFactory.class.getSimpleName(), "Couldn't create directory " + kolabDir.toString());
+	    	}
+	    	
+    	
+	    	if (!kolabDir.exists()) {
+    			Log.e(TrustManagerFactory.class.getSimpleName(), "KolabDroid data directory "+kolabDir.getAbsolutePath()+" does not exist.");
+    			throw new RuntimeException("KolabDroid data directory "+kolabDir.getAbsolutePath()+" does not exist.");
+	    	}
+	    	
+//	    	fileKeystore = new File(Main.app.getDir("keystore", Context.MODE_PRIVATE), "kolabdroid-keystore.bks");
+	    	fileKeystore = new File(kolabDir, "kolabdroid-keystore.bks");
+	    	
 	    	// get KeyStore instance that will be loaded with our own local KeyStore
 	    	mKeystore = KeyStore.getInstance(KeyStore.getDefaultType());
 
@@ -198,12 +223,12 @@ public class TrustManagerFactory
                 mKeystore = null;
             }
 
-            // create and initialize TMFactory with our own keystore 
+            // create and initialize TMFactory with our own keystore
             // ==> our keystore should accept certificates added by user
 			mSpecialKeystoreTrustManager = createTrustManager(mKeystore);
 			
-            // create and initialise a default TMFactory with system wide keystore 
-            // ==> this TM will used by default and falls back to mSpecialKeystoreTrustManager 
+            // create and initialise a default TMFactory with system wide keystore
+            // ==> this TM will used by default and falls back to mSpecialKeystoreTrustManager
             mDefaultTrustManager = createTrustManager( (KeyStore)null );
 		}
 		catch (KeyStoreException e)

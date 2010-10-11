@@ -18,38 +18,42 @@
  *  You should have received a copy of the GNU General Public License
  *  along with Kolab Sync for Android.
  *  If not, see <http://www.gnu.org/licenses/>.
- *  
- *  This code contains some code snippets of the k9mail project that is licensed 
+ * 
+ *  This code contains some code snippets of the k9mail project that is licensed
  *  under Apache License 2.0: http://k9mail.googlecode.com/svn/k9mail/trunk (SVN Rev 2337)
  *  Thanks to the k9mail project for their great work!
  */
 
 package at.dasz.KolabDroid.Settings;
 
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Store;
+import javax.net.ssl.SSLException;
+
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Process;
-import android.view.View;
+import android.provider.ContactsContract;
 import android.util.Log;
+import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Toast;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.Imap.ImapClient;
 import at.dasz.KolabDroid.Imap.TrustManagerFactory;
-import javax.mail.Session;
-import javax.mail.Store;
-import javax.mail.MessagingException;
-import javax.net.ssl.SSLException;
 
 public class SettingsView extends Activity implements Runnable {
 	public static final String EDIT_SETTINGS_ACTION = "at.dasz.KolabDroid.Settings.action.EDIT_TITLE";
@@ -118,7 +122,7 @@ public class SettingsView extends Activity implements Runnable {
 		
 		isInitializing = false;
 	}
-
+	
 	@Override
 	protected void onPause() {
         pref.edit();
@@ -190,13 +194,13 @@ public class SettingsView extends Activity implements Runnable {
     {
         Log.e("SettingsView", "failure():" + msg, use);
         mHandler.post( new Runnable()
-        { 
+        {
         	public void run() {
         		if (mDestroyed) {
         			return;
         		}
         		Toast toast = Toast.makeText(getApplication(), msg, Toast.LENGTH_LONG);
-                toast.show();        		
+                toast.show();
         	}
         });
         
@@ -209,11 +213,11 @@ public class SettingsView extends Activity implements Runnable {
 		try
 		{
 			Session session = ImapClient.getDefaultImapSession(
-					pref.getPort(), 
+					pref.getPort(),
 					pref.getUseSSL());
-			server = ImapClient.openServer(session, 
-					pref.getHost(), 
-					pref.getUsername(), 
+			server = ImapClient.openServer(session,
+					pref.getHost(),
+					pref.getUsername(),
 					pref.getPassword());
 		}
 		catch (final MessagingException e) {
@@ -285,7 +289,7 @@ public class SettingsView extends Activity implements Runnable {
 
                 new AlertDialog.Builder(SettingsView.this)
                 .setTitle(getString(R.string.checkSettingsTestFailedInvalidCertificateTitle))
-                .setMessage(getString(R.string.checkSettingsTestFailedInvalidCertificateMessage) + 
+                .setMessage(getString(R.string.checkSettingsTestFailedInvalidCertificateMessage) +
                 			exMessage + ":\n" + chainInfo.toString() )
                 .setCancelable(true)
                 .setPositiveButton(
@@ -350,12 +354,36 @@ public class SettingsView extends Activity implements Runnable {
     private void onClickCheckSettings(View v) {
     	String title = getResources().getString(R.string.checkSettingsProgressDialogTitle);
     	String msg = getResources().getString(R.string.checkSettingsProgressDialogMessage);
-    	mProgDialog = ProgressDialog.show(this, 
-    			title, 
-    			msg, 
-    			true,   // no time limit 
+    	mProgDialog = ProgressDialog.show(this,
+    			title,
+    			msg,
+    			true,   // no time limit
     			false); // user cannot cancel
     	new Thread(this).start();
+    }
+    
+    private void onClickSaveSettings(View v) {
+    	// check for account and create if non-existent
+		AccountManager accountManager = AccountManager.get(this);
+		final String syncAccountType = getResources().getString(R.string.SYNC_ACCOUNT_TYPE);
+		Account[] accounts = accountManager.getAccountsByType(syncAccountType);
+		Account syncAccount;
+		
+		if (accounts.length == 0) {
+			final String syncAccountName = getResources().getString(R.string.SYNC_ACCOUNT_NAME);
+			syncAccount = new Account(syncAccountName, syncAccountType);
+			accountManager.addAccountExplicitly(syncAccount, null, null);
+			
+			ContentResolver cr = getContentResolver();
+			ContentValues values = new ContentValues();
+			values.put(ContactsContract.Settings.ACCOUNT_TYPE, syncAccountType);
+			values.put(ContactsContract.Settings.ACCOUNT_NAME, syncAccountName);
+			values.put(ContactsContract.Settings.UNGROUPED_VISIBLE, 1);
+			values.put(ContactsContract.Settings.SHOULD_SYNC, 0);
+			cr.insert(android.provider.ContactsContract.Settings.CONTENT_URI, values);
+		} else {
+			syncAccount = accounts[0];
+		}
     }
         
 }

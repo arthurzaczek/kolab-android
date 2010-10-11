@@ -57,4 +57,6 @@
 <string name="settingsHeadlineContacts">Contact Settings</string>
 <string name="checkSettingsTestFailedInvalidCertificateMessage">Cannot safely connect to server.\n</string>
 <string name="checkSettingsTestFailedInvalidCertificateDefaultErrorMsg">Unknown error</string>
+<string name="SYNC_ACCOUNT_TYPE">at.dasz.kolabdroid</string>
+<string name="SYNC_ACCOUNT_NAME">KolabDroid SyncAccount</string>
 </resources>

@@ -23,6 +23,7 @@ package at.dasz.KolabDroid.Settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.format.Time;
 
 public class Settings {
 	public static final String SETTINGS = "SETTINGS";
@@ -31,7 +32,7 @@ public class Settings {
 	private SharedPreferences.Editor edit;
 	
 	public Settings(Context ctx) {
-		pref = ctx.getSharedPreferences(SETTINGS, Context.MODE_PRIVATE);		
+		pref = ctx.getSharedPreferences(SETTINGS, Context.MODE_PRIVATE);
 	}
 	
 	public void edit() {
@@ -150,5 +151,21 @@ public class Settings {
 	
 	public void setAccountName(String name) {
 		edit.putString("ACCOUNT_NAME", name);
+	}
+	public Time getLastContactSyncTime() {
+		Time time = new Time();
+		time.set(pref.getLong("LAST_CONTACT_SYNC_TIME", 0));
+		return time;
+	}
+	public void setLastContactSyncTime(Time lastSyncTime) {
+		edit.putLong("LAST_CONTACT_SYNC_TIME", lastSyncTime.toMillis(true));
+	}
+	public Time getLastCalendarSyncTime() {
+		Time time = new Time();
+		time.set(pref.getLong("LAST_CALENDAR_SYNC_TIME", 0));
+		return time;
+	}
+	public void setLastCalendarSyncTime(Time lastSyncTime) {
+		edit.putLong("LAST_CALENDAR_SYNC_TIME", lastSyncTime.toMillis(true));
 	}
 }
