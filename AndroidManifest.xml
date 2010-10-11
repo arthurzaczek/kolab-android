@@ -22,10 +22,9 @@
 		
 		<service android:name=".Sync.ResetService" />
 		<service android:name=".Sync.ResetSoftService" />
-
-<!--
 		<service android:name=".Sync.SyncService" />
-		 		
+		
+<!--		 		
  		<receiver android:name=".Sync.SyncServiceManager" 
 		 android:enabled="true" 
 		 android:exported="false"
