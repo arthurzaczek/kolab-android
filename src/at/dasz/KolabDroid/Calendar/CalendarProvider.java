@@ -26,16 +26,16 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.text.format.DateUtils;
 import android.text.format.Time;
 import at.dasz.KolabDroid.Sync.SyncException;
 
 public class CalendarProvider
 {
-	public static final Uri			CALENDAR_URI	= Uri
-															.parse("content://com.android.calendar/events");
-	public static final Uri CALENDAR_ALERT_URI = Uri.parse("content://com.android.calendar/calendar_alerts");
-	public static final Uri CALENDAR_REMINDER_URI = Uri.parse("content://com.android.calendar/reminders");
+	public static Uri CALENDAR_URI;
+	public static Uri CALENDAR_ALERT_URI;
+	public static Uri CALENDAR_REMINDER_URI;
 	public static final String		_ID				= "_id";
 
 	private static final String[]	projection		= new String[] { "_id",
@@ -46,6 +46,19 @@ public class CalendarProvider
 	public CalendarProvider(ContentResolver cr)
 	{
 		this.cr = cr;
+		
+		if(Build.VERSION.SDK_INT == 7) // android 2.1
+		{
+			CALENDAR_URI	= Uri.parse("content://calendar/events");
+			CALENDAR_ALERT_URI = Uri.parse("content://calendar/calendar_alerts");
+			CALENDAR_REMINDER_URI = Uri.parse("content://calendar/reminders");
+		}
+		else if(Build.VERSION.SDK_INT == 8) //android 2.2
+		{
+			CALENDAR_URI	= Uri.parse("content://com.android.calendar/events");
+			CALENDAR_ALERT_URI = Uri.parse("content://com.android.calendar/calendar_alerts");
+			CALENDAR_REMINDER_URI = Uri.parse("content://com.android.calendar/reminders");
+		}
 	}
 //
 //	public List<CalendarEntry> loadAllCalendarEntries(int calendar_id) throws SyncException

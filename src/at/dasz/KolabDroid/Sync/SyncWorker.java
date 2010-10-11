@@ -36,11 +36,11 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.os.Build;
 import android.util.Log;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.StatusHandler;
 import at.dasz.KolabDroid.Calendar.SyncCalendarHandler;
-import at.dasz.KolabDroid.ContactsContract.SyncContactsHandler;
 import at.dasz.KolabDroid.Imap.ImapClient;
 import at.dasz.KolabDroid.Provider.LocalCacheProvider;
 import at.dasz.KolabDroid.Provider.StatusProvider;
@@ -79,7 +79,14 @@ public class SyncWorker extends BaseWorker
 			Settings settings = new Settings(this.context);
 			SyncHandler handler = null;
 
-			handler = new SyncContactsHandler(this.context);
+			if(Build.VERSION.SDK_INT <= 6)
+			{
+				handler = new at.dasz.KolabDroid.Contacts.SyncContactsHandler(this.context);
+			}
+			else
+			{
+				handler = new at.dasz.KolabDroid.ContactsContract.SyncContactsHandler(this.context);
+			}
 			if (shouldProcess(handler))
 			{
 				status = handler.getStatus();
