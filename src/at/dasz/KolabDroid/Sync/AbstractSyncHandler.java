@@ -153,6 +153,11 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		try
 		{
 			InputStream xmlinput = extractXml(sync.getMessage());
+			if(null == xmlinput)
+			{
+				//skip non kolab message instead of crashing
+				return;
+			}
 			Document doc = Utils.getDocument(xmlinput);
 			updateLocalItemFromServer(sync, doc);
 			updateCacheEntryFromMessage(sync);
