@@ -22,6 +22,7 @@
 package at.dasz.KolabDroid.ContactsContract;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -29,6 +30,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
+import javax.mail.BodyPart;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -36,6 +41,9 @@ import javax.mail.Multipart;
 import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.Flags.Flag;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
@@ -1188,12 +1196,59 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		Element root = messageXml.getDocumentElement();
 		Utils.setXmlElementValue(messageXml, root, "picture", "kolab-picture.png");
 		
-		// TODO complete this method
+		// TODO uncomment and test this method
 		
 		// delete existing photo if any
 		
 		// create new attachment for new photo
 		// http://java.sun.com/developer/onlineTraining/JavaMail/contents.html#SendingAttachments explains how
+/*
+		try
+		{
+			if(message.getContent() instanceof MimeMultipart)
+			{
+				MimeMultipart mmp = (MimeMultipart) message.getContent();
+				
+				//find picture attachment and remove it
+				int removePartNo = -1;
+				for(int i=0; i < mmp.getCount(); i++)
+				{
+					Part p = mmp.getBodyPart(i);
+					if ("kolab-picture.png".equals(p.getFileName()) &&
+						p.getContentType().equals("image/png"))
+					{
+						removePartNo = i;
+					}
+				}
+				if(removePartNo > -1)
+				{
+					mmp.removeBodyPart(removePartNo);
+				}
+				
+				//add picture as kolab-picture.png				
+				if(photo != null)
+				{
+					BodyPart part = new MimeBodyPart();				
+					DataSource source = new ByteArrayDataSource(photo, "image/png");
+					part.setDataHandler(new DataHandler(source));
+					part.setFileName("kolab-picture.png");
+					
+					mmp.addBodyPart(part);
+				}
+			}
+		}
+		catch (IOException ex)
+		{
+			// TODO Auto-generated catch block
+			ex.printStackTrace();
+		}
+		catch (MessagingException ex)
+		{
+			// TODO Auto-generated catch block
+			ex.printStackTrace();
+		}
+*/
+		
 	}
 	
 	/**
