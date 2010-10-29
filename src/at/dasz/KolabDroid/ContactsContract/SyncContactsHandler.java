@@ -1207,6 +1207,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		{
 			if(message.getContent() instanceof MimeMultipart)
 			{
+				//TODO: this gives us a copy instead of a reference to the message content?
 				MimeMultipart mmp = (MimeMultipart) message.getContent();
 				
 				//find picture attachment and remove it
@@ -1214,8 +1215,9 @@ public class SyncContactsHandler extends AbstractSyncHandler
 				for(int i=0; i < mmp.getCount(); i++)
 				{
 					Part p = mmp.getBodyPart(i);
-					if ("kolab-picture.png".equals(p.getFileName()) &&
-						p.getContentType().equals("image/png"))
+					//if ("kolab-picture.png".equals(p.getFileName()) &&
+					//	p.getContentType().equals("image/png"))
+					if ("kolab-picture.png".equals(p.getFileName()))
 					{
 						removePartNo = i;
 					}
@@ -1228,13 +1230,17 @@ public class SyncContactsHandler extends AbstractSyncHandler
 				//add picture as kolab-picture.png				
 				if(photo != null)
 				{
-					BodyPart part = new MimeBodyPart();				
+					//TODO: which part type? IMAPBodyPart?
+					BodyPart part = new MimeBodyPart();
+					//TODO: type with name?
 					DataSource source = new ByteArrayDataSource(photo, "image/png");
 					part.setDataHandler(new DataHandler(source));
 					part.setFileName("kolab-picture.png");
 					
 					mmp.addBodyPart(part);
 				}
+				
+				Log.d("ConH:", "multipart complete?");
 			}
 		}
 		catch (IOException ex)
@@ -1247,8 +1253,9 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			// TODO Auto-generated catch block
 			ex.printStackTrace();
 		}
+
+		Log.d("ConH", "bla");
 */
-		
 	}
 	
 	/**

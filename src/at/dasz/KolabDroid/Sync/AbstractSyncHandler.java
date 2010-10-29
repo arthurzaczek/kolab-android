@@ -359,6 +359,8 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		messageBodyPart.setDataHandler(new DataHandler(source));
 		messageBodyPart.setFileName("kolab.xml");
 		mp.addBodyPart(messageBodyPart);
+		
+		//TODO: append attachments from message
 
 		result.setContent(mp);
 
