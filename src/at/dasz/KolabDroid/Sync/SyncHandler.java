@@ -24,6 +24,7 @@ package at.dasz.KolabDroid.Sync;
 import java.io.IOException;
 
 import javax.mail.Folder;
+import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.xml.parsers.ParserConfigurationException;
@@ -184,4 +185,23 @@ public interface SyncHandler
 	 * @param settings
 	 */
 	public abstract void setSettings(Settings settings);
+	/**
+	 * Checks whether the specified CacheEntry and the Message are in sync.
+	 * Creates a HashValue for the Remote Message, needs to retrieve it first
+	 * 
+	 * @param entry
+	 * @param message
+	 * @return
+	 * @throws MessagingException
+	 */
+	public boolean isSameRemoteHash(CacheEntry cacheEntry, Message message) throws MessagingException;
+	/**
+	 * Checks whether the specified CacheEntry and the Message are in sync.
+	 * 
+	 * @param entry
+	 * @param message
+	 * @return
+	 * @throws MessagingException
+	 */
+	public boolean isSame(CacheEntry cacheEntry, Message message) throws MessagingException;
 }

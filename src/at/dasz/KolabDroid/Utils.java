@@ -98,7 +98,6 @@ public final class Utils
 				e.removeChild(nl.item(i));
 			}
 			// add new text node
-			if (value == null) value = "";
 			Text t = xml.createTextNode(value);
 			e.appendChild(t);
 		}

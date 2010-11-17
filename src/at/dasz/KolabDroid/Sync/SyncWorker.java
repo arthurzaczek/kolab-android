@@ -252,11 +252,11 @@ public class SyncWorker extends BaseWorker
 						boolean cacheIsSame = false;						
 						if(settings.getCreateRemoteHash())
 						{
-							cacheIsSame = CacheEntry.isSameRemoteHash(sync.getCacheEntry(), sync.getMessage());
+							cacheIsSame = handler.isSameRemoteHash(sync.getCacheEntry(), sync.getMessage());
 						}
 						else
 						{
-							cacheIsSame = CacheEntry.isSame(sync.getCacheEntry(), sync.getMessage());
+							cacheIsSame = handler.isSame(sync.getCacheEntry(), sync.getMessage());
 						}
 						
 						//if (CacheEntry.isSame(sync.getCacheEntry(), sync.getMessage()) && !DBG_REMOTE_CHANGED)
