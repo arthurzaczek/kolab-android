@@ -194,8 +194,8 @@ public class SyncWorker extends BaseWorker
 			Message[] msgs = sourceFolder.getMessages();
 			FetchProfile fp = new FetchProfile();
 			fp.add(FetchProfile.Item.CONTENT_INFO);
-			fp.add("Subject");
-			fp.add("Date");
+			fp.add(FetchProfile.Item.FLAGS);
+			fp.add(FetchProfile.Item.ENVELOPE);
 			sourceFolder.fetch(msgs, fp);
 
 			LocalCacheProvider cache = handler.getLocalCacheProvider();
