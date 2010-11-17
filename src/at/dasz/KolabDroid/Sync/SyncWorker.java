@@ -22,6 +22,7 @@
 package at.dasz.KolabDroid.Sync;
 
 import java.io.IOException;
+import java.security.cert.CertificateException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,12 +43,13 @@ import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.StatusHandler;
 import at.dasz.KolabDroid.Calendar.SyncCalendarHandler;
 import at.dasz.KolabDroid.Imap.ImapClient;
+import at.dasz.KolabDroid.Imap.TrustManagerFactory;
 import at.dasz.KolabDroid.Provider.LocalCacheProvider;
 import at.dasz.KolabDroid.Provider.StatusProvider;
 import at.dasz.KolabDroid.Settings.Settings;
 
 /**
- * The background worker that implements the main synchronization algorithm. 
+ * The background worker that implements the main synchronization algorithm.
  */
 public class SyncWorker extends BaseWorker
 {
@@ -79,13 +81,15 @@ public class SyncWorker extends BaseWorker
 			Settings settings = new Settings(this.context);
 			SyncHandler handler = null;
 
-			if(Build.VERSION.SDK_INT <= 6)
+			if (Build.VERSION.SDK_INT <= 6)
 			{
-				handler = new at.dasz.KolabDroid.Contacts.SyncContactsHandler(this.context);
+				handler = new at.dasz.KolabDroid.Contacts.SyncContactsHandler(
+						this.context);
 			}
 			else
 			{
-				handler = new at.dasz.KolabDroid.ContactsContract.SyncContactsHandler(this.context);
+				handler = new at.dasz.KolabDroid.ContactsContract.SyncContactsHandler(
+						this.context);
 			}
 			if (shouldProcess(handler))
 			{
@@ -94,7 +98,7 @@ public class SyncWorker extends BaseWorker
 				{
 					sync(settings, handler);
 				}
-				catch(Exception ex)
+				catch (Exception ex)
 				{
 					// Save fatal sync exception
 					status.setFatalErrorMsg(ex.toString());
@@ -120,7 +124,7 @@ public class SyncWorker extends BaseWorker
 				{
 					sync(settings, handler);
 				}
-				catch(Exception ex)
+				catch (Exception ex)
 				{
 					// Save fatal sync exception
 					status.setFatalErrorMsg(ex.toString());
@@ -162,24 +166,31 @@ public class SyncWorker extends BaseWorker
 	{
 		return handler.shouldProcess();
 		/*
-		return handler.getDefaultFolderName() != null
-				&& !"".equals(handler.getDefaultFolderName());
-		*/
+		 * return handler.getDefaultFolderName() != null &&
+		 * !"".equals(handler.getDefaultFolderName());
+		 */
 	}
 
 	private void sync(Settings settings, SyncHandler handler)
 			throws MessagingException, IOException,
-			ParserConfigurationException, SyncException
+			ParserConfigurationException, SyncException, CertificateException
 	{
-		//handler.setSettings(settings); //handler should be able to react on settings
-		
+		// handler.setSettings(settings); //handler should be able to react on
+		// settings
+
 		StatusHandler.writeStatus(R.string.connect_server);
 		Store server = null;
 		Folder sourceFolder = null;
 		try
 		{
-			Session session = ImapClient.getDefaultImapSession(settings
-					.getPort(), settings.getUseSSL());
+			if (settings.getUseSSL())
+			{
+				Log.v("sync", "loading local keystore");
+				TrustManagerFactory.loadLocalKeystore(context);
+			}
+
+			Session session = ImapClient.getDefaultImapSession(
+					settings.getPort(), settings.getUseSSL());
 			server = ImapClient.openServer(session, settings.getHost(),
 					settings.getUsername(), settings.getPassword());
 
@@ -187,7 +198,7 @@ public class SyncWorker extends BaseWorker
 
 			// Numbers in comments and messages reference Gargan's Algorithm and
 			// the wiki
-			
+
 			// 1. retrieve list of all imap message headers
 			sourceFolder = server.getFolder(handler.getDefaultFolderName());
 			sourceFolder.open(Folder.READ_WRITE);
@@ -233,47 +244,48 @@ public class SyncWorker extends BaseWorker
 
 					if (sync.getCacheEntry() == null)
 					{
-						Log.i("sync", "6. found no local entry => save");						
-						handler.createLocalItemFromServer(session, sourceFolder, sync);
+						Log.i("sync", "6. found no local entry => save");
+						handler.createLocalItemFromServer(session,
+								sourceFolder, sync);
 						status.incrementLocalNew();
 						if (sync.getCacheEntry() == null)
 						{
-							Log
-									.w(
-											"sync",
-											"createLocalItemFromServer returned a null object! See Logfile for parsing errors");
+							Log.w("sync",
+									"createLocalItemFromServer returned a null object! See Logfile for parsing errors");
 						}
 
 					}
 					else
 					{
-						Log.d("sync", "7. compare data to figure out what happened");
-						
-						boolean cacheIsSame = false;						
-						if(settings.getCreateRemoteHash())
+						Log.d("sync",
+								"7. compare data to figure out what happened");
+
+						boolean cacheIsSame = false;
+						if (settings.getCreateRemoteHash())
 						{
-							cacheIsSame = handler.isSameRemoteHash(sync.getCacheEntry(), sync.getMessage());
+							cacheIsSame = handler.isSameRemoteHash(
+									sync.getCacheEntry(), sync.getMessage());
 						}
 						else
 						{
-							cacheIsSame = handler.isSame(sync.getCacheEntry(), sync.getMessage());
+							cacheIsSame = handler.isSame(sync.getCacheEntry(),
+									sync.getMessage());
 						}
-						
-						//if (CacheEntry.isSame(sync.getCacheEntry(), sync.getMessage()) && !DBG_REMOTE_CHANGED)
-						if(cacheIsSame && !DBG_REMOTE_CHANGED)
+
+						// if (CacheEntry.isSame(sync.getCacheEntry(),
+						// sync.getMessage()) && !DBG_REMOTE_CHANGED)
+						if (cacheIsSame && !DBG_REMOTE_CHANGED)
 						{
 							Log.d("sync", "7.a/d cur=localdb");
 							if (handler.hasLocalItem(sync))
 							{
-								Log
-										.d("sync",
-												"7.a check for local changes and upload them");
+								Log.d("sync",
+										"7.a check for local changes and upload them");
 								if (handler.hasLocalChanges(sync)
 										|| DBG_LOCAL_CHANGED)
 								{
-									Log
-											.i("sync",
-													"local changes found: updating ServerItem from Local");									
+									Log.i("sync",
+											"local changes found: updating ServerItem from Local");
 									handler.updateServerItemFromLocal(session,
 											sourceFolder, sync);
 									status.incrementRemoteChanged();
@@ -281,30 +293,27 @@ public class SyncWorker extends BaseWorker
 							}
 							else
 							{
-								Log
-										.i("sync",
-												"7.d entry missing => delete on server");
+								Log.i("sync",
+										"7.d entry missing => delete on server");
 								handler.deleteServerItem(sync);
 								status.incrementRemoteDeleted();
 							}
 						}
 						else
 						{
-							Log
-									.d("sync",
-											"7.b/c check for local changes and \"resolve\" the conflict");
+							Log.d("sync",
+									"7.b/c check for local changes and \"resolve\" the conflict");
 							if (handler.hasLocalChanges(sync))
 							{
-								Log
-										.i("sync",
-												"7.c local changes found: conflicting, updating local item from server");
+								Log.i("sync",
+										"7.c local changes found: conflicting, updating local item from server");
 								status.incrementConflicted();
 							}
 							else
 							{
 								Log.i("sync", "7.b no local changes found:"
 										+ " updating local item from server");
-							}							
+							}
 							handler.updateLocalItemFromServer(sync);
 							status.incrementLocalChanged();
 						}
@@ -361,7 +370,7 @@ public class SyncWorker extends BaseWorker
 					if (sync.getCacheEntry() != null)
 					{
 						Log.i("sync",
-								"9.b found in local cache: deleting locally");						
+								"9.b found in local cache: deleting locally");
 						handler.deleteLocalItem(sync);
 						status.incrementLocalDeleted();
 						status.incrementItems();
@@ -369,9 +378,8 @@ public class SyncWorker extends BaseWorker
 					}
 					else
 					{
-						Log
-								.i("sync",
-										"9.c not found in local cache: creating on server");						
+						Log.i("sync",
+								"9.c not found in local cache: creating on server");
 						handler.createServerItemFromLocal(session,
 								sourceFolder, sync, localId);
 						status.incrementRemoteNew();

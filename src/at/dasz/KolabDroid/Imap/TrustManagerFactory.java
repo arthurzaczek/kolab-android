@@ -38,7 +38,6 @@ import javax.net.ssl.X509TrustManager;
 
 import android.content.Context;
 import android.util.Log;
-import at.dasz.KolabDroid.Main;
 
 public class TrustManagerFactory
 {
@@ -91,7 +90,8 @@ public class TrustManagerFactory
 		return mLastUsedChain;
 	}
 	
-	public static void addCertificateChainToKeystore(X509Certificate[] chain) throws CertificateException {
+	public static void addCertificateChainToKeystore(Context ctx, X509Certificate[] chain) throws CertificateException {
+		loadLocalKeystore(ctx);
         try
         {
             for (X509Certificate element : chain)
@@ -167,11 +167,12 @@ public class TrustManagerFactory
 	}
     
 	
-	public static void loadLocalKeystore() throws CertificateException {
+	public static void loadLocalKeystore(Context ctx) throws CertificateException {
+		if(mKeystore != null) return; // loaded, nothing to do
 		try {
 	    	java.io.FileInputStream filestream;
 	  
-	    	fileKeystore = new File(Main.app.getDir("keystore", Context.MODE_PRIVATE) + File.separator + "kolabdroid.bks");
+	    	fileKeystore = new File(ctx.getDir("keystore", Context.MODE_PRIVATE) + File.separator + "kolabdroid.bks");
 	    	// get KeyStore instance that will be loaded with our own local KeyStore
 	    	mKeystore = KeyStore.getInstance(KeyStore.getDefaultType());
 
@@ -218,9 +219,5 @@ public class TrustManagerFactory
 	
 	public static X509TrustManager get() {
 		return SpecialX509TrustManager.getInstance();
-	}
-	
-	public static KeyStore getKeyStore() {
-		return mKeystore;
 	}
 }
