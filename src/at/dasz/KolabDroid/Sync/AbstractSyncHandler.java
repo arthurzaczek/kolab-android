@@ -153,9 +153,9 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		try
 		{
 			InputStream xmlinput = extractXml(sync.getMessage());
-			if(null == xmlinput)
+			if (null == xmlinput)
 			{
-				//skip non kolab message instead of crashing
+				// skip non kolab message instead of crashing
 				return;
 			}
 			Document doc = Utils.getDocument(xmlinput);
@@ -204,17 +204,20 @@ public abstract class AbstractSyncHandler implements SyncHandler
 
 		// set correct remote hash
 		InputStream is = extractXml(m);
-		Document doc = null;
-		try
+		if (is != null)
 		{
-			doc = Utils.getDocument(is);
-			String docText = Utils.getXml(doc.getDocumentElement());
-			byte[] remoteHash = Utils.sha1Hash(docText);
-			c.setRemoteHash(remoteHash);
-		}
-		catch (Exception ex)
-		{
-			Log.e("EE", ex.toString());
+			Document doc = null;
+			try
+			{
+				doc = Utils.getDocument(is);
+				String docText = Utils.getXml(doc.getDocumentElement());
+				byte[] remoteHash = Utils.sha1Hash(docText);
+				c.setRemoteHash(remoteHash);
+			}
+			catch (Exception ex)
+			{
+				Log.e("EE", ex.toString());
+			}
 		}
 
 		getLocalCacheProvider().saveEntry(c);
@@ -307,15 +310,32 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		{
 			DataSource mainDataSource = message.getDataHandler()
 					.getDataSource();
-			if (!(mainDataSource instanceof MultipartDataSource)) { return null; }
-
-			MultipartDataSource multipart = (MultipartDataSource) mainDataSource;
-			for (int idx = 0; idx < multipart.getCount(); idx++)
+			if ((mainDataSource instanceof MultipartDataSource))
 			{
-				BodyPart p = multipart.getBodyPart(idx);
 
-				if (p.isMimeType(getMimeType())) { return p.getInputStream(); }
+				MultipartDataSource multipart = (MultipartDataSource) mainDataSource;
+				for (int idx = 0; idx < multipart.getCount(); idx++)
+				{
+					BodyPart p = multipart.getBodyPart(idx);
+
+					if (p.isMimeType(getMimeType())) { return p
+							.getInputStream(); }
+				}
 			}
+			else
+			{
+				MimeMultipart multipart = (MimeMultipart) message.getContent();
+
+				for (int idx = 0; idx < multipart.getCount(); idx++)
+				{
+					BodyPart p = multipart.getBodyPart(idx);
+
+					if (p.isMimeType(getMimeType())) { return p
+							.getInputStream(); }
+				}
+			}
+
+			return null;
 		}
 		catch (MessagingException ex)
 		{
