@@ -48,7 +48,7 @@ public class KolabCalendarSyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		Settings s = new Settings(this.context);
 		Time supposedSyncTime = s.getLastCalendarSyncTime();
-		supposedSyncTime.monthDay += 1;
+		supposedSyncTime.hour += 6;
 		supposedSyncTime.normalize(false);
 		
 		Time currentTime = new Time();
@@ -59,7 +59,9 @@ public class KolabCalendarSyncAdapter extends AbstractThreadedSyncAdapter {
 			s.setSyncContacts(false);
 			s.setSyncCalendar(true);
 			s.save();
-			SyncService.startSync(this.context);
+			
+			SyncWorker syncWorker = new SyncWorker(this.context);
+			syncWorker.start();
 			
 			s.edit();
 			s.setLastCalendarSyncTime(currentTime);

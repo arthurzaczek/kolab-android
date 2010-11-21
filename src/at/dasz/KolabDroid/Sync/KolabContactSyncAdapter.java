@@ -60,7 +60,8 @@ public class KolabContactSyncAdapter extends AbstractThreadedSyncAdapter {
 			s.setSyncContacts(true);
 			s.setSyncCalendar(false);
 			s.save();
-			SyncService.startSync(this.context);
+			SyncWorker syncWorker = new SyncWorker(this.context);
+			syncWorker.start();
 			
 			s.edit();
 			s.setLastContactSyncTime(currentTime);
@@ -69,5 +70,7 @@ public class KolabContactSyncAdapter extends AbstractThreadedSyncAdapter {
 			Log.i(TAG, "Sync skipped, next sync: " + supposedSyncTime.format3339(false));
 		}
 	}
+	
+	
 
 }

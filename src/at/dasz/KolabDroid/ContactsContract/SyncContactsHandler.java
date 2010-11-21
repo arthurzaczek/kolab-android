@@ -51,6 +51,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import android.accounts.Account;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
 import android.content.ContentResolver;
@@ -69,6 +70,7 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.Photo;
 import android.util.Log;
 import at.dasz.KolabDroid.Utils;
+import at.dasz.KolabDroid.Account.KolabAccountAuthenticatorService;
 import at.dasz.KolabDroid.Provider.LocalCacheProvider;
 import at.dasz.KolabDroid.Settings.Settings;
 import at.dasz.KolabDroid.Sync.AbstractSyncHandler;
@@ -100,7 +102,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	private final LocalCacheProvider	cacheProvider;
 	private final ContentResolver		cr;
 
-//	private Account	syncAccount;
+	private Account	syncAccount;
 
 	public SyncContactsHandler(Context context)
 	{
@@ -112,7 +114,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		cr = context.getContentResolver();
 		status.setTask("Contacts");
 		
-//		syncAccount = KolabAccountAuthenticatorService.getKolabDroidAccount(context);
+		syncAccount = KolabAccountAuthenticatorService.getKolabDroidAccount(context);
 	}
 
 	public String getDefaultFolderName()
@@ -453,14 +455,14 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		{
 			Log.d("ConH", "SC: Contact " + name + " is NEW -> insert");
 			
-			String accountName = settings.getAccountName();
-			if("".equals(accountName)) accountName = null;
-			String accountType = settings.getAccountType();
-			if("".equals(accountType)) accountType = null;
+//			String accountName = settings.getAccountName();
+//			if("".equals(accountName)) accountName = null;
+//			String accountType = settings.getAccountType();
+//			if("".equals(accountType)) accountType = null;
 			
 			ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
-	                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, accountType)
-	                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, accountName)
+	                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, syncAccount.type)
+	                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, syncAccount.name)
 	                .build());
 	        
 			ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
@@ -932,7 +934,6 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			
 			queryCursor.moveToFirst();
 			String mimeType;
-			
 			
 			do {
 				mimeType = queryCursor.getString(0);
