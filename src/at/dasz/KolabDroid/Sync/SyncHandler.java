@@ -22,6 +22,7 @@
 package at.dasz.KolabDroid.Sync;
 
 import java.io.IOException;
+import java.util.Set;
 
 import javax.mail.Folder;
 import javax.mail.Message;
@@ -46,6 +47,19 @@ public interface SyncHandler
 	 * @return
 	 */
 	public StatusEntry getStatus();
+	
+	/**
+	 * Retrieves a list of all local items.
+	 * @return
+	 */
+	public abstract Set<Integer> getAllLocalItemsIDs();
+
+	
+	/**
+	 * fetches all local items and store them in a local, private cache
+	 * @throws SyncException 
+	 */
+	public abstract void fetchAllLocalItems() throws SyncException;
 	
 	/**
 	 * Retrieves a list of all local items.

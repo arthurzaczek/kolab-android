@@ -21,7 +21,10 @@
 
 package at.dasz.KolabDroid.Contacts;
 
+import java.security.KeyStore.LoadStoreParameter;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.mail.MessagingException;
@@ -62,6 +65,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	private final String				defaultFolderName;
 	private final LocalCacheProvider	cacheProvider;
 	private final ContentResolver		cr;
+	private HashMap<Integer, Contact>	localItemsCache;
 
 	public SyncContactsHandler(Context context)
 	{
@@ -78,16 +82,41 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	{
 		return defaultFolderName;
 	}
-	
+
 	public boolean shouldProcess()
 	{
-		boolean hasFolder = (defaultFolderName != null && !"".equals(defaultFolderName));
+		boolean hasFolder = (defaultFolderName != null && !""
+				.equals(defaultFolderName));
 		return settings.getSyncContacts() && hasFolder;
 	}
 
 	public LocalCacheProvider getLocalCacheProvider()
 	{
 		return cacheProvider;
+	}
+
+	public Set<Integer> getAllLocalItemsIDs()
+	{
+		return localItemsCache.keySet();
+	}
+
+	public void fetchAllLocalItems() throws SyncException
+	{
+		localItemsCache = new HashMap<Integer, Contact>();
+		Cursor personCursor = cr.query(People.CONTENT_URI,
+				PEOPLE_NAME_PROJECTION, null, null, null);
+		try
+		{
+			while (personCursor.moveToNext())
+			{
+				Contact result = loadItem(personCursor);
+				localItemsCache.put(result.getId(), result);
+			}
+		}
+		finally
+		{
+			if (personCursor != null) personCursor.close();
+		}
 	}
 
 	public Cursor getAllLocalItemsCursor()
@@ -102,7 +131,8 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	}
 
 	@Override
-	protected void updateLocalItemFromServer(SyncContext sync, Document xml) throws SyncException
+	protected void updateLocalItemFromServer(SyncContext sync, Document xml)
+			throws SyncException
 	{
 		Contact contact = (Contact) sync.getLocalItem();
 		if (contact == null)
@@ -138,7 +168,8 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	}
 
 	@Override
-	protected void updateServerItemFromLocal(SyncContext sync, Document xml) throws SyncException, MessagingException
+	protected void updateServerItemFromLocal(SyncContext sync, Document xml)
+			throws SyncException, MessagingException
 	{
 		Contact source = getLocalItem(sync);
 		CacheEntry entry = sync.getCacheEntry();
@@ -154,8 +185,8 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	{
 		Element root = xml.getDocumentElement();
 
-		Utils.setXmlElementValue(xml, root, "last-modification-date", Utils
-				.toUtc(lastChanged));
+		Utils.setXmlElementValue(xml, root, "last-modification-date",
+				Utils.toUtc(lastChanged));
 
 		Utils.setXmlElementValue(xml, root, "uid", source.getUid());
 
@@ -173,7 +204,8 @@ public class SyncContactsHandler extends AbstractSyncHandler
 
 	@Override
 	protected String writeXml(SyncContext sync)
-			throws ParserConfigurationException, SyncException, MessagingException
+			throws ParserConfigurationException, SyncException,
+			MessagingException
 	{
 		Contact source = getLocalItem(sync);
 		CacheEntry entry = sync.getCacheEntry();
@@ -184,7 +216,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		final String newUid = getNewUid();
 		entry.setRemoteId(newUid);
 		source.setUid(newUid);
-		
+
 		Document xml = Utils.newDocument("contact");
 		writeXml(xml, source, lastChanged);
 
@@ -197,12 +229,14 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		return "application/x-vnd.kolab.contact";
 	}
 
-	public boolean hasLocalItem(SyncContext sync) throws SyncException, MessagingException
+	public boolean hasLocalItem(SyncContext sync) throws SyncException,
+			MessagingException
 	{
 		return getLocalItem(sync) != null;
 	}
 
-	public boolean hasLocalChanges(SyncContext sync) throws SyncException, MessagingException
+	public boolean hasLocalChanges(SyncContext sync) throws SyncException,
+			MessagingException
 	{
 		CacheEntry e = sync.getCacheEntry();
 		Contact contact = getLocalItem(sync);;
@@ -223,13 +257,13 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		Uri uri;
 		if (contact.getId() == 0)
 		{
-			uri = Contacts.People.createPersonInMyContactsGroup(cr, contact
-					.toContentValues());
+			uri = Contacts.People.createPersonInMyContactsGroup(cr,
+					contact.toContentValues());
 		}
 		else
 		{
-			uri = ContentUris.withAppendedId(People.CONTENT_URI, contact
-					.getId());
+			uri = ContentUris.withAppendedId(People.CONTENT_URI,
+					contact.getId());
 			cr.update(uri, contact.toContentValues(), null, null);
 
 			Cursor phoneCursor = null, emailCursor = null;
@@ -239,7 +273,8 @@ public class SyncContactsHandler extends AbstractSyncHandler
 						Contacts.People.Phones.CONTENT_DIRECTORY);
 				phoneCursor = cr.query(phoneDirectoryUri, ID_PROJECTION, null,
 						null, null);
-				if (phoneCursor == null) throw new SyncException(contact.toString(), "cr.query returned null");
+				if (phoneCursor == null) throw new SyncException(
+						contact.toString(), "cr.query returned null");
 				while (phoneCursor.moveToNext())
 				{
 					Uri delUri = ContentUris.withAppendedId(phoneDirectoryUri,
@@ -251,7 +286,8 @@ public class SyncContactsHandler extends AbstractSyncHandler
 						Contacts.People.ContactMethods.CONTENT_DIRECTORY);
 				emailCursor = cr.query(emailDirectoryUri, ID_PROJECTION,
 						EMAIL_FILTER, null, null);
-				if (emailCursor == null) throw new SyncException(contact.toString(), "cr.query returned null");
+				if (emailCursor == null) throw new SyncException(
+						contact.toString(), "cr.query returned null");
 				while (emailCursor.moveToNext())
 				{
 					Uri delUri = ContentUris.withAppendedId(emailDirectoryUri,
@@ -268,36 +304,32 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		}
 		for (ContactMethod method : contact.getContactMethods())
 		{
-			Uri methodUri = Uri.withAppendedPath(uri, method
-					.getContentDirectory());
+			Uri methodUri = Uri.withAppendedPath(uri,
+					method.getContentDirectory());
 			cr.insert(methodUri, method.toContentValues());
 		}
 		CacheEntry result = new CacheEntry();
 		result.setLocalId((int) ContentUris.parseId(uri));
 		result.setLocalHash(contact.getLocalHash());
 		result.setRemoteId(contact.getUid());
+		
+		localItemsCache.put(contact.getId(), contact);
 		return result;
 	}
 
-	private Contact getLocalItem(SyncContext sync) throws SyncException,
-			MessagingException
+	private Contact loadItem(Cursor personCursor) throws SyncException
+			
 	{
-		if (sync.getLocalItem() != null) return (Contact) sync.getLocalItem();
-
-		Uri uri = ContentUris.withAppendedId(People.CONTENT_URI, sync
-				.getCacheEntry().getLocalId());
-		Cursor personCursor = null, phoneCursor = null, emailCursor = null;
+		Cursor phoneCursor = null, emailCursor = null;
 		try
 		{
-			personCursor = cr.query(uri, PEOPLE_NAME_PROJECTION, null, null,
-					null);
 			if (personCursor == null) throw new SyncException(
-					getItemText(sync), "cr.query returned null");
+					"", "cr.query returned null");
 			if (!personCursor.moveToFirst()) return null;
 			Contact result = new Contact();
-			result.setId(sync.getCacheEntry().getLocalId());
-			result.setUid(sync.getCacheEntry().getRemoteId());
-			
+			Uri uri = ContentUris.withAppendedId(People.CONTENT_URI,
+					result.getId());
+
 			final int nameIdx = personCursor.getColumnIndex(People.NAME);
 			result.setFullName(personCursor.getString(nameIdx));
 
@@ -307,7 +339,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 				phoneCursor = cr.query(phoneDirectoryUri, PHONE_PROJECTION,
 						null, null, Contacts.Phones.NUMBER);
 				if (phoneCursor == null) throw new SyncException(
-						getItemText(sync), "cr.query returned null");
+						result.getFullName(), "cr.query returned null");
 
 				final int typeIdx = phoneCursor
 						.getColumnIndex(Contacts.Phones.TYPE);
@@ -327,7 +359,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 				emailCursor = cr.query(emailDirectoryUri, EMAIL_PROJECTION,
 						EMAIL_FILTER, null, Contacts.ContactMethods.DATA);
 				if (emailCursor == null) throw new SyncException(
-						getItemText(sync), "cr.query returned null");
+						result.getFullName(), "cr.query returned null");
 				final int typeIdx = emailCursor
 						.getColumnIndex(Contacts.ContactMethods.TYPE);
 				final int dataIdx = emailCursor
@@ -340,15 +372,27 @@ public class SyncContactsHandler extends AbstractSyncHandler
 					result.getContactMethods().add(pc);
 				}
 			}
-			sync.setLocalItem(result);
 			return result;
 		}
 		finally
 		{
-			if (personCursor != null) personCursor.close();
 			if (phoneCursor != null) phoneCursor.close();
 			if (emailCursor != null) emailCursor.close();
 		}
+	}
+
+	private Contact getLocalItem(SyncContext sync) throws SyncException,
+			MessagingException
+	{
+		if (sync.getLocalItem() != null) return (Contact) sync.getLocalItem();
+
+		Contact c = localItemsCache.get(sync.getCacheEntry().getLocalId());
+		if (c != null)
+		{
+			c.setUid(sync.getCacheEntry().getRemoteId());
+		}
+		sync.setLocalItem(c);
+		return c;
 	}
 
 	private String getNewUid()
@@ -359,12 +403,13 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	}
 
 	@Override
-	protected String getMessageBodyText(SyncContext sync) throws SyncException, MessagingException
+	protected String getMessageBodyText(SyncContext sync) throws SyncException,
+			MessagingException
 	{
 		Contact contact = getLocalItem(sync);
 		StringBuilder sb = new StringBuilder();
 
-		String fullName =contact.getFullName(); 
+		String fullName = contact.getFullName();
 		sb.append(fullName == null ? "(no name)" : fullName);
 		sb.append("\n");
 		sb.append("----- Contact Methods -----\n");

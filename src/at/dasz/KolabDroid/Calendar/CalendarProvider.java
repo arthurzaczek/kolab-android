@@ -39,7 +39,7 @@ public class CalendarProvider
 	public static Uri CALENDAR_REMINDER_URI;
 	public static final String		_ID				= "_id";
 
-	private static final String[]	projection		= new String[] { "_id",
+	public static final String[]	projection		= new String[] { "_id",
 			"calendar_id", "title", "allDay", "dtstart", "dtend",
 			"description", "eventLocation", "visibility", "hasAlarm", "rrule", "exdate" };
 	private ContentResolver			cr;
@@ -61,29 +61,6 @@ public class CalendarProvider
 			CALENDAR_REMINDER_URI = Uri.parse("content://com.android.calendar/reminders");
 		}
 	}
-//
-//	public List<CalendarEntry> loadAllCalendarEntries(int calendar_id) throws SyncException
-//	{
-//		List<CalendarEntry> result = new ArrayList<CalendarEntry>();
-//
-//		Cursor cur = cr.query(CALENDAR_URI, projection, null, null, null);
-//		if (cur == null) throw new SyncException(Integer.toString(calendar_id), "cr.query returned null");
-//		try
-//		{
-//			if (cur.moveToFirst())
-//			{
-//				do
-//				{
-//					result.add(loadCalendarEntry(cur));
-//				} while (cur.moveToNext());
-//			}
-//			return result;
-//		}
-//		finally
-//		{
-//			cur.close();
-//		}
-//	}
 
 	public CalendarEntry loadCalendarEntry(int id, String uid) throws SyncException
 	{
@@ -102,7 +79,7 @@ public class CalendarProvider
 		}
 	}
 
-	private CalendarEntry loadCalendarEntry(Cursor cur, String uid)
+	public CalendarEntry loadCalendarEntry(Cursor cur, String uid)
 	{
 		CalendarEntry e = new CalendarEntry();
 		e.setId(cur.getInt(0));
