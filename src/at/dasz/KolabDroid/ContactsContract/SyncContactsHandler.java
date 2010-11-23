@@ -177,7 +177,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			InputStream xmlinput = extractXml(sync.getMessage());
 			Document doc = Utils.getDocument(xmlinput);
 			updateLocalItemFromServer(sync, doc);
-			updateCacheEntryFromMessage(sync);
+			updateCacheEntryFromMessage(sync, doc);
 
 			if (this.settings.getMergeContactsByName())
 			{
@@ -207,7 +207,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 
 				Log.d("ConH", "IMAP Message replaced after merge");
 
-				updateCacheEntryFromMessage(sync);
+				updateCacheEntryFromMessage(sync, doc);
 			}
 
 		}
