@@ -161,7 +161,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 			}
 			Document doc = Utils.getDocument(xmlinput);
 			updateLocalItemFromServer(sync, doc);
-			updateCacheEntryFromMessage(sync);
+			updateCacheEntryFromMessage(sync, doc);
 		}
 		catch (SAXException ex)
 		{
@@ -183,7 +183,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 				InputStream xmlinput = extractXml(sync.getMessage());
 				Document doc = Utils.getDocument(xmlinput);
 				updateLocalItemFromServer(sync, doc);
-				updateCacheEntryFromMessage(sync);
+				updateCacheEntryFromMessage(sync, doc);
 			}
 			catch (SAXException ex)
 			{
@@ -193,7 +193,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		}
 	}
 
-	protected void updateCacheEntryFromMessage(SyncContext sync)
+	protected void updateCacheEntryFromMessage(SyncContext sync, Document doc)
 			throws MessagingException
 	{
 		CacheEntry c = sync.getCacheEntry();
@@ -202,25 +202,29 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		c.setRemoteChangedDate(dt);
 		c.setRemoteId(m.getSubject());
 		c.setRemoteSize(m.getSize());
-
-		// set correct remote hash
-		InputStream is = extractXml(m);
-		if (is != null)
+		try
 		{
-			Document doc = null;
-			try
+			if (doc == null)
 			{
-				doc = Utils.getDocument(is);
+				// set correct remote hash
+				InputStream is = extractXml(m);
+				if (is != null)
+				{
+					doc = Utils.getDocument(is);
+				}
+			}
+
+			if (doc != null)
+			{
 				String docText = Utils.getXml(doc.getDocumentElement());
 				byte[] remoteHash = Utils.sha1Hash(docText);
 				c.setRemoteHash(remoteHash);
 			}
-			catch (Exception ex)
-			{
-				Log.e("EE", ex.toString());
-			}
 		}
-
+		catch (Exception ex)
+		{
+			Log.e("EE", ex.toString());
+		}
 		getLocalCacheProvider().saveEntry(c);
 	}
 
@@ -241,7 +245,8 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		targetFolder.appendMessages(new Message[] { m });
 		m.saveChanges();
 		sync.setMessage(m);
-		updateCacheEntryFromMessage(sync);
+		// TODO: Improve that
+		updateCacheEntryFromMessage(sync, null);
 	}
 
 	public void updateServerItemFromLocal(Session session, Folder targetFolder,
@@ -272,7 +277,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 			// Replace sync context with new message
 			sync.setMessage(newMessage);
 
-			updateCacheEntryFromMessage(sync);
+			updateCacheEntryFromMessage(sync, doc);
 		}
 		catch (SAXException ex)
 		{

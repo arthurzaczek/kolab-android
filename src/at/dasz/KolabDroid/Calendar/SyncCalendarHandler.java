@@ -23,6 +23,8 @@ package at.dasz.KolabDroid.Calendar;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 
@@ -48,11 +50,13 @@ import at.dasz.KolabDroid.Sync.SyncException;
 
 public class SyncCalendarHandler extends AbstractSyncHandler
 {
-	private final String				defaultFolderName;
-	private final LocalCacheProvider	cacheProvider;
+	private final String					defaultFolderName;
+	private final LocalCacheProvider		cacheProvider;
 
-	private final CalendarProvider		calendarProvider;
-	private final ContentResolver		cr;
+	private final CalendarProvider			calendarProvider;
+	private final ContentResolver			cr;
+
+	private HashMap<Integer, CalendarEntry>	localItemsCache;
 
 	public SyncCalendarHandler(Context context)
 	{
@@ -81,6 +85,31 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	public LocalCacheProvider getLocalCacheProvider()
 	{
 		return cacheProvider;
+	}
+
+	public Set<Integer> getAllLocalItemsIDs()
+	{
+		return localItemsCache.keySet();
+	}
+
+	public void fetchAllLocalItems()
+	{
+		localItemsCache = new HashMap<Integer, CalendarEntry>();
+		Cursor cur = cr.query(CalendarProvider.CALENDAR_URI,
+				CalendarProvider.projection, null, null, null);
+		try
+		{
+			while (cur.moveToNext())
+			{
+				CalendarEntry e = calendarProvider.loadCalendarEntry(cur,
+						"empty");
+				localItemsCache.put(e.getId(), e);
+			}
+		}
+		finally
+		{
+			cur.close();
+		}
 	}
 
 	public int getIdColumnIndex(Cursor c)
@@ -152,10 +181,12 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 					&& end.minute == 0 && start.second == 0 && end.second == 0);
 
 			cal.setDtstart(start);
-			
-			// allday events of length n days have dtend == dtstart + (n-1) in kolab,
+
+			// allday events of length n days have dtend == dtstart + (n-1) in
+			// kolab,
 			// android calendar has dtend == dtstart + n.
-			if (cal.getAllDay()) {
+			if (cal.getAllDay())
+			{
 				end.monthDay += 1;
 				end.toMillis(true);
 			}
@@ -319,6 +350,8 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		result.setLocalId(cal.getId());
 		result.setLocalHash(cal.getLocalHash());
 		result.setRemoteId(cal.getUid());
+
+		localItemsCache.put(cal.getId(), cal);
 		return result;
 	}
 
@@ -566,9 +599,12 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	{
 		if (sync.getLocalItem() != null) return (CalendarEntry) sync
 				.getLocalItem();
-		CalendarEntry c = calendarProvider.loadCalendarEntry(sync
-				.getCacheEntry().getLocalId(), sync.getCacheEntry()
-				.getRemoteId());
+		CalendarEntry c = localItemsCache
+				.get(sync.getCacheEntry().getLocalId());
+		if (c != null)
+		{
+			c.setUid(sync.getCacheEntry().getRemoteId());
+		}
 		sync.setLocalItem(c);
 		return c;
 	}

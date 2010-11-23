@@ -178,11 +178,16 @@ public class SyncWorker extends BaseWorker
 		// handler.setSettings(settings); //handler should be able to react on
 		// settings
 
-		StatusHandler.writeStatus(R.string.connect_server);
 		Store server = null;
 		Folder sourceFolder = null;
 		try
 		{
+			StatusHandler.writeStatus(R.string.fetching_local_items);
+			handler.fetchAllLocalItems();
+			if (isStopping()) return;
+			
+			StatusHandler.writeStatus(R.string.connect_server);
+
 			if (settings.getUseSSL())
 			{
 				Log.v("sync", "loading local keystore");
@@ -336,27 +341,24 @@ public class SyncWorker extends BaseWorker
 			// 9.a upload/delete
 			Log.d("sync", "9. process unprocessed local items");
 
-			Cursor c = handler.getAllLocalItemsCursor();
-			if (c == null) throw new SyncException("getAllLocalItems",
+			Set<Integer> localIDs = handler.getAllLocalItemsIDs();
+			if (localIDs == null) throw new SyncException("getAllLocalItems",
 					"cr.query returned null");
 			int currentLocalItemNo = 1;
+			int itemsCount = localIDs.size();
 			try
 			{
-				final int idColIdx = handler.getIdColumnIndex(c);
-
 				final String processItemFormat = this.context.getResources()
-						.getString(R.string.processing_item_format);
+				.getString(R.string.processing_item_format);
 
-				while (c.moveToNext())
+				for (int localId : localIDs)
 				{
-					if (isStopping()) return;
-
-					int localId = c.getInt(idColIdx);
+					if (isStopping()) return;					
 
 					Log.d("sync", "9. processing #" + localId);
 
 					StatusHandler.writeStatus(String.format(processItemFormat,
-							currentLocalItemNo++, c.getCount()));
+							currentLocalItemNo++, itemsCount));
 
 					if (processedEntries.contains(localId))
 					{
@@ -392,14 +394,7 @@ public class SyncWorker extends BaseWorker
 			{
 				Log.e("sync", ex.toString());
 				status.incrementErrors();
-			}
-			finally
-			{
-				if (!c.isClosed())
-				{
-					c.close();
-				}
-			}
+			}			
 		}
 		finally
 		{
