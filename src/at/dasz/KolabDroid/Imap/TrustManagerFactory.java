@@ -36,7 +36,7 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import android.os.Environment;
+import android.content.Context;
 import android.util.Log;
 
 public class TrustManagerFactory
@@ -90,7 +90,8 @@ public class TrustManagerFactory
 		return mLastUsedChain;
 	}
 	
-	public static void addCertificateChainToKeystore(X509Certificate[] chain) throws CertificateException {
+	public static void addCertificateChainToKeystore(Context ctx, X509Certificate[] chain) throws CertificateException {
+		loadLocalKeystore(ctx);
         try
         {
             for (X509Certificate element : chain)
@@ -165,38 +166,41 @@ public class TrustManagerFactory
 		return null;
 	}
 	
-	public static void loadLocalKeystore() throws CertificateException {
+	public static void loadLocalKeystore(Context ctx) throws CertificateException {
+		if(mKeystore != null) return; // loaded, nothing to do
 		try {
 	    	java.io.FileInputStream filestream;
-	    	File sdCardFile = Environment.getExternalStorageDirectory();
+//	    	File sdCardFile = Environment.getExternalStorageDirectory();
+//
+//	    	File androidDir = new File(sdCardFile, "Android");
+//	    	if (!androidDir.exists()) {
+//	    		if (!androidDir.mkdir())
+//	    			Log.e(TrustManagerFactory.class.getSimpleName(), "Couldn't create directory " + androidDir.toString());
+//	    	}
+//
+//	    	File dataDir = new File(androidDir, "data");
+//	    	if (!dataDir.exists()) {
+//	    		if (!dataDir.mkdir())
+//	    			Log.e(TrustManagerFactory.class.getSimpleName(), "Couldn't create directory " + dataDir.toString());
+//	    	}
+//
+//	    	File kolabDir = new File(dataDir, "at.dasz.KolabDroid");
+//	    	if (!kolabDir.exists()) {
+//	    		if (!kolabDir.mkdir())
+//	    			Log.e(TrustManagerFactory.class.getSimpleName(), "Couldn't create directory " + kolabDir.toString());
+//	    	}
+//
+//
+//	    	if (!kolabDir.exists()) {
+//    			Log.e(TrustManagerFactory.class.getSimpleName(), "KolabDroid data directory "+kolabDir.getAbsolutePath()+" does not exist.");
+//    			throw new RuntimeException("KolabDroid data directory "+kolabDir.getAbsolutePath()+" does not exist.");
+//	    	}
+//
+////	    	fileKeystore = new File(Main.app.getDir("keystore", Context.MODE_PRIVATE), "kolabdroid-keystore.bks");
+//	    	fileKeystore = new File(kolabDir, "kolabdroid-keystore.bks");
 	    	
-	    	File androidDir = new File(sdCardFile, "Android");
-	    	if (!androidDir.exists()) {
-	    		if (!androidDir.mkdir())
-	    			Log.e(TrustManagerFactory.class.getSimpleName(), "Couldn't create directory " + androidDir.toString());
-	    	}
-	    	
-	    	File dataDir = new File(androidDir, "data");
-	    	if (!dataDir.exists()) {
-	    		if (!dataDir.mkdir())
-	    			Log.e(TrustManagerFactory.class.getSimpleName(), "Couldn't create directory " + dataDir.toString());
-	    	}
-	    	
-	    	File kolabDir = new File(dataDir, "at.dasz.KolabDroid");
-	    	if (!kolabDir.exists()) {
-	    		if (!kolabDir.mkdir())
-	    			Log.e(TrustManagerFactory.class.getSimpleName(), "Couldn't create directory " + kolabDir.toString());
-	    	}
-	    	
-    	
-	    	if (!kolabDir.exists()) {
-    			Log.e(TrustManagerFactory.class.getSimpleName(), "KolabDroid data directory "+kolabDir.getAbsolutePath()+" does not exist.");
-    			throw new RuntimeException("KolabDroid data directory "+kolabDir.getAbsolutePath()+" does not exist.");
-	    	}
-	    	
-//	    	fileKeystore = new File(Main.app.getDir("keystore", Context.MODE_PRIVATE), "kolabdroid-keystore.bks");
-	    	fileKeystore = new File(kolabDir, "kolabdroid-keystore.bks");
-	    	
+	  
+	    	fileKeystore = new File(ctx.getDir("keystore", Context.MODE_PRIVATE) + File.separator + "kolabdroid.bks");
 	    	// get KeyStore instance that will be loaded with our own local KeyStore
 	    	mKeystore = KeyStore.getInstance(KeyStore.getDefaultType());
 

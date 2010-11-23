@@ -21,26 +21,10 @@
 
 package at.dasz.KolabDroid.Sync;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
 import java.util.Date;
-
-import javax.activation.DataSource;
-import javax.mail.BodyPart;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.MultipartDataSource;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.sax.Element;
-import android.util.Log;
-import at.dasz.KolabDroid.Utils;
 import at.dasz.KolabDroid.Provider.DatabaseHelper;
 import at.dasz.KolabDroid.Provider.LocalCacheProvider;
 
@@ -159,147 +143,6 @@ public class CacheEntry
 	public void setRemoteHash(byte[] remoteHash)
 	{
 		this.remoteHash = remoteHash;
-	}
-
-	/**
-	 * Checks whether the specified CacheEntry and the Message are in sync.
-	 * Creates a HashValue for the Remote Message, needs to retrieve it first
-	 * 
-	 * @param entry
-	 * @param message
-	 * @return
-	 * @throws MessagingException
-	 */
-	public static boolean isSameRemoteHash(CacheEntry entry, Message message)
-			throws MessagingException
-	{
-		Date dt = null;
-		if(message != null) 
-		{
-			dt = Utils.getMailDate(message);
-		}
-		
-		InputStream is = null;
-		try
-		{
-			DataSource mainDataSource = message.getDataHandler()
-					.getDataSource();
-			if ((mainDataSource instanceof MultipartDataSource))
-			{
-
-				MultipartDataSource multipart = (MultipartDataSource) mainDataSource;
-				for (int idx = 0; idx < multipart.getCount(); idx++)
-				{
-					BodyPart p = multipart.getBodyPart(idx);
-	
-					if (!p.isMimeType("text/plain"))
-					{
-						is = p.getInputStream();
-						break;
-					}
-				}
-			}
-		}
-		catch (Exception ex)
-		{
-			ex.printStackTrace();
-		}
-		
-		boolean remoteHashIsSame = false;
-		
-		if(is != null)
-		{
-			Document doc = null;
-			try
-			{
-				doc = Utils.getDocument(is);
-				String docText = Utils.getXml(doc.getDocumentElement());			
-				byte[] remoteHash = Utils.sha1Hash(docText);
-				if(Arrays.equals(remoteHash, entry.getRemoteHash()))
-				{
-					remoteHashIsSame = true;
-				}
-				else
-				{
-					remoteHashIsSame = false;
-				}
-			}
-			catch (Exception ex)
-			{
-				Log.e("EE", ex.toString());
-			}						
-		}
-		
-		boolean result = entry != null && message != null
-				&& entry.getRemoteChangedDate().equals(dt)
-				&& entry.getRemoteId().equals(message.getSubject())
-				&& remoteHashIsSame;
-
-		if (!result)
-		{
-			if (entry == null) Log.d("syncisSame", "entry == null");
-			if (message == null) Log.d("syncisSame", "message == null");
-			if (entry != null && message != null)
-			{
-				if (!entry.getRemoteChangedDate().equals(dt))
-				{
-					Log.d("syncisSame", "getRemoteChangedDate="
-							+ entry.getRemoteChangedDate() + ", getReceived/SentDate="
-							+ dt);
-				}
-				if (!entry.getRemoteId().equals(message.getSubject()))
-				{
-					Log.d("syncisSame", "getRemoteId=" + entry.getRemoteId()
-							+ ", getSubject=" + message.getSubject());
-				}
-			}
-		}
-
-		return result;
-	}
-	
-	/**
-	 * Checks whether the specified CacheEntry and the Message are in sync.
-	 * 
-	 * @param entry
-	 * @param message
-	 * @return
-	 * @throws MessagingException
-	 */
-	public static boolean isSame(CacheEntry entry, Message message)
-			throws MessagingException
-	{
-		Date dt = null;
-		if(message != null) 
-		{
-			dt = Utils.getMailDate(message);
-		}
-				
-		boolean result = entry != null && message != null
-				&& entry.getRemoteChangedDate().equals(dt)
-				&& entry.getRemoteId().equals(message.getSubject());
-
-		if (!result)
-		{
-			if (entry == null) Log.d("syncisSame", "entry == null");
-			if (message == null) Log.d("syncisSame", "message == null");
-			if (entry != null && message != null)
-			{
-				if (!entry.getRemoteChangedDate().equals(dt))
-				{
-					Log.d("syncisSame", "getRemoteChangedDate="
-							+ entry.getRemoteChangedDate() + ", getReceived/SentDate="
-							+ dt);
-				}
-				if (!entry.getRemoteId().equals(message.getSubject()))
-				{
-					Log.d("syncisSame", "getRemoteId=" + entry.getRemoteId()
-							+ ", getSubject=" + message.getSubject());
-				}
-			}
-		}
-
-		return result;
 	}
 
 	public ContentValues toContentValues()

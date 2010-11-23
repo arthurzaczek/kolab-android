@@ -24,6 +24,7 @@ package at.dasz.KolabDroid.Sync;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.Date;
 
 import javax.activation.DataHandler;
@@ -153,9 +154,9 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		try
 		{
 			InputStream xmlinput = extractXml(sync.getMessage());
-			if(null == xmlinput)
+			if (null == xmlinput)
 			{
-				//skip non kolab message instead of crashing
+				// skip non kolab message instead of crashing
 				return;
 			}
 			Document doc = Utils.getDocument(xmlinput);
@@ -204,17 +205,20 @@ public abstract class AbstractSyncHandler implements SyncHandler
 
 		// set correct remote hash
 		InputStream is = extractXml(m);
-		Document doc = null;
-		try
+		if (is != null)
 		{
-			doc = Utils.getDocument(is);
-			String docText = Utils.getXml(doc.getDocumentElement());
-			byte[] remoteHash = Utils.sha1Hash(docText);
-			c.setRemoteHash(remoteHash);
-		}
-		catch (Exception ex)
-		{
-			Log.e("EE", ex.toString());
+			Document doc = null;
+			try
+			{
+				doc = Utils.getDocument(is);
+				String docText = Utils.getXml(doc.getDocumentElement());
+				byte[] remoteHash = Utils.sha1Hash(docText);
+				c.setRemoteHash(remoteHash);
+			}
+			catch (Exception ex)
+			{
+				Log.e("EE", ex.toString());
+			}
 		}
 
 		getLocalCacheProvider().saveEntry(c);
@@ -307,15 +311,32 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		{
 			DataSource mainDataSource = message.getDataHandler()
 					.getDataSource();
-			if (!(mainDataSource instanceof MultipartDataSource)) { return null; }
-
-			MultipartDataSource multipart = (MultipartDataSource) mainDataSource;
-			for (int idx = 0; idx < multipart.getCount(); idx++)
+			if ((mainDataSource instanceof MultipartDataSource))
 			{
-				BodyPart p = multipart.getBodyPart(idx);
+				MultipartDataSource multipart = (MultipartDataSource) mainDataSource;
+				for (int idx = 0; idx < multipart.getCount(); idx++)
+				{
+					BodyPart p = multipart.getBodyPart(idx);
 
-				if (p.isMimeType(getMimeType())) { return p.getInputStream(); }
+					if (p.isMimeType(getMimeType())) { return p
+							.getInputStream(); }
+				}
 			}
+			else
+			{
+				// What's the difference?
+				MimeMultipart multipart = (MimeMultipart) message.getContent();
+
+				for (int idx = 0; idx < multipart.getCount(); idx++)
+				{
+					BodyPart p = multipart.getBodyPart(idx);
+
+					if (p.isMimeType(getMimeType())) { return p
+							.getInputStream(); }
+				}
+			}
+
+			return null;
 		}
 		catch (MessagingException ex)
 		{
@@ -378,5 +399,106 @@ public abstract class AbstractSyncHandler implements SyncHandler
 	public void setSettings(Settings settings)
 	{
 		this.settings = settings;
+	}
+
+	public boolean isSameRemoteHash(CacheEntry entry, Message message)
+			throws MessagingException
+	{
+		Date dt = null;
+		if (message != null)
+		{
+			dt = Utils.getMailDate(message);
+		}
+
+		InputStream is = extractXml(message);
+		boolean remoteHashIsSame = false;
+
+		if (is != null)
+		{
+			Document doc = null;
+			try
+			{
+				doc = Utils.getDocument(is);
+				String docText = Utils.getXml(doc.getDocumentElement());
+				byte[] remoteHash = Utils.sha1Hash(docText);
+				if (Arrays.equals(remoteHash, entry.getRemoteHash()))
+				{
+					remoteHashIsSame = true;
+				}
+				else
+				{
+					remoteHashIsSame = false;
+				}
+			}
+			catch (Exception ex)
+			{
+				Log.e("EE", ex.toString());
+			}
+		}
+
+		boolean result = entry != null && message != null
+				&& entry.getRemoteChangedDate().equals(dt)
+				&& entry.getRemoteId().equals(message.getSubject())
+				&& remoteHashIsSame;
+
+		if (!result)
+		{
+			if (entry == null) Log.d("syncisSame", "entry == null");
+			if (message == null) Log.d("syncisSame", "message == null");
+			if (entry != null && message != null)
+			{
+				if (!entry.getRemoteChangedDate().equals(dt))
+				{
+					Log.d("syncisSame",
+							"getRemoteChangedDate="
+									+ entry.getRemoteChangedDate()
+									+ ", getReceived/SentDate=" + dt);
+				}
+				if (!entry.getRemoteId().equals(message.getSubject()))
+				{
+					Log.d("syncisSame", "getRemoteId=" + entry.getRemoteId()
+							+ ", getSubject=" + message.getSubject());
+				}
+			}
+		}
+
+		return result;
+	}
+
+	public boolean isSame(CacheEntry entry, Message message)
+			throws MessagingException
+	{
+		Date dt = null;
+		if (message != null)
+		{
+			dt = Utils.getMailDate(message);
+		}
+
+		boolean result = entry != null && message != null
+				&& entry.getRemoteChangedDate().equals(dt)
+				&& entry.getRemoteId().equals(message.getSubject());
+
+		if (!result)
+		{
+			if (entry == null) Log.d("syncisSame", "entry == null");
+			if (message == null) Log.d("syncisSame", "message == null");
+			if (entry != null && message != null)
+			{
+				if (!entry.getRemoteChangedDate().equals(dt))
+				{
+					Log.d("syncisSame",
+							"getRemoteChangedDate="
+									+ entry.getRemoteChangedDate()
+									+ ", getReceived/SentDate=" + dt);
+				}
+				if (!entry.getRemoteId().equals(message.getSubject()))
+				{
+					Log.d("syncisSame", "getRemoteId=" + entry.getRemoteId()
+							+ ", getSubject=" + message.getSubject());
+				}
+			}
+		}
+
+		return result;
 	}
 }

@@ -300,7 +300,7 @@ public class SettingsView extends Activity implements Runnable {
                 			{
                 				try
                 				{
-                					TrustManagerFactory.addCertificateChainToKeystore(chain);
+                					TrustManagerFactory.addCertificateChainToKeystore(getApplicationContext(), chain);
                 				}
 								catch (java.security.cert.CertificateException e)
                 				{

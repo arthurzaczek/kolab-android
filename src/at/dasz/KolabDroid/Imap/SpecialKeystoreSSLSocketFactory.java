@@ -27,7 +27,6 @@ import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.cert.CertificateException;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
@@ -49,8 +48,6 @@ public class SpecialKeystoreSSLSocketFactory extends SSLSocketFactory
 			return;
 		}
 		try {
-			Log.v(LOG_TAG, "loading local keystore");
-			TrustManagerFactory.loadLocalKeystore();
 			Log.v(LOG_TAG, "local keystore has been loaded");
 			SSLContext sslContext = SSLContext.getInstance("TLS");
 			sslContext.init(null, new TrustManager[] {
@@ -64,10 +61,6 @@ public class SpecialKeystoreSSLSocketFactory extends SSLSocketFactory
 		}
 		catch (KeyManagementException e) {
 			Log.e(LOG_TAG, "KeyManagementException in initSocketFactory: ", e);
-		}
-		catch (CertificateException e)
-		{
-			Log.e(LOG_TAG, "CertificateException in initSocketFactory: ", e);
 		}
 	}
 

@@ -29,6 +29,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.text.format.DateUtils;
 import android.text.format.Time;
+import android.util.Log;
 import at.dasz.KolabDroid.Sync.SyncException;
 
 public class CalendarProvider
@@ -164,6 +165,18 @@ public class CalendarProvider
 	public void save(CalendarEntry e) throws SyncException
 	{
 		ContentValues values = new ContentValues();
+		if (e == null) {
+			Log.e("CalendarProvider.save()", "e == null ; cannot save calendar entry");
+			return;
+		}
+		if (e.getDtstart() == null) {
+			Log.e("CalendarProvider.save()", "e.getDtstart() == null ; cannot save calendar entry with id=" + e.getCalendar_id());
+			return;
+		}
+		if (e.getDtend() == null) {
+			Log.e("CalendarProvider.save()", "e.getDtend() == null ; cannot save calendar entry with id=" + e.getCalendar_id());
+			return;
+		}
 		long start = e.getDtstart().toMillis(true);
 		long end = e.getDtend().toMillis(true);
 
