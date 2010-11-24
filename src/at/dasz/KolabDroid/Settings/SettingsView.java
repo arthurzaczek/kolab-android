@@ -208,6 +208,7 @@ public class SettingsView extends Activity implements Runnable {
 		Store server = null;
 		try
 		{
+			TrustManagerFactory.loadLocalKeystore(getApplicationContext());
 			Session session = ImapClient.getDefaultImapSession(
 					pref.getPort(), 
 					pref.getUseSSL());
@@ -224,6 +225,9 @@ public class SettingsView extends Activity implements Runnable {
 			} else {
 				failure(e, "Failed to connect to " + pref.getHost());
 			}
+		}
+		catch(Exception ex) {
+			failure(ex, "Failed to connect to " + ex.getMessage());
 		}
 		try {
 			if (server != null) server.close();
