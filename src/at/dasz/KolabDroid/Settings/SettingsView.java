@@ -133,7 +133,9 @@ public class SettingsView extends Activity implements Runnable {
 		pref.setMergeContactsByName(cbMergeContactsByName.isChecked());
 		
 		//TODO: adjust account spinner to show configured account
-		setFirstAccount();
+		// No one uses the account manager in this trunk version
+		// version is also compatible to 1.6
+		//setFirstAccount();
 		
 		pref.save();
 
@@ -147,23 +149,23 @@ public class SettingsView extends Activity implements Runnable {
 		mDestroyed = true;
 	}
 	
-	private void setFirstAccount()
-	{
-		 // Get account data from system
-		
-        Account[] accounts = AccountManager.get(this).getAccounts();
-        
-        if(accounts.length >0)
-        {
-        	pref.setAccountName(accounts[0].name);
-        	pref.setAccountType(accounts[0].type);
-        }
-        else
-        {
-        	pref.setAccountName("");
-        	pref.setAccountType("");
-        }
-	}
+//	private void setFirstAccount()
+//	{
+//		 // Get account data from system
+//		
+//        Account[] accounts = AccountManager.get(this).getAccounts();
+//        
+//        if(accounts.length >0)
+//        {
+//        	pref.setAccountName(accounts[0].name);
+//        	pref.setAccountType(accounts[0].type);
+//        }
+//        else
+//        {
+//        	pref.setAccountName("");
+//        	pref.setAccountType("");
+//        }
+//	}
 	
 	public void onClick(View v) {
         try
