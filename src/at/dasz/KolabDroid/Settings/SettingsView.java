@@ -26,6 +26,8 @@
 
 package at.dasz.KolabDroid.Settings;
 
+import java.net.UnknownHostException;
+
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
@@ -225,8 +227,10 @@ public class SettingsView extends Activity implements Runnable {
 			if (ne instanceof SSLException) {
 			// if ((ne != null) && (ne.getClass().getName() == "javax.net.ssl.SSLException")) {
 				showAcceptKeyDialog(e);
+			} else if (ne instanceof UnknownHostException) {
+				failure(e, "Host is unresolved: " + hostname);
 			} else {
-				failure(e, "Failed to connect to " + pref.getHost());
+				failure(e, "Failed to connect to " + hostname);
 			}
 		}
 		catch(Exception ex) {
