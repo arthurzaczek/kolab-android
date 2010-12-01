@@ -208,16 +208,17 @@ public class SettingsView extends Activity implements Runnable {
     	Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
     	// Looper.prepare();
 		Store server = null;
+		String hostname = txtHost.getText().toString();
 		try
 		{
 			TrustManagerFactory.loadLocalKeystore(getApplicationContext());
 			Session session = ImapClient.getDefaultImapSession(
-					pref.getPort(), 
-					pref.getUseSSL());
-			server = ImapClient.openServer(session, 
-					pref.getHost(), 
-					pref.getUsername(), 
-					pref.getPassword());
+					Integer.parseInt(txtPort.getText().toString()),
+					cbUseSSL.isChecked());
+			server = ImapClient.openServer(session,
+					hostname,
+					txtUsername.getText().toString(),
+					txtPassword.getText().toString());
 		}
 		catch (final MessagingException e) {
 			Exception ne = e.getNextException();
