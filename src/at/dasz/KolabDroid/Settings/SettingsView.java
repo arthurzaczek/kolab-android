@@ -208,7 +208,6 @@ public class SettingsView extends Activity implements Runnable {
     
     public void run() {
     	Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-    	// Looper.prepare();
 		Store server = null;
 		String hostname = txtHost.getText().toString();
 		try
@@ -225,7 +224,6 @@ public class SettingsView extends Activity implements Runnable {
 		catch (final MessagingException e) {
 			Exception ne = e.getNextException();
 			if (ne instanceof SSLException) {
-			// if ((ne != null) && (ne.getClass().getName() == "javax.net.ssl.SSLException")) {
 				showAcceptKeyDialog(e);
 			} else if (ne instanceof UnknownHostException) {
 				failure(e, "Host is unresolved: " + hostname);
