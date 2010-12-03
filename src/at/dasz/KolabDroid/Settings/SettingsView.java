@@ -26,6 +26,7 @@
 
 package at.dasz.KolabDroid.Settings;
 
+import java.net.ConnectException;
 import java.net.UnknownHostException;
 
 import android.accounts.Account;
@@ -43,11 +44,14 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Toast;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.Imap.ImapClient;
 import at.dasz.KolabDroid.Imap.TrustManagerFactory;
+
+import javax.mail.AuthenticationFailedException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.MessagingException;
@@ -175,70 +179,97 @@ public class SettingsView extends Activity implements Runnable {
             switch (v.getId())
             {
                 case R.id.BtnTestSettings:
-                	onClickCheckSettings(v);
+                	onClickCheckSettings();
                     break;
             }
         }
         catch (Exception e)
         {
-            failure(e);
+        	showMsgDialog(R.string.checkSettingsTestFailedUnknownExceptionTitle, R.string.checkSettingsTestFailedUnknownException);
+            Log.e("SettingsView", "unknown exception in onClick():", e);
         }
     }
 
-	private void failure(final Exception use)
+	private void showMsgDialog(final int msgResIdTitle, final int msgResIdMsg, final Object... args)
     {
-		failure(use, "Something bad happened here");
-    }
-	
-	private void failure(final Exception use, final String msg)
-    {
-        Log.e("SettingsView", "failure():" + msg, use);
-        mHandler.post( new Runnable()
-        { 
-        	public void run() {
-        		if (mDestroyed) {
-        			return;
-        		}
-        		Toast toast = Toast.makeText(getApplication(), msg, Toast.LENGTH_LONG);
-                toast.show();        		
-        	}
+        mHandler.post(new Runnable()
+        {
+            public void run()
+            {
+                if (mDestroyed)
+                {
+                    return;
+                }
+                mProgDialog.setIndeterminate(false);
+                new AlertDialog.Builder(SettingsView.this)
+                .setTitle(getString(msgResIdTitle))
+                .setMessage(getString(msgResIdMsg, args))
+                .setCancelable(true)
+                .setNeutralButton(getString(R.string.checkSettingsMsgDialogButton), null)
+                .show();
+            }
         });
-        
     }
-    
+
+	
     public void run() {
     	Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 		Store server = null;
 		String hostname = txtHost.getText().toString();
+		String port = txtPort.getText().toString();
+		String username = txtUsername.getText().toString();
 		try
 		{
 			TrustManagerFactory.loadLocalKeystore(getApplicationContext());
 			Session session = ImapClient.getDefaultImapSession(
-					Integer.parseInt(txtPort.getText().toString()),
+					Integer.parseInt(port),
 					cbUseSSL.isChecked());
 			server = ImapClient.openServer(session,
 					hostname,
-					txtUsername.getText().toString(),
+					username,
 					txtPassword.getText().toString());
+			Log.d("SettingsView", "Authentication with user " + username + " at " + hostname + ':' + port + " has been successful.");
+			showMsgDialog(R.string.checkSettingsTestSuccessfulTitle,
+					R.string.checkSettingsTestSuccessful);
 		}
 		catch (final MessagingException e) {
 			Exception ne = e.getNextException();
 			if (ne instanceof SSLException) {
 				showAcceptKeyDialog(e);
+				
 			} else if (ne instanceof UnknownHostException) {
-				failure(e, "Host is unresolved: " + hostname);
+				showMsgDialog(R.string.checkSettingsTestFailedUnknownHostExceptionTitle, 
+						R.string.checkSettingsTestFailedUnknownHostException, hostname);
+				Log.e("SettingsView", "Host is unresolved: " + hostname + ':' + port, e);
+				
+			} else if (ne instanceof ConnectException) {
+				showMsgDialog(R.string.checkSettingsTestFailedConnectExceptionTitle, 
+						R.string.checkSettingsTestFailedConnectException, hostname);
+				Log.e("SettingsView", "Failed to connecto to host: " + hostname + ':' + port, e);
+				
+			} else if (e instanceof AuthenticationFailedException) {
+				showMsgDialog(R.string.checkSettingsTestFailedAuthenticationFailedExceptionTitle, 
+						R.string.checkSettingsTestFailedAuthenticationFailedException, hostname);
+				Log.e("SettingsView", "Authentication failed with user " + username + " at " + hostname + ':' + port, e);
+				
 			} else {
-				failure(e, "Failed to connect to " + hostname);
+				showMsgDialog(R.string.checkSettingsTestFailedUnknownExceptionTitle, 
+						R.string.checkSettingsTestFailedUnknownException, hostname);
+				Log.e("SettingsView", "Unknown messaging exception while connecting to " + hostname + ':' + port + " with user " + username, e);
 			}
 		}
-		catch(Exception ex) {
-			failure(ex, "Failed to connect to " + ex.getMessage());
+		catch(Exception e) {
+			showMsgDialog(R.string.checkSettingsTestFailedUnknownExceptionTitle, 
+					R.string.checkSettingsTestFailedUnknownException, hostname);
+			Log.e("SettingsView", "Unknown exception while connecting to " + hostname + ':' + port + " with user " + username, e);
 		}
 		try {
 			if (server != null) server.close();
 		}
 		catch (final MessagingException e) {
-			failure(e, "Failed to close connection to " + pref.getHost());
+			showMsgDialog(R.string.checkSettingsTestFailedUnknownExceptionTitle, 
+					R.string.checkSettingsTestFailedUnknownException, hostname);
+			Log.e("SettingsView", "Unknown exception while closing connection to " + hostname + ':' + port, e);
 		}
 		mProgDialog.dismiss();
 	}
@@ -305,12 +336,19 @@ public class SettingsView extends Activity implements Runnable {
                 			{
                 				try
                 				{
+            						Log.d("SettingsView", "user accepted certificate");
                 					TrustManagerFactory.addCertificateChainToKeystore(getApplicationContext(), chain);
+            						Log.d("SettingsView", "certificate saved to keystore");
+                					showMsgDialog(R.string.checkSettingsCertificateChainSavedTitle,
+                							R.string.checkSettingsCertificateChainSaved);
+                					// username and password have not been checked yet ==> restart test
+                					onClickCheckSettings();
                 				}
 								catch (java.security.cert.CertificateException e)
                 				{
                 					Log.e("SettingsView", "Adding certificate chain to local keystore failed: ", e);
-                					showErrorDialog("Keystore error", "Adding certificate chain to keystore failed.");
+                					showMsgDialog(R.string.checkSettingsTestFailedKeystoreErrorTitle, 
+                							R.string.checkSettingsTestFailedKeystoreError);
                 				}
                 			}
                 		})
@@ -320,7 +358,9 @@ public class SettingsView extends Activity implements Runnable {
                 				{
                 					public void onClick(DialogInterface dialog, int which)
                 					{
-                						Log.v("SettingsView", "User declined certificate");
+                						Log.d("SettingsView", "User declined certificate chain");
+                    					showMsgDialog(R.string.checkSettingsCertificateChainDeclinedTitle,
+                    							R.string.checkSettingsCertificateChainDeclined);
                 					}
                 				})
                 				.show();
@@ -328,35 +368,7 @@ public class SettingsView extends Activity implements Runnable {
         });
     }
 
-    private void showErrorDialog(final String title, final String msg) {
-        mHandler.post(new Runnable()
-        {
-            public void run()
-            {
-                if (mDestroyed)
-                {
-                    return;
-                }
-
-                new AlertDialog.Builder(SettingsView.this)
-                .setTitle(title)
-                .setMessage(msg)
-                .setCancelable(true)
-                .setNeutralButton(
-                		"OK",
-                		new DialogInterface.OnClickListener()
-                		{
-                			public void onClick(DialogInterface dialog, int which)
-                			{
-                				;
-                			}
-                		}).show();
-            }
-        });
-    }
-
-    
-    private void onClickCheckSettings(View v) {
+    private void onClickCheckSettings() {
     	String title = getResources().getString(R.string.checkSettingsProgressDialogTitle);
     	String msg = getResources().getString(R.string.checkSettingsProgressDialogMessage);
     	mProgDialog = ProgressDialog.show(this, 

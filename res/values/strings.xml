@@ -57,5 +57,22 @@
 <string name="settingsHeadlineContacts">Contact Settings</string>
 <string name="checkSettingsTestFailedInvalidCertificateMessage">Cannot safely connect to server.\n</string>
 <string name="checkSettingsTestFailedInvalidCertificateDefaultErrorMsg">Unknown error</string>
+<string name="checkSettingsTestFailedConnectExceptionTitle">Connection failed</string>
+<string name="checkSettingsTestFailedConnectException">Unable to connect to host:\n%1$s".</string>
+<string name="checkSettingsTestFailedUnknownHostExceptionTitle">Connection failed</string>
+<string name="checkSettingsTestFailedUnknownHostException">Hostname is unknown or cannot be resolved:\n%1$s</string>
+<string name="checkSettingsTestFailedAuthenticationFailedExceptionTitle">Authentication error</string>
+<string name="checkSettingsTestFailedAuthenticationFailedException">Given username or password are not correct.</string>
+<string name="checkSettingsTestFailedUnknownExceptionTitle">Error</string>
+<string name="checkSettingsTestFailedUnknownException">An error occurred during connection to host\n%1$s</string>
+<string name="checkSettingsTestFailedKeystoreErrorTitle">Certificate error</string>
+<string name="checkSettingsTestFailedKeystoreError">Adding certificate chain to keystore failed.</string>
+<string name="checkSettingsTestSuccessfulTitle">Success</string>
+<string name="checkSettingsTestSuccessful">IMAP test connection has been successfully established.</string>
+<string name="checkSettingsMsgDialogButton">Dismiss</string>
+<string name="checkSettingsCertificateChainSavedTitle">SSL Certificate</string>
+<string name="checkSettingsCertificateChainSaved">Certificate chain has been saved to local keystore.</string>
+<string name="checkSettingsCertificateChainDeclinedTitle">SSL Certificate</string>
+<string name="checkSettingsCertificateChainDeclined">Certificate chain has been declined. Encrypted IMAP connection will not be possible.</string>
 <string name="fetching_local_items">Fetching local items</string>
 </resources>
