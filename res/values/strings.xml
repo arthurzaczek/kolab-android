@@ -53,6 +53,8 @@
 <string name="checkSettingsTestFailedInvalidCertificateTitle">Invalid or unknown certificate</string>
 <string name="checkSettingsTestFailedInvalidCertificateBtnAccept">Accept</string>
 <string name="checkSettingsTestFailedInvalidCertificateBtnReject">Reject</string>
+<string name="btnTestSettings">Test IMAP settings</string>
+<string name="settingsHeadlineIMAP">IMAP Settings</string>
 <string name="settingsHeadlineCalendar">Calendar Settings</string>
 <string name="settingsHeadlineContacts">Contact Settings</string>
 <string name="checkSettingsTestFailedInvalidCertificateMessage">Cannot safely connect to server.\n</string>
