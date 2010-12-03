@@ -58,6 +58,7 @@ import javax.mail.MessagingException;
 import javax.net.ssl.SSLException;
 
 public class SettingsView extends Activity implements Runnable {
+	private static final String LOG_TAG = at.dasz.KolabDroid.Utils.LOG_TAG_SETTINGSVIEW;
 	public static final String EDIT_SETTINGS_ACTION = "at.dasz.KolabDroid.Settings.action.EDIT_TITLE";
 
 	private EditText txtHost;
@@ -186,7 +187,7 @@ public class SettingsView extends Activity implements Runnable {
         catch (Exception e)
         {
         	showMsgDialog(R.string.checkSettingsTestFailedUnknownExceptionTitle, R.string.checkSettingsTestFailedUnknownException);
-            Log.e("SettingsView", "unknown exception in onClick():", e);
+            Log.e(LOG_TAG, "unknown exception in onClick():", e);
         }
     }
 
@@ -228,7 +229,7 @@ public class SettingsView extends Activity implements Runnable {
 					hostname,
 					username,
 					txtPassword.getText().toString());
-			Log.d("SettingsView", "Authentication with user " + username + " at " + hostname + ':' + port + " has been successful.");
+			Log.d(LOG_TAG, "Authentication with user " + username + " at " + hostname + ':' + port + " has been successful.");
 			showMsgDialog(R.string.checkSettingsTestSuccessfulTitle,
 					R.string.checkSettingsTestSuccessful);
 		}
@@ -240,28 +241,28 @@ public class SettingsView extends Activity implements Runnable {
 			} else if (ne instanceof UnknownHostException) {
 				showMsgDialog(R.string.checkSettingsTestFailedUnknownHostExceptionTitle, 
 						R.string.checkSettingsTestFailedUnknownHostException, hostname);
-				Log.e("SettingsView", "Host is unresolved: " + hostname + ':' + port, e);
+				Log.e(LOG_TAG, "Host is unresolved: " + hostname + ':' + port, e);
 				
 			} else if (ne instanceof ConnectException) {
 				showMsgDialog(R.string.checkSettingsTestFailedConnectExceptionTitle, 
 						R.string.checkSettingsTestFailedConnectException, hostname);
-				Log.e("SettingsView", "Failed to connecto to host: " + hostname + ':' + port, e);
+				Log.e(LOG_TAG, "Failed to connecto to host: " + hostname + ':' + port, e);
 				
 			} else if (e instanceof AuthenticationFailedException) {
 				showMsgDialog(R.string.checkSettingsTestFailedAuthenticationFailedExceptionTitle, 
 						R.string.checkSettingsTestFailedAuthenticationFailedException, hostname);
-				Log.e("SettingsView", "Authentication failed with user " + username + " at " + hostname + ':' + port, e);
+				Log.e(LOG_TAG, "Authentication failed with user " + username + " at " + hostname + ':' + port, e);
 				
 			} else {
 				showMsgDialog(R.string.checkSettingsTestFailedUnknownExceptionTitle, 
 						R.string.checkSettingsTestFailedUnknownException, hostname);
-				Log.e("SettingsView", "Unknown messaging exception while connecting to " + hostname + ':' + port + " with user " + username, e);
+				Log.e(LOG_TAG, "Unknown messaging exception while connecting to " + hostname + ':' + port + " with user " + username, e);
 			}
 		}
 		catch(Exception e) {
 			showMsgDialog(R.string.checkSettingsTestFailedUnknownExceptionTitle, 
 					R.string.checkSettingsTestFailedUnknownException, hostname);
-			Log.e("SettingsView", "Unknown exception while connecting to " + hostname + ':' + port + " with user " + username, e);
+			Log.e(LOG_TAG, "Unknown exception while connecting to " + hostname + ':' + port + " with user " + username, e);
 		}
 		try {
 			if (server != null) server.close();
@@ -269,7 +270,7 @@ public class SettingsView extends Activity implements Runnable {
 		catch (final MessagingException e) {
 			showMsgDialog(R.string.checkSettingsTestFailedUnknownExceptionTitle, 
 					R.string.checkSettingsTestFailedUnknownException, hostname);
-			Log.e("SettingsView", "Unknown exception while closing connection to " + hostname + ':' + port, e);
+			Log.e(LOG_TAG, "Unknown exception while closing connection to " + hostname + ':' + port, e);
 		}
 		mProgDialog.dismiss();
 	}
@@ -288,7 +289,7 @@ public class SettingsView extends Activity implements Runnable {
                 String exMessage = getString(R.string.checkSettingsTestFailedInvalidCertificateDefaultErrorMsg);
 
                 Exception ex = ((Exception)args[0]);
-                Log.v("showAcceptKeyDialog", "Got following exception: ", ex);
+                Log.v(LOG_TAG, "showAcceptKeyDialog: got exception: ", ex);
                 if (ex != null)
                 {
                 	if (ex.getCause() != null)
@@ -319,7 +320,7 @@ public class SettingsView extends Activity implements Runnable {
                         chainInfo.append("Issuer: " + chain[i].getIssuerDN().toString() + "\n");
                 	}
                 } else {
-                	Log.e("SettingsView", "internal error: chain is null");
+                	Log.e(LOG_TAG, "internal error: chain is null");
                 	chainInfo.append("Internal error: chain is null");
                 }
 
@@ -336,9 +337,9 @@ public class SettingsView extends Activity implements Runnable {
                 			{
                 				try
                 				{
-            						Log.d("SettingsView", "user accepted certificate");
+            						Log.d(LOG_TAG, "user accepted certificate");
                 					TrustManagerFactory.addCertificateChainToKeystore(getApplicationContext(), chain);
-            						Log.d("SettingsView", "certificate saved to keystore");
+            						Log.d(LOG_TAG, "certificate saved to keystore");
                 					showMsgDialog(R.string.checkSettingsCertificateChainSavedTitle,
                 							R.string.checkSettingsCertificateChainSaved);
                 					// username and password have not been checked yet ==> restart test
@@ -346,7 +347,7 @@ public class SettingsView extends Activity implements Runnable {
                 				}
 								catch (java.security.cert.CertificateException e)
                 				{
-                					Log.e("SettingsView", "Adding certificate chain to local keystore failed: ", e);
+                					Log.e(LOG_TAG, "Adding certificate chain to local keystore failed: ", e);
                 					showMsgDialog(R.string.checkSettingsTestFailedKeystoreErrorTitle, 
                 							R.string.checkSettingsTestFailedKeystoreError);
                 				}
@@ -358,7 +359,7 @@ public class SettingsView extends Activity implements Runnable {
                 				{
                 					public void onClick(DialogInterface dialog, int which)
                 					{
-                						Log.d("SettingsView", "User declined certificate chain");
+                						Log.d(LOG_TAG, "User declined certificate chain");
                     					showMsgDialog(R.string.checkSettingsCertificateChainDeclinedTitle,
                     							R.string.checkSettingsCertificateChainDeclined);
                 					}
