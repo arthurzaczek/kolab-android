@@ -40,18 +40,18 @@ import android.os.Handler;
 import android.os.Process;
 import android.view.View;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.Toast;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.Imap.ImapClient;
 import at.dasz.KolabDroid.Imap.TrustManagerFactory;
 
 import javax.mail.AuthenticationFailedException;
+import javax.mail.FolderNotFoundException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.MessagingException;
@@ -66,11 +66,12 @@ public class SettingsView extends Activity implements Runnable {
 	private CheckBox cbUseSSL;
 	private EditText txtUsername;
 	private EditText txtPassword;
-	private EditText txtFolderContact;
-	private EditText txtFolderCalendar;
+	private EditText txtIMAPNamespace;
 	private CheckBox cbCreateRemoteHash;
 	private CheckBox cbMergeContactsByName;
 	private Spinner spAccount;
+	private Spinner spFolderCalendar;
+	private Spinner spFolderContacts;
 		
 	private Handler mHandler = new Handler();
 	private ProgressDialog mProgDialog = null;
@@ -78,6 +79,8 @@ public class SettingsView extends Activity implements Runnable {
 	private boolean isInitializing = true;
 	private boolean mDestroyed = false;
 
+	private String[] imapFolders = null;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -88,11 +91,12 @@ public class SettingsView extends Activity implements Runnable {
         cbUseSSL = (CheckBox)findViewById(R.id.usessl);
         txtUsername = (EditText)findViewById(R.id.editusername);
         txtPassword = (EditText)findViewById(R.id.editpassword);
-        txtFolderContact = (EditText)findViewById(R.id.editfoldercontact);
-        txtFolderCalendar = (EditText)findViewById(R.id.editfoldercalendar);
+        txtIMAPNamespace = (EditText)findViewById(R.id.editimapnamespace);
         cbCreateRemoteHash = (CheckBox)findViewById(R.id.createRemoteHash);
         cbMergeContactsByName = (CheckBox)findViewById(R.id.mergeContactsByName);
         spAccount = (Spinner)findViewById(R.id.selectAccount);
+        spFolderCalendar = (Spinner)findViewById(R.id.spinnerFolderCalendar);
+        spFolderContacts = (Spinner)findViewById(R.id.spinnerFolderContacts);
 
         pref = new Settings(this);
         
@@ -115,11 +119,13 @@ public class SettingsView extends Activity implements Runnable {
 		cbUseSSL.setChecked(pref.getUseSSL());
 		txtUsername.setText(pref.getUsername());
 		txtPassword.setText(pref.getPassword());
-		txtFolderContact.setText(pref.getContactsFolder());
-		txtFolderCalendar.setText(pref.getCalendarFolder());
+		txtIMAPNamespace.setText(pref.getIMAPNamespace());
 		cbCreateRemoteHash.setChecked(pref.getCreateRemoteHash());
 		cbMergeContactsByName.setChecked(pref.getMergeContactsByName());
 		
+		updateFolderSpinner(spFolderCalendar, pref.getCalendarFolder());
+		updateFolderSpinner(spFolderContacts, pref.getContactsFolder());
+        
 		//TODO: adjust account spinner to show configured account
 		//setFirstAccount();
 		
@@ -134,8 +140,19 @@ public class SettingsView extends Activity implements Runnable {
 		pref.setUseSSL(cbUseSSL.isChecked());
 		pref.setUsername(txtUsername.getText().toString());
 		pref.setPassword(txtPassword.getText().toString());
-		pref.setContactsFolder(txtFolderContact.getText().toString());
-		pref.setCalendarFolder(txtFolderCalendar.getText().toString());
+		pref.setIMAPNamespace(txtIMAPNamespace.getText().toString());
+		Object item = spFolderCalendar.getSelectedItem();
+		if (item != null) {
+			pref.setCalendarFolder(item.toString());
+		} else {
+			pref.setCalendarFolder("");
+		}
+		item = spFolderContacts.getSelectedItem();
+		if (item != null) {
+			pref.setContactsFolder(item.toString());
+		} else {
+			pref.setContactsFolder("");
+		}
 		pref.setCreateRemoteHash(cbCreateRemoteHash.isChecked());
 		pref.setMergeContactsByName(cbMergeContactsByName.isChecked());
 		
@@ -154,6 +171,55 @@ public class SettingsView extends Activity implements Runnable {
 	{
 		super.onDestroy();
 		mDestroyed = true;
+	}
+
+	/*
+	 * updateFolderSpinner reads current IMAP folder list from imapFolders,
+	 * determines currently selected item from spinner, updates spinner's
+	 * list of items and tries to set the old value again.
+	 * If imapFolders is empty and a default value has been set, this will
+	 * be used instead.
+	 */
+	public void updateFolderSpinner(Spinner spinner, String defaultvalue) {
+		ArrayAdapter<String> folderAdapterCalendar;
+		Object selectedItem = spinner.getSelectedItem();
+		if (selectedItem == null) {
+			Log.v(LOG_TAG, "selectedItem == null");
+		}
+		int newPosition = 0;
+		if (imapFolders != null) {
+			Log.v(LOG_TAG, "imapFolder != null");
+			if (selectedItem != null) {
+				for (int i = 0; i < imapFolders.length; i++) {
+					if (imapFolders[i].equals(selectedItem.toString())) {
+						newPosition = i;
+					}
+				}
+				Log.v(LOG_TAG,"newPosition is " + newPosition + " ==> " + imapFolders[newPosition]);
+			}
+			folderAdapterCalendar = new ArrayAdapter<String>(SettingsView.this,	
+				android.R.layout.simple_spinner_item, imapFolders);
+		} else {
+			Log.v(LOG_TAG, "imapFolders == null");
+			if (selectedItem != null) {
+				Log.v(LOG_TAG, "setting only one item: " + selectedItem.toString());
+				folderAdapterCalendar = new ArrayAdapter<String>(SettingsView.this,	
+						android.R.layout.simple_spinner_item, new String[] { selectedItem.toString() } );
+			} else {
+				if (defaultvalue.equals("")) {
+					Log.v(LOG_TAG, "setting empty list");
+					folderAdapterCalendar = new ArrayAdapter<String>(SettingsView.this,	
+							android.R.layout.simple_spinner_item);
+				} else {
+					Log.v(LOG_TAG, "setting default item: " + defaultvalue);
+					folderAdapterCalendar = new ArrayAdapter<String>(SettingsView.this,	
+							android.R.layout.simple_spinner_item, new String[] { defaultvalue } );
+				}
+			}
+		}
+		spinner.setAdapter(folderAdapterCalendar);
+		Log.v(LOG_TAG, "Setting new position to " + newPosition);
+		spinner.setSelection(newPosition);
 	}
 	
 //	private void setFirstAccount()
@@ -215,21 +281,40 @@ public class SettingsView extends Activity implements Runnable {
 	
     public void run() {
     	Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-		Store server = null;
+		Store store = null;
 		String hostname = txtHost.getText().toString();
 		String port = txtPort.getText().toString();
 		String username = txtUsername.getText().toString();
+		String namespace = txtIMAPNamespace.getText().toString();
 		try
 		{
+			// create IMAP connection and authenticate against IMAP server
 			TrustManagerFactory.loadLocalKeystore(getApplicationContext());
 			Session session = ImapClient.getDefaultImapSession(
 					Integer.parseInt(port),
 					cbUseSSL.isChecked());
-			server = ImapClient.openServer(session,
+			store = ImapClient.openServer(session,
 					hostname,
 					username,
 					txtPassword.getText().toString());
 			Log.d(LOG_TAG, "Authentication with user " + username + " at " + hostname + ':' + port + " has been successful.");
+
+			// Update IMAP folder list
+			String[] folderlist = ImapClient.updateFolderList(store, namespace);
+			if (folderlist.length != 0) {
+				imapFolders = folderlist;
+			} else {
+				imapFolders = null;
+			}
+			mHandler.post(new Runnable()
+			{
+				public void run()
+				{
+					updateFolderSpinner(spFolderCalendar, "");
+					updateFolderSpinner(spFolderContacts, "");
+				}
+		    });
+
 			showMsgDialog(R.string.checkSettingsTestSuccessfulTitle,
 					R.string.checkSettingsTestSuccessful);
 		}
@@ -253,6 +338,11 @@ public class SettingsView extends Activity implements Runnable {
 						R.string.checkSettingsTestFailedAuthenticationFailedException, hostname);
 				Log.e(LOG_TAG, "Authentication failed with user " + username + " at " + hostname + ':' + port, e);
 				
+			} else if (e instanceof FolderNotFoundException) {
+				showMsgDialog(R.string.checkSettingsTestFailedFolderNotFoundExceptionTitle, 
+						R.string.checkSettingsTestFailedFolderNotFoundException, hostname);
+				Log.e(LOG_TAG, "Given namespace '" + namespace + "' seems to be wrong:", e);
+
 			} else {
 				showMsgDialog(R.string.checkSettingsTestFailedUnknownExceptionTitle, 
 						R.string.checkSettingsTestFailedUnknownException, hostname);
@@ -265,7 +355,7 @@ public class SettingsView extends Activity implements Runnable {
 			Log.e(LOG_TAG, "Unknown exception while connecting to " + hostname + ':' + port + " with user " + username, e);
 		}
 		try {
-			if (server != null) server.close();
+			if (store != null) store.close();
 		}
 		catch (final MessagingException e) {
 			showMsgDialog(R.string.checkSettingsTestFailedUnknownExceptionTitle, 
