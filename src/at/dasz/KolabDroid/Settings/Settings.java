@@ -86,6 +86,14 @@ public class Settings {
 		edit.putString("PASSWORD", value);
 	}
 
+	public String getIMAPNamespace() {
+		return pref.getString("IMAP_NAMESPACE", "");
+	}
+
+	public void setIMAPNamespace(String value) {
+		edit.putString("IMAP_NAMESPACE", value);
+	}
+
 	public String getContactsFolder()
 	{
 		return pref.getString("FOLDER_CONTACTS", "");
