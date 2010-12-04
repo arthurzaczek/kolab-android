@@ -21,6 +21,9 @@
 
 package at.dasz.KolabDroid.Imap;
 
+import java.util.ArrayList;
+
+import javax.mail.Folder;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
@@ -61,4 +64,33 @@ public class ImapClient
 		Session session = Session.getDefaultInstance(props);
 		return session;
 	}
+	
+	
+	public static String[] updateFolderList(Store store, String namespace) throws MessagingException {
+		Folder rootfolder = null;
+		ArrayList<String> folderlist = new ArrayList<String>();
+		if (namespace.length() != 0) {
+			Log.d(LOG_TAG, "using IMAP namespace '" + namespace + "' to retrieve folder list");
+			rootfolder = store.getFolder(namespace);
+		} else {
+			Log.d(LOG_TAG, "no namespace given - retrieving folderlist with default folder");
+			rootfolder = store.getDefaultFolder();
+		}
+		folderlist.add("");
+		updateFolderListRecursive(folderlist, rootfolder);
+		
+		return ((String[]) folderlist.toArray(new String[folderlist.size()]));
+	}
+		
+	private static void updateFolderListRecursive(ArrayList<String> folderlist, Folder folder) throws MessagingException {
+		if (folder.getFullName().length() > 0) {
+			folderlist.add(folder.getFullName());
+		}
+		if ((folder.getType() & Folder.HOLDS_FOLDERS) != 0) {
+	         Folder[] subfolders = folder.list();
+	         for (int i = 0; i < subfolders.length; i++)
+	            updateFolderListRecursive(folderlist, subfolders[i]);
+	      }
+	}
+	
 }
