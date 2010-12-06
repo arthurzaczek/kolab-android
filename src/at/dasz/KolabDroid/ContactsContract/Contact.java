@@ -139,7 +139,7 @@ public class Contact
 			contents.add(cm.getData());
 		}
 		
-		if(!"".equals(birthday))
+		if(null != birthday && !"".equals(birthday))
 		{
 			contents.add(birthday);
 		}
@@ -148,7 +148,7 @@ public class Contact
 			contents.add("noBday");
 		}
 		
-		if (!"".equals(photo))
+		if (null != photo && !"".equals(photo))
 		{
 			contents.add(String.valueOf(Arrays.hashCode(photo)));
 		}
@@ -157,7 +157,7 @@ public class Contact
 			contents.add("noPhoto");
 		}
 		
-		if (!"".equals(notes)) {
+		if (null != notes && !"".equals(notes)) {
 			contents.add(notes);
 		} else {
 			contents.add("noNotes");

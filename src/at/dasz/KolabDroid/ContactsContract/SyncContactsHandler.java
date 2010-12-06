@@ -995,6 +995,11 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			if (contact.getId() == 0)
 			{
 				uri = results[0].uri;
+				//TODO: get ID from uri (this is just a dirty hack)
+				String tmp = results[0].uri.toString();
+				String[] a = tmp.split("/");
+				int idx = a.length -1;
+				contact.setId(Integer.parseInt(a[idx]));
 			}
 			else
 			{

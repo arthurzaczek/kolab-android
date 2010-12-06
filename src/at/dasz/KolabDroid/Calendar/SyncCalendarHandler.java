@@ -332,14 +332,14 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 				Log.d("sync", "RRule = " + cal.getrRule());
 				Log.d("sync", "ExDate = " + cal.getexDate());
 			}
+
+			sync.setCacheEntry(saveCalender(cal));
 		}
 		catch (Exception ex)
 		{
 			throw new SyncException(cal.getTitle(),
 					"Unable to parse server item: " + ex.getMessage());
 		}
-
-		sync.setCacheEntry(saveCalender(cal));
 	}
 
 	private CacheEntry saveCalender(CalendarEntry cal) throws SyncException
