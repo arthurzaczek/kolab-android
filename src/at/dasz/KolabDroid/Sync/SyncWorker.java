@@ -98,10 +98,18 @@ public class SyncWorker
 		}
 		finally
 		{
+			try
+			{
+				statProvider.saveStatusEntry(status);
+				statProvider.close();
+				StatusHandler.notifySyncFinished();
+			}
+			catch (Exception ex)
+			{
+				// don't fail here
+				ex.printStackTrace();
+			}
 			status = null;
-			statProvider.saveStatusEntry(status);
-			statProvider.close();
-			StatusHandler.notifySyncFinished();
 		}
 	}
 
