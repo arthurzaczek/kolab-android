@@ -78,6 +78,11 @@ public class SyncWorker
 		StatusProvider statProvider = new StatusProvider(context);
 		try
 		{
+			if(!handler.shouldProcess()) 
+			{
+				status.setFatalErrorMsg("Sync Handler reported invalid setup");
+				return;
+			}
 			StatusHandler.writeStatus(R.string.startsync);
 
 			Settings settings = new Settings(this.context);

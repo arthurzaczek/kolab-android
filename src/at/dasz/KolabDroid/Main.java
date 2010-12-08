@@ -23,10 +23,16 @@ package at.dasz.KolabDroid;
 
 import javax.activation.DataHandler;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
+import android.app.IntentService;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SyncAdapterType;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ExpandableListView;
@@ -41,6 +47,7 @@ public class Main extends Activity implements MainActivity {
 	
 	private StatusListAdapter statusAdapter = null;
 	private TextView status = null;
+	private Account account = null;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -65,6 +72,18 @@ public class Main extends Activity implements MainActivity {
 		statusListView.setAdapter(statusAdapter);
 		
 		bindStatus();		
+		account = (Account) getIntent().getParcelableExtra("account");
+		if (account != null) {
+			Log.i("Main", "Account = " + account.name);
+		} else {
+			Log.i("Main", "Account = null");
+		}
+		
+		// Some testings
+		final SyncAdapterType[] syncs = ContentResolver.getSyncAdapterTypes();
+		for (SyncAdapterType sync : syncs) {
+			Log.d("Main", "Sync Adapter: " + sync.accountType + ", upload=" + sync.supportsUploading() + ", visible=" + sync.isUserVisible());
+		}
 	}
 	
     @Override

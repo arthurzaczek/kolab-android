@@ -48,6 +48,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import android.accounts.Account;
 import android.content.Context;
 import android.text.format.Time;
 import android.util.Log;
@@ -60,9 +61,10 @@ import at.dasz.KolabDroid.Settings.Settings;
  */
 public abstract class AbstractSyncHandler implements SyncHandler
 {
-	protected AbstractSyncHandler(Context context)
+	protected AbstractSyncHandler(Context context, Account account)
 	{
 		this.context = context;
+		this.account = account;
 		status = new StatusEntry();
 		Time t = new Time();
 		t.setToNow();
@@ -71,6 +73,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 
 	protected StatusEntry	status;
 	protected Context		context;
+	protected Account		account;
 
 	protected Settings		settings;
 

@@ -35,6 +35,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
@@ -58,9 +60,9 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 	private HashMap<Integer, CalendarEntry>	localItemsCache;
 
-	public SyncCalendarHandler(Context context)
+	public SyncCalendarHandler(Context context, Account account)
 	{
-		super(context);
+		super(context, account);
 		Settings s = new Settings(context);
 		settings = s;
 		defaultFolderName = s.getCalendarFolder();
@@ -79,7 +81,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	{
 		boolean hasFolder = (defaultFolderName != null && !""
 				.equals(defaultFolderName));
-		return settings.getSyncCalendar() && hasFolder;
+		return hasFolder;
 	}
 
 	public LocalCacheProvider getLocalCacheProvider()

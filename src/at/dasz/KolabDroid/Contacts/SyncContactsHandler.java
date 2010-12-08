@@ -34,6 +34,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import android.accounts.Account;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -67,9 +68,9 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	private final ContentResolver		cr;
 	private HashMap<Integer, Contact>	localItemsCache;
 
-	public SyncContactsHandler(Context context)
+	public SyncContactsHandler(Context context, Account account)
 	{
-		super(context);
+		super(context, account);
 		Settings s = new Settings(context);
 		settings = s;
 		defaultFolderName = s.getContactsFolder();
@@ -87,7 +88,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	{
 		boolean hasFolder = (defaultFolderName != null && !""
 				.equals(defaultFolderName));
-		return settings.getSyncContacts() && hasFolder;
+		return hasFolder;
 	}
 
 	public LocalCacheProvider getLocalCacheProvider()

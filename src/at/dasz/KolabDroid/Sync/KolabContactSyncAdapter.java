@@ -55,12 +55,7 @@ public class KolabContactSyncAdapter extends AbstractThreadedSyncAdapter {
 		currentTime.set(System.currentTimeMillis());
 		
 		if (Time.compare(supposedSyncTime, currentTime) < 0) {
-			s.edit();
-			s.setSyncContacts(true);
-			s.setSyncCalendar(false);
-			s.save();
-			
-			SyncContactsHandler handler = new SyncContactsHandler(context);
+			SyncContactsHandler handler = new SyncContactsHandler(context, account);
 			SyncWorker syncWorker = new SyncWorker(this.context, account, handler);
 			syncWorker.runWorker();
 			

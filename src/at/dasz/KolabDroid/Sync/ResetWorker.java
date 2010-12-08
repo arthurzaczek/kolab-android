@@ -71,7 +71,7 @@ public class ResetWorker extends BaseWorker
 	private int resetCalendar(final String deleteMessageFormat,
 			int currentItemNo)
 	{
-		SyncCalendarHandler calendar = new SyncCalendarHandler(context);
+		SyncCalendarHandler calendar = new SyncCalendarHandler(context, null);
 		Cursor c = calendar.getAllLocalItemsCursor();
 		if (c != null)
 		{
@@ -99,7 +99,7 @@ public class ResetWorker extends BaseWorker
 	private int resetContacts(final String deleteMessageFormat,
 			int currentItemNo)
 	{
-		SyncContactsHandler contacts = new SyncContactsHandler(context);
+		SyncContactsHandler contacts = new SyncContactsHandler(context, null);
 		Cursor c = contacts.getAllLocalItemsCursor();
 		if (c != null)
 		{

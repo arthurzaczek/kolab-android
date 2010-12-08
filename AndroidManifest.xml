@@ -40,6 +40,8 @@
 			</intent-filter>
 			<meta-data android:name="android.content.SyncAdapter"
 				android:resource="@xml/contact_syncadapter" />
+			<meta-data android:name="android.provider.CONTACTS_STRUCTURE"
+ 				android:resource="@xml/contacts" />
 		</service>
 		
 		<service android:name="at.dasz.KolabDroid.Sync.KolabCalendarSyncService"

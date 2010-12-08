@@ -96,19 +96,15 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	private final ContentResolver		cr;
 	private HashMap<Integer, Contact>	localItemsCache;
 
-	private Account	syncAccount;
-
-	public SyncContactsHandler(Context context)
+	public SyncContactsHandler(Context context, Account account)
 	{
-		super(context);
+		super(context, account);
 		Settings s = new Settings(context);
 		settings = s;
 		defaultFolderName = s.getContactsFolder();
 		cacheProvider = new LocalCacheProvider.ContactsCacheProvider(context);
 		cr = context.getContentResolver();
 		status.setTask("Contacts");
-		
-		syncAccount = KolabAccountAuthenticatorService.getKolabDroidAccount(context);
 	}
 
 	public String getDefaultFolderName()
@@ -120,7 +116,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	{
 		boolean hasFolder = (defaultFolderName != null && !""
 				.equals(defaultFolderName));
-		return settings.getSyncContacts() && hasFolder;
+		return hasFolder;
 	}
 
 	public LocalCacheProvider getLocalCacheProvider()
@@ -513,8 +509,8 @@ public class SyncContactsHandler extends AbstractSyncHandler
 //			if("".equals(accountType)) accountType = null;
 			
 			ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
-	                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, syncAccount.type)
-	                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, syncAccount.name)
+	                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, account.type)
+	                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, account.name)
 	                .build());
 	        
 			ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)

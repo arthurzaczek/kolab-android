@@ -37,19 +37,7 @@ public class KolabAccountAuthenticatorService extends Service {
 		return authenticator;
 	}
 	
-	public static Account getKolabDroidAccount(Context context) {
-		AccountManager am = AccountManager.get(context);
-		final String syncAccountType = context.getResources().getString(R.string.SYNC_ACCOUNT_TYPE);
-		Account[] accounts = am.getAccountsByType(syncAccountType);
-		
-		if (accounts.length > 1)
-			Log.w(KolabAccountAuthenticatorService.class.getSimpleName(), "More than one Kolab-Account exists.");
-		
-		if (accounts.length > 0)
-			return accounts[0];
-		else
-			return null;
-	}
+	
 
 	private static class AccountAuthenticatorImpl extends AbstractAccountAuthenticator {
 		private Context context;
@@ -90,7 +78,7 @@ public class KolabAccountAuthenticatorService extends Service {
 		/**
 		 * Ensures that the Kolab SyncAccount exists and creates it if it doesn't.
 		 */
-		public void createKolabDroidAccount(Context context)
+		private void createKolabDroidAccount(Context context)
 		{
 			Log.i(KolabAccountAuthenticatorService.class.getSimpleName(), "Creating Kolab Account.");
 			AccountManager am = AccountManager.get(context);
@@ -115,6 +103,20 @@ public class KolabAccountAuthenticatorService extends Service {
 //			} else {
 //				Log.i(KolabAccountAuthenticatorService.class.getSimpleName(), "Kolab data directory already exists.");
 //			}
+		}
+		
+		private Account getKolabDroidAccount(Context context) {
+			AccountManager am = AccountManager.get(context);
+			final String syncAccountType = context.getResources().getString(R.string.SYNC_ACCOUNT_TYPE);
+			Account[] accounts = am.getAccountsByType(syncAccountType);
+			
+			if (accounts.length > 1)
+				Log.w(KolabAccountAuthenticatorService.class.getSimpleName(), "More than one Kolab-Account exists.");
+			
+			if (accounts.length > 0)
+				return accounts[0];
+			else
+				return null;
 		}
 
 		@Override
