@@ -22,12 +22,12 @@ package at.dasz.KolabDroid.Sync;
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SyncResult;
 import android.os.Bundle;
 import android.text.format.Time;
 import android.util.Log;
+import at.dasz.KolabDroid.Calendar.SyncCalendarHandler;
 import at.dasz.KolabDroid.Settings.Settings;
 
 public class KolabCalendarSyncAdapter extends AbstractThreadedSyncAdapter {
@@ -38,9 +38,7 @@ public class KolabCalendarSyncAdapter extends AbstractThreadedSyncAdapter {
 		this.context = context;
 	}
 
-	private static final String TAG = "CalendarSyncAdapter";
-	private static ContentResolver mContentResolver = null;
-	
+	private static final String TAG = "CalendarSyncAdapter";	
 
 	@Override
 	public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
@@ -60,8 +58,9 @@ public class KolabCalendarSyncAdapter extends AbstractThreadedSyncAdapter {
 			s.setSyncCalendar(true);
 			s.save();
 			
-			SyncWorker syncWorker = new SyncWorker(this.context);
-			syncWorker.start();
+			SyncCalendarHandler handler = new SyncCalendarHandler(context);
+			SyncWorker syncWorker = new SyncWorker(this.context, account, handler);
+			syncWorker.runWorker();
 			
 			s.edit();
 			s.setLastCalendarSyncTime(currentTime);

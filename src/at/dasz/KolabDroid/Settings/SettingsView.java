@@ -67,7 +67,6 @@ public class SettingsView extends Activity implements Runnable {
 	private EditText txtIMAPNamespace;
 	private CheckBox cbCreateRemoteHash;
 	private CheckBox cbMergeContactsByName;
-	private Spinner spAccount;
 	private Spinner spFolderCalendar;
 	private Spinner spFolderContacts;
 		
@@ -92,7 +91,6 @@ public class SettingsView extends Activity implements Runnable {
         txtIMAPNamespace = (EditText)findViewById(R.id.editimapnamespace);
         cbCreateRemoteHash = (CheckBox)findViewById(R.id.createRemoteHash);
         cbMergeContactsByName = (CheckBox)findViewById(R.id.mergeContactsByName);
-        spAccount = (Spinner)findViewById(R.id.selectAccount);
         spFolderCalendar = (Spinner)findViewById(R.id.spinnerFolderCalendar);
         spFolderContacts = (Spinner)findViewById(R.id.spinnerFolderContacts);
 
@@ -154,11 +152,6 @@ public class SettingsView extends Activity implements Runnable {
 		pref.setCreateRemoteHash(cbCreateRemoteHash.isChecked());
 		pref.setMergeContactsByName(cbMergeContactsByName.isChecked());
 		
-		//TODO: adjust account spinner to show configured account
-		// No one uses the account manager in this trunk version
-		// version is also compatible to 1.6
-		//setFirstAccount();
-		
 		pref.save();
 
 		super.onPause();
@@ -219,25 +212,7 @@ public class SettingsView extends Activity implements Runnable {
 		Log.v(LOG_TAG, "Setting new position to " + newPosition);
 		spinner.setSelection(newPosition);
 	}
-	
-//	private void setFirstAccount()
-//	{
-//		 // Get account data from system
-//
-//        Account[] accounts = AccountManager.get(this).getAccounts();
-//
-//        if(accounts.length >0)
-//        {
-//        	pref.setAccountName(accounts[0].name);
-//        	pref.setAccountType(accounts[0].type);
-//        }
-//        else
-//        {
-//        	pref.setAccountName("");
-//        	pref.setAccountType("");
-//        }
-//	}
-	
+		
 	public void onClick(View v) {
         try
         {

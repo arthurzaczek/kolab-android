@@ -23,16 +23,6 @@
 		<service android:name=".Sync.ResetService" />
 		<service android:name=".Sync.ResetSoftService" />
 		
-		<service android:name=".Sync.SyncService" />
-				 		
- 		<receiver android:name=".Sync.SyncServiceManager" 
-		 android:enabled="true" 
-		 android:exported="false"
-		 android:label="SyncServiceManager">
-		    <intent-filter>
-		        <action android:name="android.intent.action.BOOT_COMPLETED" />
-		    </intent-filter>
-		</receiver>		
 	
 	<service android:name="at.dasz.KolabDroid.Account.KolabAccountAuthenticatorService"
 			android:exported="true" android:process=":auth">

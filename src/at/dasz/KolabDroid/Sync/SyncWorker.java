@@ -35,13 +35,11 @@ import javax.mail.Store;
 import javax.mail.Flags.Flag;
 import javax.xml.parsers.ParserConfigurationException;
 
+import android.accounts.Account;
 import android.content.Context;
-import android.database.Cursor;
-import android.os.Build;
 import android.util.Log;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.StatusHandler;
-import at.dasz.KolabDroid.Calendar.SyncCalendarHandler;
 import at.dasz.KolabDroid.Imap.ImapClient;
 import at.dasz.KolabDroid.Imap.TrustManagerFactory;
 import at.dasz.KolabDroid.Provider.LocalCacheProvider;
@@ -51,15 +49,21 @@ import at.dasz.KolabDroid.Settings.Settings;
 /**
  * The background worker that implements the main synchronization algorithm.
  */
-public class SyncWorker extends BaseWorker
+public class SyncWorker
 {
 	// Not final to avoid warnings
 	private static boolean	DBG_LOCAL_CHANGED	= false;
 	private static boolean	DBG_REMOTE_CHANGED	= false;
 
-	public SyncWorker(Context context)
+	protected Context		context;
+	protected Account		account;
+	protected SyncHandler	handler;
+
+	public SyncWorker(Context context, Account account, SyncHandler handler)
 	{
-		super(context);
+		this.context = context;
+		this.account = account;
+		this.handler = handler;
 	}
 
 	private static StatusEntry	status;
@@ -69,79 +73,16 @@ public class SyncWorker extends BaseWorker
 		return status;
 	}
 
-	@Override
-	protected void runWorker()
+	public void runWorker()
 	{
-		setRunningMessage(R.string.syncisrunning);
 		StatusProvider statProvider = new StatusProvider(context);
 		try
 		{
 			StatusHandler.writeStatus(R.string.startsync);
 
 			Settings settings = new Settings(this.context);
-			SyncHandler handler = null;
-
-			if (Build.VERSION.SDK_INT <= 6)
-			{
-				handler = new at.dasz.KolabDroid.Contacts.SyncContactsHandler(
-						this.context);
-			}
-			else
-			{
-				handler = new at.dasz.KolabDroid.ContactsContract.SyncContactsHandler(
-						this.context);
-			}
-			if (shouldProcess(handler))
-			{
-				status = handler.getStatus();
-				try
-				{
-					sync(settings, handler);
-				}
-				catch (Exception ex)
-				{
-					// Save fatal sync exception
-					status.setFatalErrorMsg(ex.toString());
-					throw ex;
-				}
-				finally
-				{
-					statProvider.saveStatusEntry(status);
-				}
-			}
-
-			if (isStopping())
-			{
-				StatusHandler.writeStatus(R.string.syncaborted);
-				return;
-			}
-
-			handler = new SyncCalendarHandler(this.context);
-			if (shouldProcess(handler))
-			{
-				status = handler.getStatus();
-				try
-				{
-					sync(settings, handler);
-				}
-				catch (Exception ex)
-				{
-					// Save fatal sync exception
-					status.setFatalErrorMsg(ex.toString());
-					throw ex;
-				}
-				finally
-				{
-					statProvider.saveStatusEntry(status);
-				}
-			}
-
-			if (isStopping())
-			{
-				StatusHandler.writeStatus(R.string.syncaborted);
-				return;
-			}
-
+			status = handler.getStatus();
+			sync(settings, handler);
 			StatusHandler.writeStatus(R.string.syncfinished);
 		}
 		catch (Exception ex)
@@ -149,6 +90,7 @@ public class SyncWorker extends BaseWorker
 			final String errorFormat = this.context.getResources().getString(
 					R.string.sync_error_format);
 
+			status.setFatalErrorMsg(ex.toString());
 			StatusHandler
 					.writeStatus(String.format(errorFormat, ex.toString()));
 
@@ -157,18 +99,10 @@ public class SyncWorker extends BaseWorker
 		finally
 		{
 			status = null;
+			statProvider.saveStatusEntry(status);
 			statProvider.close();
 			StatusHandler.notifySyncFinished();
 		}
-	}
-
-	private boolean shouldProcess(SyncHandler handler)
-	{
-		return handler.shouldProcess();
-		/*
-		 * return handler.getDefaultFolderName() != null &&
-		 * !"".equals(handler.getDefaultFolderName());
-		 */
 	}
 
 	private void sync(Settings settings, SyncHandler handler)
@@ -184,8 +118,7 @@ public class SyncWorker extends BaseWorker
 		{
 			StatusHandler.writeStatus(R.string.fetching_local_items);
 			handler.fetchAllLocalItems();
-			if (isStopping()) return;
-			
+
 			StatusHandler.writeStatus(R.string.connect_server);
 
 			if (settings.getUseSSL())
@@ -223,8 +156,6 @@ public class SyncWorker extends BaseWorker
 
 			for (Message m : msgs)
 			{
-				if (isStopping()) return;
-
 				if (m.getFlags().contains(Flag.DELETED))
 				{
 					Log.d("sync", "Found deleted message, continue");
@@ -349,12 +280,10 @@ public class SyncWorker extends BaseWorker
 			try
 			{
 				final String processItemFormat = this.context.getResources()
-				.getString(R.string.processing_item_format);
+						.getString(R.string.processing_item_format);
 
 				for (int localId : localIDs)
 				{
-					if (isStopping()) return;					
-
 					Log.d("sync", "9. processing #" + localId);
 
 					StatusHandler.writeStatus(String.format(processItemFormat,
@@ -394,7 +323,7 @@ public class SyncWorker extends BaseWorker
 			{
 				Log.e("sync", ex.toString());
 				status.incrementErrors();
-			}			
+			}
 		}
 		finally
 		{

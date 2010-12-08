@@ -22,12 +22,12 @@ package at.dasz.KolabDroid.Sync;
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SyncResult;
 import android.os.Bundle;
 import android.text.format.Time;
 import android.util.Log;
+import at.dasz.KolabDroid.ContactsContract.SyncContactsHandler;
 import at.dasz.KolabDroid.Settings.Settings;
 
 public class KolabContactSyncAdapter extends AbstractThreadedSyncAdapter {
@@ -39,7 +39,6 @@ public class KolabContactSyncAdapter extends AbstractThreadedSyncAdapter {
 	}
 
 	private static final String TAG = "ContactsSyncAdapterService";
-	private static ContentResolver mContentResolver = null;
 	
 	
 
@@ -60,8 +59,10 @@ public class KolabContactSyncAdapter extends AbstractThreadedSyncAdapter {
 			s.setSyncContacts(true);
 			s.setSyncCalendar(false);
 			s.save();
-			SyncWorker syncWorker = new SyncWorker(this.context);
-			syncWorker.start();
+			
+			SyncContactsHandler handler = new SyncContactsHandler(context);
+			SyncWorker syncWorker = new SyncWorker(this.context, account, handler);
+			syncWorker.runWorker();
 			
 			s.edit();
 			s.setLastContactSyncTime(currentTime);
