@@ -108,8 +108,7 @@ public class CalendarProvider
 			
 			//use reminder which include snoozed events (i.e. moving the alarm towards the future) 
 			Cursor alertCur = cr.query(CALENDAR_REMINDER_URI, null, "event_id=?", new String[]{Integer.toString(e.getId())}, "minutes DESC");
-			
-			if(alertCur.moveToFirst())
+			if(alertCur != null && alertCur.moveToFirst())
 			{
 				int colIdx = alertCur.getColumnIndex("minutes");
 				e.setReminderTime(alertCur.getInt(colIdx));
