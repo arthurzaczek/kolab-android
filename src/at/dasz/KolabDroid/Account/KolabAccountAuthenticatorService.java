@@ -84,16 +84,22 @@ public class KolabAccountAuthenticatorService extends Service {
 			AccountManager am = AccountManager.get(context);
 			final String syncAccountName = context.getResources().getString(R.string.SYNC_ACCOUNT_NAME);
 			final String syncAccountType = context.getResources().getString(R.string.SYNC_ACCOUNT_TYPE);
+			
 			Account kolabAccount = new Account(syncAccountName, syncAccountType);
 			am.addAccountExplicitly(kolabAccount, null, null);
+			ContentResolver.setSyncAutomatically(kolabAccount,
+					ContactsContract.AUTHORITY, false);
+			ContentResolver.setSyncAutomatically(kolabAccount,
+					"at.dasz.KolabDroid.Calendar", false);
 
-			ContentResolver cr = context.getContentResolver();
-			ContentValues values = new ContentValues();
-			values.put(ContactsContract.Settings.ACCOUNT_TYPE, syncAccountType);
-			values.put(ContactsContract.Settings.ACCOUNT_NAME, syncAccountName);
-			values.put(ContactsContract.Settings.UNGROUPED_VISIBLE, 1);
-			values.put(ContactsContract.Settings.SHOULD_SYNC, 1);
-			cr.insert(android.provider.ContactsContract.Settings.CONTENT_URI, values);
+			// Arthur: Don't think, that this is needed
+//			ContentResolver cr = context.getContentResolver();
+//			ContentValues values = new ContentValues();
+//			values.put(ContactsContract.Settings.ACCOUNT_TYPE, syncAccountType);
+//			values.put(ContactsContract.Settings.ACCOUNT_NAME, syncAccountName);
+//			values.put(ContactsContract.Settings.UNGROUPED_VISIBLE, 1);
+//			values.put(ContactsContract.Settings.SHOULD_SYNC, 1);
+//			cr.insert(android.provider.ContactsContract.Settings.CONTENT_URI, values);
 			
 //			File dataDir = new File(new File(Environment.getExternalStorageDirectory(), "Android"), "data");
 //			File kolabDir = new File(dataDir, "dasz.at.KolabDroid");

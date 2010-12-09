@@ -41,15 +41,15 @@
 
 		<service android:name=".Sync.ResetService" />
 		<service android:name=".Sync.ResetSoftService" />
-		<service android:name="at.dasz.KolabDroid.Account.KolabAccountAuthenticatorService"
-			android:exported="true" android:process=":auth">
+		<service android:name=".Account.KolabAccountAuthenticatorService"
+			android:exported="true">
 			<intent-filter>
 				<action android:name="android.accounts.AccountAuthenticator" />
 			</intent-filter>
 			<meta-data android:name="android.accounts.AccountAuthenticator"
 				android:resource="@xml/account_authenticator" />
 		</service>
-		<service android:name="at.dasz.KolabDroid.Sync.KolabContactSyncService"
+		<service android:name=".Sync.KolabContactSyncService"
 			android:exported="true">
 			<intent-filter>
 				<action android:name="android.content.SyncAdapter" />
@@ -59,7 +59,7 @@
 			<meta-data android:name="android.provider.CONTACTS_STRUCTURE"
 				android:resource="@xml/contacts" />
 		</service>
-		<service android:name="at.dasz.KolabDroid.Sync.KolabCalendarSyncService"
+		<service android:name=".Sync.KolabCalendarSyncService"
 			android:exported="true">
 			<intent-filter>
 				<action android:name="android.content.SyncAdapter" />

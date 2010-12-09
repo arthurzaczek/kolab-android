@@ -16,7 +16,7 @@
 		<intent 
 			android:action="at.dasz.KolabDroid.Settings.action.EDIT_TITLE"
 			android:targetPackage="at.dasz.KolabDroid" 
-			android:targetClass="at.dasz.KolabDroid.Settings.Settings" />
+			android:targetClass="at.dasz.KolabDroid.Settings.SettingsView" />
 	</PreferenceScreen>
 
 </PreferenceScreen>
