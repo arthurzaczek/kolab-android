@@ -120,7 +120,7 @@ public class KolabAccountAuthenticatorService extends Service {
 		}
 
 		@Override
-		public Bundle confirmCredentials(AccountAuthenticatorResponse response, Account account, Bundle options) throws NetworkErrorException {
+		public Bundle confirmCredentials(AccountAuthenticatorResponse response, Account account, Bundle options) { 
 			// TODO Auto-generated method stub
 			return null;
 		}
@@ -152,7 +152,7 @@ public class KolabAccountAuthenticatorService extends Service {
 
 		@Override
 		public Bundle updateCredentials(AccountAuthenticatorResponse response, Account account, String authTokenType, Bundle options)
-				throws NetworkErrorException {
+				 {
 			// TODO Auto-generated method stub
 			return null;
 		}

@@ -3,7 +3,8 @@
 
 	<ContactsDataKind android:mimeType="vnd.android.cursor.item/my_test"
 		android:summaryColumn="data2" android:detailColumn="data3"
-		android:detailSocialSummary="true">
+		android:detailSocialSummary="true"
+		editable="true">
 		<!-- ordering handles precedence the "insert/add" case -->
 		<!-- assume uniform type when missing "column", use title in place -->
 		<EditTypes column="data5" overallMax="-1">
