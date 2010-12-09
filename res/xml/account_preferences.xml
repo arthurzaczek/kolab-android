@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen
-  xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory
-            android:title="Account Settings" />
+	<PreferenceCategory android:title="Account Settings" />
 
-    <PreferenceScreen
-        android:key="account_status"
-        android:title="KolabDroid status" android:summary="Sync stauts">
-        <intent android:action="at.dasz.KolabDroid.action.MAIN" />
-    </PreferenceScreen>
+	<PreferenceScreen android:key="account_status"
+		android:title="KolabDroid status" android:summary="Sync stauts">
+		<intent 
+			android:action="at.dasz.KolabDroid.action.MAIN"
+			android:targetPackage="at.dasz.KolabDroid" 
+			android:targetClass="at.dasz.KolabDroid.Main" />
+	</PreferenceScreen>
 
-    <PreferenceScreen
-        android:key="account_settings"
-        android:title="KolabDroid settings" android:summary="Configure Settings">
-        <intent android:action="at.dasz.KolabDroid.Settings.action.EDIT_TITLE" />
-    </PreferenceScreen>
-    
+	<PreferenceScreen android:key="account_settings"
+		android:title="KolabDroid settings" android:summary="Configure Settings">
+		<intent 
+			android:action="at.dasz.KolabDroid.Settings.action.EDIT_TITLE"
+			android:targetPackage="at.dasz.KolabDroid" 
+			android:targetClass="at.dasz.KolabDroid.Settings.Settings" />
+	</PreferenceScreen>
+
 </PreferenceScreen>
