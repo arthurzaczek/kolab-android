@@ -67,6 +67,9 @@
 			<meta-data android:name="android.content.SyncAdapter"
 				android:resource="@xml/calendar_syncadapter" />
 		</service>
+		<provider android:name="at.dasz.KolabDroid.Calendar.FakeCalendarContentProvider"
+			android:label="Calendar"
+          	android:authorities="at.dasz.KolabDroid.Calendar"  />
 	</application>
 	<uses-sdk android:minSdkVersion="5" />
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>

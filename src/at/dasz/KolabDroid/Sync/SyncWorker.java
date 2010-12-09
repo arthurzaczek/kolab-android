@@ -76,6 +76,7 @@ public class SyncWorker
 	public void runWorker()
 	{
 		StatusProvider statProvider = new StatusProvider(context);
+		status = handler.getStatus();
 		try
 		{
 			if(!handler.shouldProcess()) 
@@ -86,7 +87,6 @@ public class SyncWorker
 			StatusHandler.writeStatus(R.string.startsync);
 
 			Settings settings = new Settings(this.context);
-			status = handler.getStatus();
 			sync(settings, handler);
 			StatusHandler.writeStatus(R.string.syncfinished);
 		}

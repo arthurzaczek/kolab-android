@@ -21,7 +21,7 @@
 <!-- for the SyncAdapter. -->
 
 <sync-adapter xmlns:android="http://schemas.android.com/apk/res/android"
-    android:contentAuthority="com.android.calendar"
+    android:contentAuthority="at.dasz.KolabDroid.Calendar"
     android:accountType="@string/SYNC_ACCOUNT_TYPE"
     android:supportsUploading="true"
 />

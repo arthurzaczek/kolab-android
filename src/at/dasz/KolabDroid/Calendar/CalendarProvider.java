@@ -48,7 +48,7 @@ public class CalendarProvider
 	{
 		this.cr = cr;
 		
-		if(Build.VERSION.SDK_INT == 7) // android 2.1
+		if(Build.VERSION.SDK_INT <= 7) // android 2.1
 		{
 			CALENDAR_URI	= Uri.parse("content://calendar/events");
 			CALENDAR_ALERT_URI = Uri.parse("content://calendar/calendar_alerts");
