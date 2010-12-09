@@ -44,7 +44,7 @@ public class KolabContactSyncAdapter extends AbstractThreadedSyncAdapter {
 
 	@Override
 	public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-//		Log.i("SYNC", "performSync called!");
+		Log.i("SYNC", "performSync called!");
 		
 		Settings s = new Settings(this.context);
 		Time supposedSyncTime = s.getLastContactSyncTime();
@@ -54,7 +54,7 @@ public class KolabContactSyncAdapter extends AbstractThreadedSyncAdapter {
 		Time currentTime = new Time();
 		currentTime.set(System.currentTimeMillis());
 		
-		if (Time.compare(supposedSyncTime, currentTime) < 0) {
+		if (true || Time.compare(supposedSyncTime, currentTime) < 0) {
 			SyncContactsHandler handler = new SyncContactsHandler(context, account);
 			SyncWorker syncWorker = new SyncWorker(this.context, account, handler);
 			syncWorker.runWorker();

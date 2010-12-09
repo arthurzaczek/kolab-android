@@ -42,7 +42,7 @@ public class KolabCalendarSyncAdapter extends AbstractThreadedSyncAdapter {
 
 	@Override
 	public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-//		Log.i("SYNC", "performSync called!");
+		Log.i("SYNC", "performSync called!");
 		
 		Settings s = new Settings(this.context);
 		Time supposedSyncTime = s.getLastCalendarSyncTime();
@@ -52,7 +52,7 @@ public class KolabCalendarSyncAdapter extends AbstractThreadedSyncAdapter {
 		Time currentTime = new Time();
 		currentTime.set(System.currentTimeMillis());
 		
-		if (Time.compare(supposedSyncTime, currentTime) < 0) {
+		if (true || Time.compare(supposedSyncTime, currentTime) < 0) {
 			SyncCalendarHandler handler = new SyncCalendarHandler(context, account);
 			SyncWorker syncWorker = new SyncWorker(this.context, account, handler);
 			syncWorker.runWorker();
