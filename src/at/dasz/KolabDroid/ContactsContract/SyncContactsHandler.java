@@ -380,7 +380,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 
 		// normal delete first, then with syncadapter flag
-		Uri rawUri = ContactsContract.RawContacts.CONTENT_URI;
+		Uri rawUri = addCallerIsSyncAdapterParameter(ContactsContract.RawContacts.CONTENT_URI);
 		ops.add(ContentProviderOperation
 				.newDelete(rawUri)
 				.withSelection(ContactsContract.RawContacts._ID + "=?",
@@ -388,10 +388,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 
 		// remove contact from raw_contact table (this time with syncadapter
 		// flag set)
-		rawUri = ContactsContract.RawContacts.CONTENT_URI
-				.buildUpon()
-				.appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER,
-						"true").build();
+		rawUri = addCallerIsSyncAdapterParameter(ContactsContract.RawContacts.CONTENT_URI);
 		ops.add(ContentProviderOperation
 				.newDelete(rawUri)
 				.withSelection(ContactsContract.RawContacts._ID + "=?",
@@ -413,10 +410,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 
 		// remove contact from raw_contact table (with syncadapter flag set)
-		Uri rawUri = ContactsContract.RawContacts.CONTENT_URI
-				.buildUpon()
-				.appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER,
-						"true").build();
+		Uri rawUri = addCallerIsSyncAdapterParameter(ContactsContract.RawContacts.CONTENT_URI);
 		ops.add(ContentProviderOperation
 				.newDelete(rawUri)
 				.withSelection(ContactsContract.RawContacts._ID + "=?",
@@ -474,7 +468,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 
 			// Cursor c = cr.query(ContactsContract.RawContacts.CONTENT_URI,
 			// null, w, null, null);
-			Cursor c = cr.query(ContactsContract.Data.CONTENT_URI, null, w,
+			Cursor c = cr.query(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI), null, w,
 					null, null);
 
 			if (c == null)
@@ -508,12 +502,12 @@ public class SyncContactsHandler extends AbstractSyncHandler
 //			String accountType = settings.getAccountType();
 //			if("".equals(accountType)) accountType = null;
 			
-			ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+			ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.RawContacts.CONTENT_URI))
 	                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, account.type)
 	                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, account.name)
 	                .build());
 	        
-			ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+			ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 	                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
 	                .withValue(ContactsContract.Data.MIMETYPE, CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
 	                .withValue(CommonDataKinds.StructuredName.DISPLAY_NAME, name)
@@ -522,7 +516,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	                .build());
 			
 			if (contact.getBirthday() != null)
-				ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+				ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 						.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
 		                .withValue(ContactsContract.Data.MIMETYPE,
 		                        CommonDataKinds.Event.CONTENT_ITEM_TYPE)
@@ -531,14 +525,14 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		                .build());
 			
 			if (contact.getPhoto() != null)
-				ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+				ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 						.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
 						.withValue(ContactsContract.Data.MIMETYPE, CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
 						.withValue(Photo.PHOTO, contact.getPhoto())
 						.build());
 			
 			if (contact.getNotes() != null)
-				ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+				ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 						.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
 						.withValue(ContactsContract.Data.MIMETYPE, Note.CONTENT_ITEM_TYPE)
 						.withValue(Note.NOTE, contact.getNotes())
@@ -551,7 +545,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 					email = cm.getData();
 
 					ops.add(ContentProviderOperation
-							.newInsert(ContactsContract.Data.CONTENT_URI)
+							.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 							.withValueBackReference(
 									ContactsContract.Data.RAW_CONTACT_ID, 0)
 							.withValue(ContactsContract.Data.MIMETYPE,
@@ -566,7 +560,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 					phone = cm.getData();
 
 					ops.add(ContentProviderOperation
-							.newInsert(ContactsContract.Data.CONTENT_URI)
+							.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 							.withValueBackReference(
 									ContactsContract.Data.RAW_CONTACT_ID, 0)
 							.withValue(ContactsContract.Data.MIMETYPE,
@@ -638,7 +632,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 					long id = queryCursor.getLong(idCol);
 
 					ops.add(ContentProviderOperation
-							.newUpdate(ContactsContract.Data.CONTENT_URI)
+							.newUpdate(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 							.withSelection(BaseColumns._ID + "= ?",
 									new String[] { String.valueOf(id) })
 							.withValue(CommonDataKinds.Event.START_DATE,
@@ -651,7 +645,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 				else
 				{
 					ops.add(ContentProviderOperation
-							.newInsert(ContactsContract.Data.CONTENT_URI)
+							.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 							.withValue(ContactsContract.Data.RAW_CONTACT_ID,
 									contact.getId())
 							.withValue(ContactsContract.Data.MIMETYPE,
@@ -685,7 +679,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 							.getColumnIndex(BaseColumns._ID));
 
 					ops.add(ContentProviderOperation
-							.newUpdate(ContactsContract.Data.CONTENT_URI)
+							.newUpdate(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 							.withSelection(BaseColumns._ID + "= ?",
 									new String[] { String.valueOf(id) })
 							.withValue(CommonDataKinds.Note.NOTE,
@@ -697,7 +691,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 				else
 				{
 					ops.add(ContentProviderOperation
-							.newInsert(ContactsContract.Data.CONTENT_URI)
+							.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 							.withValue(ContactsContract.Data.RAW_CONTACT_ID,
 									contact.getId())
 							.withValue(ContactsContract.Data.MIMETYPE,
@@ -729,7 +723,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 					long id = queryCursor.getLong(colIdx);
 
 					ops.add(ContentProviderOperation
-							.newUpdate(ContactsContract.Data.CONTENT_URI)
+							.newUpdate(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 							.withSelection(BaseColumns._ID + "= ?",
 									new String[] { String.valueOf(id) })
 							.withValue(CommonDataKinds.Photo.PHOTO,
@@ -741,7 +735,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 				else
 				{
 					ops.add(ContentProviderOperation
-							.newInsert(ContactsContract.Data.CONTENT_URI)
+							.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 							.withValue(ContactsContract.Data.RAW_CONTACT_ID,
 									contact.getId())
 							.withValue(ContactsContract.Data.MIMETYPE,
@@ -783,7 +777,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 						{
 							ops.add(ContentProviderOperation
 									.newDelete(
-											ContactsContract.Data.CONTENT_URI)
+											addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 									.withSelection(
 											ContactsContract.Data._ID + "=?",
 											new String[] { String
@@ -871,7 +865,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 						{
 							ops.add(ContentProviderOperation
 									.newDelete(
-											ContactsContract.Data.CONTENT_URI)
+											addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 									.withSelection(
 											ContactsContract.Data._ID + "=?",
 											new String[] { String
@@ -950,7 +944,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 							+ " for contact " + name);
 
 					ops.add(ContentProviderOperation
-							.newInsert(ContactsContract.Data.CONTENT_URI)
+							.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 							.withValue(ContactsContract.Data.RAW_CONTACT_ID,
 									contact.getId())
 							.withValue(ContactsContract.Data.MIMETYPE,
@@ -967,7 +961,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 							+ name);
 
 					ops.add(ContentProviderOperation
-							.newInsert(ContactsContract.Data.CONTENT_URI)
+							.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 							.withValue(ContactsContract.Data.RAW_CONTACT_ID,
 									contact.getId())
 							.withValue(ContactsContract.Data.MIMETYPE,
@@ -1332,4 +1326,9 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		out.close();
 		return out.toByteArray();
 	}
+	
+	private static Uri addCallerIsSyncAdapterParameter(Uri uri) {
+        return uri.buildUpon().appendQueryParameter(
+            ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
+    }
 }
