@@ -186,7 +186,7 @@ public class SettingsView extends Activity implements Runnable {
 		if (selectedItem == null) {
 			Log.v(LOG_TAG, "selectedItem == null");
 		}
-		int newPosition = 0;
+		int newPosition = -1;
 		if (imapFolders != null) {
 			Log.v(LOG_TAG, "imapFolder != null");
 			if (selectedItem != null) {
@@ -197,29 +197,32 @@ public class SettingsView extends Activity implements Runnable {
 				}
 				Log.v(LOG_TAG,"newPosition is " + newPosition + " ==> " + imapFolders[newPosition]);
 			}
-			folderAdapterCalendar = new ArrayAdapter<String>(SettingsView.this,	
+			folderAdapterCalendar = new ArrayAdapter<String>(SettingsView.this,
 				android.R.layout.simple_spinner_item, imapFolders);
 		} else {
 			Log.v(LOG_TAG, "imapFolders == null");
 			if (selectedItem != null) {
 				Log.v(LOG_TAG, "setting only one item: " + selectedItem.toString());
-				folderAdapterCalendar = new ArrayAdapter<String>(SettingsView.this,	
+				folderAdapterCalendar = new ArrayAdapter<String>(SettingsView.this,
 						android.R.layout.simple_spinner_item, new String[] { selectedItem.toString() } );
+				newPosition = 0;
 			} else {
 				if (defaultvalue.equals("")) {
 					Log.v(LOG_TAG, "setting empty list");
-					folderAdapterCalendar = new ArrayAdapter<String>(SettingsView.this,	
+					folderAdapterCalendar = new ArrayAdapter<String>(SettingsView.this,
 							android.R.layout.simple_spinner_item);
+					newPosition = -1;
 				} else {
 					Log.v(LOG_TAG, "setting default item: " + defaultvalue);
-					folderAdapterCalendar = new ArrayAdapter<String>(SettingsView.this,	
+					folderAdapterCalendar = new ArrayAdapter<String>(SettingsView.this,
 							android.R.layout.simple_spinner_item, new String[] { defaultvalue } );
+					newPosition = 0;
 				}
 			}
 		}
 		spinner.setAdapter(folderAdapterCalendar);
 		Log.v(LOG_TAG, "Setting new position to " + newPosition);
-		spinner.setSelection(newPosition);
+		if(newPosition >= 0) spinner.setSelection(newPosition);
 	}
 	
 //	private void setFirstAccount()
