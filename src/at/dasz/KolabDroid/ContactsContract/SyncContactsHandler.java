@@ -142,7 +142,10 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			while (personCursor.moveToNext())
 			{
 				Contact result = loadItem(personCursor);
-				localItemsCache.put(result.getId(), result);
+				if(result != null) 
+				{
+					localItemsCache.put(result.getId(), result);
+				}
 			}
 		}
 		finally
