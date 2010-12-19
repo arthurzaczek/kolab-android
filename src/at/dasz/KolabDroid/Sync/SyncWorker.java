@@ -35,6 +35,8 @@ import javax.mail.Store;
 import javax.mail.Flags.Flag;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.acra.ErrorReporter;
+
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Build;
@@ -128,6 +130,8 @@ public class SyncWorker extends BaseWorker
 				{
 					// Save fatal sync exception
 					status.setFatalErrorMsg(ex.toString());
+					// Report
+					ErrorReporter.getInstance().handleException(ex);
 					throw ex;
 				}
 				finally
