@@ -36,6 +36,8 @@ import javax.mail.Flags.Flag;
 import javax.xml.parsers.ParserConfigurationException;
 
 import android.accounts.Account;
+import org.acra.ErrorReporter;
+
 import android.content.Context;
 import android.util.Log;
 import at.dasz.KolabDroid.R;
@@ -95,6 +97,9 @@ public class SyncWorker
 			final String errorFormat = this.context.getResources().getString(
 					R.string.sync_error_format);
 
+			// Report
+			ErrorReporter.getInstance().handleException(ex);
+			
 			status.setFatalErrorMsg(ex.toString());
 			StatusHandler
 					.writeStatus(String.format(errorFormat, ex.toString()));

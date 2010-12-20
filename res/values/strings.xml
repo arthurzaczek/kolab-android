@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="refreshstatus">Refresh</string>
+	<string name="refreshstatus">Refresh</string>
 	<string name="password">Password</string>
 	<string name="username">Username</string>
 	<string name="port">Port</string>
@@ -32,14 +32,16 @@
 	<string name="reseting_finished">Reseting local items finished.</string>
 	<string name="yes">Yes</string>
 	<string name="no">No</string>
-	<string name="really_reset">Do you really want do delete all your Calendar, Contact and Task items?</string>
+	<string name="really_reset">Do you really want do delete all your Calendar,
+		Contact and Task items?</string>
 	<string name="workerisrunning">A worker is running</string>
 	<string name="stopsync">Stop sync</string>
 	<string name="clearlog">Clear log</string>
 	<string name="syncaborted">Sync aborted</string>
 	<string name="createRemoteHash">Create Remote Hash (opt.)</string>
 	<string name="resetSoft">Reset Soft</string>
-	<string name="really_reset_soft">Do you really want to delete all KOLABdroid data?</string>
+	<string name="really_reset_soft">Do you really want to delete all KOLABdroid data?
+	</string>
 	<string name="resetting_soft_start">Resetting KolabDroid DB</string>
 	<string name="resetting_soft_finished">KolabDroid DB resetted.</string>
 	<string name="mergeContactsByName">Merge Contacts by Name</string>
@@ -62,23 +64,42 @@
 	<string name="checkSettingsTestFailedConnectExceptionTitle">Connection failed</string>
 	<string name="checkSettingsTestFailedConnectException">Unable to connect to host:\n%1$s".</string>
 	<string name="checkSettingsTestFailedUnknownHostExceptionTitle">Connection failed</string>
-	<string name="checkSettingsTestFailedUnknownHostException">Hostname is unknown or cannot be resolved:\n%1$s</string>
+	<string name="checkSettingsTestFailedUnknownHostException">Hostname is unknown or cannot be resolved:\n%1$s
+	</string>
 	<string name="checkSettingsTestFailedAuthenticationFailedExceptionTitle">Authentication error</string>
-	<string name="checkSettingsTestFailedAuthenticationFailedException">Given username or password are not correct.</string>
+	<string name="checkSettingsTestFailedAuthenticationFailedException">Given username or password are not correct.
+	</string>
 	<string name="checkSettingsTestFailedFolderNotFoundExceptionTitle">Folder not found</string>
-	<string name="checkSettingsTestFailedFolderNotFoundException">The given IMAP namespace seems to be wrong.</string>
+	<string name="checkSettingsTestFailedFolderNotFoundException">The given IMAP namespace seems to be wrong.
+	</string>
 	<string name="checkSettingsTestFailedUnknownExceptionTitle">Error</string>
-	<string name="checkSettingsTestFailedUnknownException">An error occurred during connection to host\n%1$s</string>
+	<string name="checkSettingsTestFailedUnknownException">An error occurred during connection to host\n%1$s
+	</string>
 	<string name="checkSettingsTestFailedKeystoreErrorTitle">Certificate error</string>
-	<string name="checkSettingsTestFailedKeystoreError">Adding certificate chain to keystore failed.</string>
+	<string name="checkSettingsTestFailedKeystoreError">Adding certificate chain to keystore failed.
+	</string>
 	<string name="checkSettingsTestSuccessfulTitle">Success</string>
-	<string name="checkSettingsTestSuccessful">IMAP test connection has been successfully established.</string>
+	<string name="checkSettingsTestSuccessful">IMAP test connection has been successfully
+		established.</string>
 	<string name="checkSettingsMsgDialogButton">Dismiss</string>
 	<string name="checkSettingsCertificateChainSavedTitle">SSL Certificate</string>
-	<string name="checkSettingsCertificateChainSaved">Certificate chain has been saved to local keystore.</string>
+	<string name="checkSettingsCertificateChainSaved">Certificate chain has been saved to local keystore.
+	</string>
 	<string name="checkSettingsCertificateChainDeclinedTitle">SSL Certificate</string>
-	<string name="checkSettingsCertificateChainDeclined">Certificate chain has been declined. Encrypted IMAP connection will not be possible.</string>
+	<string name="checkSettingsCertificateChainDeclined">Certificate chain has been declined. Encrypted IMAP
+		connection will not be possible.</string>
 	<string name="fetching_local_items">Fetching local items</string>
 <string name="SYNC_ACCOUNT_TYPE">at.dasz.kolabdroid</string>
 <string name="SYNC_ACCOUNT_NAME">KolabDroid SyncAccount</string>
+	<string name="crash_notif_ticker_text">Unexpected error, please send a report...</string>
+	<string name="crash_notif_title">KolabDroid has crashed...</string>
+	<string name="crash_notif_text">Please click here to help fix the issue.</string>
+
+	<string name="crash_dialog_title">KolabDroid has crashed</string>
+	<string name="crash_dialog_text">An unexpected error occurred forcing the
+		application to stop. Please help us fix this by sending us error data,
+		all you have to do is click \'OK\'.</string>
+	<string name="crash_dialog_comment_prompt">You might add your comments about the problem
+		below:</string>
+	<string name="crash_dialog_ok_toast">Thank you !</string>
 </resources>
