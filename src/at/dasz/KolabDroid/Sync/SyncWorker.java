@@ -35,8 +35,6 @@ import javax.mail.Store;
 import javax.mail.Flags.Flag;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.acra.ErrorReporter;
-
 import android.accounts.Account;
 import android.content.Context;
 import android.util.Log;
@@ -100,9 +98,7 @@ public class SyncWorker
 			status.setFatalErrorMsg(ex.toString());
 			StatusHandler
 					.writeStatus(String.format(errorFormat, ex.toString()));
-			// Report
-			ErrorReporter.getInstance().handleException(ex);
-			
+
 			ex.printStackTrace();
 		}
 		finally
