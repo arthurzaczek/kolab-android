@@ -22,6 +22,7 @@
 package at.dasz.KolabDroid.Sync;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.security.cert.CertificateException;
 import java.util.HashSet;
 import java.util.Set;
@@ -91,6 +92,23 @@ public class SyncWorker
 			Settings settings = new Settings(this.context);
 			sync(settings, handler);
 			StatusHandler.writeStatus(R.string.syncfinished);
+		}
+		catch (MessagingException mex)
+		{
+			final String errorFormat = this.context.getResources().getString(
+					R.string.sync_error_format);
+			
+			Exception e = mex.getNextException();
+			if(e != null && e instanceof ConnectException)
+			{
+				status.setFatalErrorMsg("Connection to server rejected");
+			}
+			else
+			{
+				status.setFatalErrorMsg(mex.toString());
+			}
+			
+			//StatusHandler.writeStatus(String.format(errorFormat, mex.toString()));
 		}
 		catch (Exception ex)
 		{
