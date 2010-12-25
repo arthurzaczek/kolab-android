@@ -984,12 +984,21 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			// with its ID
 			if (contact.getId() == 0)
 			{
+				int newID = 0;
 				uri = results[0].uri;
 				//TODO: get ID from uri (this is just a dirty hack)
 				String tmp = results[0].uri.toString();
 				String[] a = tmp.split("/");
 				int idx = a.length -1;
-				contact.setId(Integer.parseInt(a[idx]));
+				
+				//continue hack because of ?callerIsSyncAdapter=true behind uri
+				if(a[idx] != null && a[idx].contains("?"))
+				{
+					String[] b = a[idx].split("\\?");
+					newID = Integer.parseInt(b[0]);
+				}
+				
+				contact.setId(newID);
 			}
 			else
 			{
