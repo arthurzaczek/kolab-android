@@ -1,7 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="wrap_content"
-  android:layout_height="wrap_content">
-<TextView android:text="Edit Contact" android:id="@+id/TextView01" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
+  android:layout_height="wrap_content" android:orientation="vertical" android:layout_width="fill_parent">
+
+
+<TextView android:text="@+id/TextView01" android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/TextInfo"></TextView><LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout01" android:orientation="horizontal" android:layout_width="fill_parent">
+<EditText android:id="@+id/EditFirstName" android:text="@+id/EditFirstName" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+
+</LinearLayout>
+
+<LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout02" android:layout_width="fill_parent">
+<EditText android:layout_height="wrap_content" android:id="@+id/EditLastName" android:text="@+id/EditLastName" android:layout_width="fill_parent"></EditText>
+</LinearLayout>
+
+
+<LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout03" android:layout_width="fill_parent" android:orientation="vertical">
+<TextView android:id="@+id/TextPhone" android:text="Phone:" android:layout_height="wrap_content" android:layout_width="fill_parent"></TextView>
+
+<LinearLayout android:id="@+id/LinearLayout05" android:layout_height="wrap_content" android:layout_width="fill_parent">
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/TextPhoneHome" android:text="Home:"></TextView>
+<EditText android:id="@+id/EditPhoneHome" android:text="@+id/EditPhoneHome" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+
+</LinearLayout>
+
+<LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout06" android:layout_width="fill_parent">
+<TextView android:id="@+id/TextView02" android:text="Mobile:" android:layout_height="wrap_content" android:layout_width="wrap_content"></TextView>
+<EditText android:id="@+id/EditPhoneMobile" android:text="@+id/EditPhoneMobile" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+
+</LinearLayout>
+
+<LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout07" android:layout_width="fill_parent">
+<TextView android:id="@+id/TextView03" android:text="Work:" android:layout_height="wrap_content" android:layout_width="wrap_content"></TextView>
+<EditText android:id="@+id/EditPhoneWork" android:text="@+id/EditPhoneWork" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+
+</LinearLayout>
+
+</LinearLayout>
+
+
+<LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout04" android:layout_width="fill_parent" android:orientation="vertical">
+<TextView android:id="@+id/TextEmail" android:text="Email:" android:layout_height="wrap_content" android:layout_width="fill_parent"></TextView>
+
+<LinearLayout android:id="@+id/LinearLayout08" android:layout_height="wrap_content" android:layout_width="fill_parent">
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/TextfieldEmail" android:text="Home:"></TextView>
+<EditText android:id="@+id/EditEmailHome" android:text="@+id/EditEmailHome" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+</LinearLayout>
+
+</LinearLayout>
+
+
+
 </LinearLayout>
