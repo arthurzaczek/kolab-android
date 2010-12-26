@@ -28,7 +28,7 @@
 
 		<activity android:name=".ContactsContract.EditContactActivity"
 			android:label="Edit Contact">
-			<intent-filter android:label="Edit Contact">
+			<intent-filter android:label="Edit Kolab Contact">
                   <action android:name="android.intent.action.EDIT" />
                   <category android:name="android.intent.category.DEFAULT" />
                   <data android:mimeType="vnd.android.cursor.item/person" android:host="contacts" />
@@ -36,7 +36,7 @@
                   <data android:mimeType="vnd.android.cursor.item/raw_contact" android:host="com.android.contacts" />
               </intent-filter>
   
-              <intent-filter android:label="New Contact">
+              <intent-filter android:label="Create Kolab Contact">
                   <action android:name="android.intent.action.INSERT" />
                   <category android:name="android.intent.category.DEFAULT" />
                   <data android:mimeType="vnd.android.cursor.dir/person" />
@@ -77,7 +77,7 @@
 			android:label="Calendar"
           	android:authorities="at.dasz.KolabDroid.Calendar"  />
 	</application>
-	<uses-sdk android:minSdkVersion="5" />
+	<uses-sdk android:minSdkVersion="7"/>
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
 	<uses-permission android:name="android.permission.READ_CONTACTS"></uses-permission>
 	<uses-permission android:name="android.permission.WRITE_CONTACTS"></uses-permission>
