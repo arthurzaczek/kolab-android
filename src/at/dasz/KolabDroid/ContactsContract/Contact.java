@@ -105,6 +105,16 @@ public class Contact
 	{
 		return contactMethods;
 	}
+	
+	public void clearContactMethods()
+	{
+		contactMethods.clear();
+	}
+	
+	public void addContactMethod(ContactMethod cm)
+	{
+		contactMethods.add(cm);
+	}
 
 	public ContentValues toContentValues()
 	{

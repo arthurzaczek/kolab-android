@@ -4,13 +4,13 @@
   android:layout_height="wrap_content" android:orientation="vertical" android:layout_width="fill_parent">
 
 
-<TextView android:text="@+id/TextView01" android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/TextInfo"></TextView><LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout01" android:orientation="horizontal" android:layout_width="fill_parent">
-<EditText android:id="@+id/EditFirstName" android:text="@+id/EditFirstName" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+<TextView android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/TextInfo"></TextView><LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout01" android:orientation="horizontal" android:layout_width="fill_parent">
+<EditText android:id="@+id/EditFirstName" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
 
 </LinearLayout>
 
 <LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout02" android:layout_width="fill_parent">
-<EditText android:layout_height="wrap_content" android:id="@+id/EditLastName" android:text="@+id/EditLastName" android:layout_width="fill_parent"></EditText>
+<EditText android:layout_height="wrap_content" android:id="@+id/EditLastName" android:layout_width="fill_parent"></EditText>
 </LinearLayout>
 
 
@@ -19,19 +19,19 @@
 
 <LinearLayout android:id="@+id/LinearLayout05" android:layout_height="wrap_content" android:layout_width="fill_parent">
 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/TextPhoneHome" android:text="Home:"></TextView>
-<EditText android:id="@+id/EditPhoneHome" android:text="@+id/EditPhoneHome" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+<EditText android:id="@+id/EditPhoneHome" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
 
 </LinearLayout>
 
 <LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout06" android:layout_width="fill_parent">
 <TextView android:id="@+id/TextView02" android:text="Mobile:" android:layout_height="wrap_content" android:layout_width="wrap_content"></TextView>
-<EditText android:id="@+id/EditPhoneMobile" android:text="@+id/EditPhoneMobile" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+<EditText android:id="@+id/EditPhoneMobile" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
 
 </LinearLayout>
 
 <LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout07" android:layout_width="fill_parent">
 <TextView android:id="@+id/TextView03" android:text="Work:" android:layout_height="wrap_content" android:layout_width="wrap_content"></TextView>
-<EditText android:id="@+id/EditPhoneWork" android:text="@+id/EditPhoneWork" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+<EditText android:id="@+id/EditPhoneWork" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
 
 </LinearLayout>
 
@@ -43,7 +43,7 @@
 
 <LinearLayout android:id="@+id/LinearLayout08" android:layout_height="wrap_content" android:layout_width="fill_parent">
 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/TextfieldEmail" android:text="Home:"></TextView>
-<EditText android:id="@+id/EditEmailHome" android:text="@+id/EditEmailHome" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+<EditText android:id="@+id/EditEmailHome" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
 </LinearLayout>
 
 </LinearLayout>

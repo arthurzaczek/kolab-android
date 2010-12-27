@@ -17,11 +17,14 @@ import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.Sync.SyncException;
 
 public class EditContactActivity extends Activity
-{	
+{
+	private Contact mContact = null;	
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -36,45 +39,44 @@ public class EditContactActivity extends Activity
 		
 		if(uri.toString().endsWith("contacts"))
 		{
-			//TODO: proide empty form instead of fetching contact from db
+			//TODO: provide empty form instead of fetching contact from db
 			
+			//we need the sunc account for new contacts: how to retrieve it?
 			TextView txtV = (TextView) findViewById(R.id.TextInfo);
 			txtV.setText("TODO: show empty form for new contact");
 			return;
+			
+			//mContact = new Contact();
+		}
+		else
+		{	
+			try
+			{
+				mContact = ContactDBHelper.getContactByRawURI(uri, getContentResolver());			
+				//Log.i("ECA:", "Got contact");
+			}
+			catch (SyncException ex)
+			{
+				// TODO Auto-generated catch block
+				ex.printStackTrace();
+			}
 		}
 		
-		Contact c = null;
-		
-		try
-		{
-			c = getContactByRawURI(uri);			
-			//Log.i("ECA:", "Got contact");
-		}
-		catch (SyncException ex)
-		{
-			// TODO Auto-generated catch block
-			ex.printStackTrace();
-		}
-		
-		if(c == null) return; //TODO: what if db is broken somehow?
+		if(mContact == null) return; //TODO: what if db is broken somehow?
 		
 		EditText firstName = (EditText) findViewById(R.id.EditFirstName);
-		firstName.setText(c.getGivenName());
+		firstName.setText(mContact.getGivenName());
 		
 		EditText lastName = (EditText) findViewById(R.id.EditLastName);
-		lastName.setText(c.getFamilyName());
+		lastName.setText(mContact.getFamilyName());
 		
 		EditText phoneHome = (EditText) findViewById(R.id.EditPhoneHome);
-		phoneHome.setText("");
 		EditText phoneMobile = (EditText) findViewById(R.id.EditPhoneMobile);
-		phoneMobile.setText("");
 		EditText phoneWork = (EditText) findViewById(R.id.EditPhoneWork);
-		phoneWork.setText("");
 		
 		EditText emailHome = (EditText) findViewById(R.id.EditEmailHome);
-		emailHome.setText("");
 		
-		for (ContactMethod cm : c.getContactMethods())
+		for (ContactMethod cm : mContact.getContactMethods())
 		{
 			if(cm instanceof EmailContact)
 			{
@@ -109,109 +111,79 @@ public class EditContactActivity extends Activity
 		}
 		
 	}
+
 	
-	//TODO: this method is pretty much copy&paste from loadContact, maybe we can put them together somehow
-	private Contact getContactByRawURI(Uri uri) throws SyncException
+	@Override
+	public void onBackPressed()
 	{
-		ContentResolver cr = getContentResolver();
-		Cursor queryCursor = null;
+		//Log.i("ECA:", "on back");
+		
+		EditText firstName = (EditText) findViewById(R.id.EditFirstName);
+		mContact.setGivenName(firstName.getText().toString());
+		
+		EditText lastName = (EditText) findViewById(R.id.EditLastName);
+		mContact.setFamilyName(lastName.getText().toString());
+		
+		mContact.clearContactMethods();
+		
+		EditText phoneHome = (EditText) findViewById(R.id.EditPhoneHome);
+		if(! "".equals(phoneHome.getText().toString()))
+		{
+			PhoneContact pc = new PhoneContact();
+			pc.setType(ContactsContract.CommonDataKinds.Phone.TYPE_HOME);
+			pc.setData(phoneHome.getText().toString());
+			
+			mContact.addContactMethod(pc);
+		}
+		
+		EditText phoneMobile = (EditText) findViewById(R.id.EditPhoneMobile);
+		if(! "".equals(phoneMobile.getText().toString()))
+		{
+			PhoneContact pc = new PhoneContact();
+			pc.setType(ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE);
+			pc.setData(phoneMobile.getText().toString());
+			
+			mContact.addContactMethod(pc);
+		}
+		
+		EditText phoneWork = (EditText) findViewById(R.id.EditPhoneWork);
+		if(! "".equals(phoneWork.getText().toString()))
+		{
+			PhoneContact pc = new PhoneContact();
+			pc.setType(ContactsContract.CommonDataKinds.Phone.TYPE_WORK);
+			pc.setData(phoneWork.getText().toString());
+			
+			mContact.addContactMethod(pc);
+		}
+		
+		EditText emailHome = (EditText) findViewById(R.id.EditEmailHome);
+		if(! "".equals(emailHome.getText().toString()))
+		{
+			EmailContact ec = new EmailContact();
+			ec.setType(ContactsContract.CommonDataKinds.Email.TYPE_HOME);
+			ec.setData(emailHome.getText().toString());
+			
+			mContact.addContactMethod(ec);
+		}
+		
 		try
 		{
-			//TODO: hack to get Raw ID
-			String tmp = uri.toString();
-			String[] a = tmp.split("/");
-			int idx = a.length -1;
-			int id = Integer.parseInt(a[idx]);
-
-			String where = ContactsContract.Data.RAW_CONTACT_ID + "=?";
+			ContactDBHelper.saveContact(mContact, getContentResolver());
 			
-			String[] projection = new String[] {
-					Contacts.Data.MIMETYPE,
-					StructuredName.GIVEN_NAME,
-					StructuredName.FAMILY_NAME,
-					Phone.NUMBER,
-					Phone.TYPE,
-					Email.DATA,
-					Event.START_DATE,
-					Photo.PHOTO,
-					Note.NOTE
-			};
+			//TODO: toast text in strings.xml
 			
-			queryCursor = cr.query(ContactsContract.Data.CONTENT_URI, projection,
-					where, new String[] { Integer.toString(id) }, null);
-
-			if (queryCursor == null) throw new SyncException("",
-					"cr.query returned null");
-			if (!queryCursor.moveToFirst()) return null;
-
-			Contact result = new Contact();
-			result.setId(id);
-
-			int idxMimeType = queryCursor.getColumnIndex(ContactsContract.Contacts.Data.MIMETYPE);
-			String mimeType;
+			//Toast with successfully saved
+			Toast notice = Toast.makeText(this, "Contact saved(EXCEPT for names)", Toast.LENGTH_LONG);
+			notice.show();
 			
-			do
-			{
-				mimeType = queryCursor.getString(idxMimeType);
-				if (mimeType
-						.equals(StructuredName.CONTENT_ITEM_TYPE))
-				{
-					int idxFirst = queryCursor
-							.getColumnIndex(StructuredName.GIVEN_NAME);
-					int idxLast = queryCursor
-							.getColumnIndex(StructuredName.FAMILY_NAME);
-
-					result.setGivenName(queryCursor.getString(idxFirst));
-					result.setFamilyName(queryCursor.getString(idxLast));
-				}
-				else if (mimeType.equals(Phone.CONTENT_ITEM_TYPE))
-				{
-					int numberIdx = queryCursor.getColumnIndex(Phone.NUMBER);
-					int typeIdx = queryCursor.getColumnIndex(Phone.TYPE);
-					PhoneContact pc = new PhoneContact();
-					pc.setData(queryCursor.getString(numberIdx));
-					pc.setType(queryCursor.getInt(typeIdx));
-					result.getContactMethods().add(pc);
-
-				}
-				else if (mimeType.equals(Email.CONTENT_ITEM_TYPE))
-				{
-					int dataIdx = queryCursor.getColumnIndex(Email.DATA);
-					// int typeIdx =
-					// emailCursor.getColumnIndex(CommonDataKinds.Email.TYPE);
-					EmailContact pc = new EmailContact();
-					pc.setData(queryCursor.getString(dataIdx));
-					// pc.setType(emailCursor.getInt(typeIdx));
-					result.getContactMethods().add(pc);
-
-				}
-				else if (mimeType.equals(Event.CONTENT_ITEM_TYPE))
-				{
-					int dateIdx = queryCursor.getColumnIndex(Event.START_DATE);
-					String bday = queryCursor.getString(dateIdx);
-					result.setBirthday(bday);
-
-				}
-				else if (mimeType.equals(Photo.CONTENT_ITEM_TYPE))
-				{
-					int colIdx = queryCursor.getColumnIndex(Photo.PHOTO);
-					byte[] photo = queryCursor.getBlob(colIdx);
-					result.setPhoto(photo);
-
-				}
-				else if (mimeType.equals(Note.CONTENT_ITEM_TYPE))
-				{
-					int colIdx = queryCursor.getColumnIndex(Note.NOTE);
-					String note = queryCursor.getString(colIdx);
-					result.setNote(note);
-				}
-			} while (queryCursor.moveToNext());
-
-			return result;
 		}
-		finally
+		catch (SyncException ex)
 		{
-			if (queryCursor != null) queryCursor.close();
+			// TODO Auto-generated catch block
+			ex.printStackTrace();
 		}
+		
+		super.onBackPressed();
 	}
+	
 }

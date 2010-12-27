@@ -445,6 +445,8 @@ public class SyncContactsHandler extends AbstractSyncHandler
 
 	private CacheEntry saveContact(Contact contact) throws SyncException
 	{
+		//TODO: make call to ContactDBHelper !! and only create cache entry here
+		
 		Uri uri = null;
 
 		String name = contact.getFullName();
