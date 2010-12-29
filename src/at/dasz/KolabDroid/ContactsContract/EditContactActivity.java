@@ -168,7 +168,8 @@ public class EditContactActivity extends Activity
 		
 		try
 		{
-			ContactDBHelper.saveContact(mContact, getContentResolver());
+			//ContactDBHelper.saveContact(mContact, getContentResolver());
+			ContactDBHelper.saveContact(mContact, this);
 			
 			//TODO: toast text in strings.xml
 			

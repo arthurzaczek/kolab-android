@@ -3,10 +3,13 @@ package at.dasz.KolabDroid.ContactsContract;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -20,7 +23,6 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.Photo;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.util.Log;
-import at.dasz.KolabDroid.Sync.CacheEntry;
 import at.dasz.KolabDroid.Sync.SyncException;
 
 public class ContactDBHelper
@@ -129,9 +131,11 @@ public class ContactDBHelper
 		}
 	}
 	
-	public static void saveContact(Contact contact, ContentResolver cr) throws SyncException
+	//public static void saveContact(Contact contact, ContentResolver cr) throws SyncException
+	public static void saveContact(Contact contact, Context ctx) throws SyncException
 	{
 		Uri uri = null;
+		ContentResolver cr = ctx.getContentResolver();
 
 		String name = contact.getFullName();
 		String firstName = contact.getGivenName();
@@ -146,6 +150,8 @@ public class ContactDBHelper
 
 		boolean doMerge = false;
 
+		//Dangerous to merge without checking account type + name !!!
+		
 		/*
 		if (contact.getId() == 0 && this.settings.getMergeContactsByName())
 		{
@@ -184,6 +190,10 @@ public class ContactDBHelper
 		if (contact.getId() == 0)
 		{
 			Log.d("ConH", "SC: Contact " + name + " is NEW -> insert");
+			
+			//Account[] accounts = AccountManager.get(this).getAccounts();
+			Account[] accounts = AccountManager.get(ctx).getAccounts();
+			Log.i("CDBH", "Amount of accounts: " + accounts.length);
 			
 //			String accountName = settings.getAccountName();
 //			if("".equals(accountName)) accountName = null;
@@ -270,33 +280,24 @@ public class ContactDBHelper
 
 			Uri updateUri = ContactsContract.Data.CONTENT_URI;
 
-			List<ContactMethod> cms = null;
-			List<ContactMethod> mergedCms = new ArrayList<ContactMethod>();
+			//List<ContactMethod> cms = null;
+			List<ContactMethod> newCMs = new ArrayList<ContactMethod>();
 
 			// first remove stuff that is in addressbook
 			Cursor queryCursor;
 
 			// update name (broken at the moment :()
-			/*
-			 * ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.
-			 * CONTENT_URI) .withValue(ContactsContract.Data.RAW_CONTACT_ID,
-			 * contact.getId()) .withValue(ContactsContract.Data.MIMETYPE,
-			 * CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-			 * .withValue(CommonDataKinds.StructuredName.DISPLAY_NAME, name)
-			 * .withValue(CommonDataKinds.StructuredName.GIVEN_NAME, firstName)
-			 * .withValue(CommonDataKinds.StructuredName.FAMILY_NAME, lastName)
-			 * .build());
-			 */
 
-			// TODO All merge operations below should not delete the row if one
-			// exists and re-insert it afterwards but instead run an update.
-			// http://developer.android.com/reference/android/provider/ContactsContract.Data.html
-			// states:
-			//
-			// RowID: Sync adapter should try to preserve row IDs during
-			// updates. In other words, it would
-			// be a bad idea to delete and reinsert a data row. A sync adapter
-			// should always do an update instead.
+			//TODO testing name update (works from form, withoutmergebyname)
+			 ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.
+			 CONTENT_URI) .withValue(ContactsContract.Data.RAW_CONTACT_ID,
+			 contact.getId()) .withValue(ContactsContract.Data.MIMETYPE,
+			 CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+			 .withValue(CommonDataKinds.StructuredName.DISPLAY_NAME, name)
+			 .withValue(CommonDataKinds.StructuredName.GIVEN_NAME, firstName)
+			 .withValue(CommonDataKinds.StructuredName.FAMILY_NAME, lastName)
+			 .build());
+			 
 
 			// birthday
 			if (contact.getBirthday() != null
@@ -458,73 +459,62 @@ public class ContactDBHelper
 					if (!queryCursor.moveToFirst()) return;
 					int idCol = queryCursor
 							.getColumnIndex(ContactsContract.Data._ID);
-					int numberCol = queryCursor
-							.getColumnIndex(CommonDataKinds.Phone.NUMBER);
 					int typeCol = queryCursor
 							.getColumnIndex(CommonDataKinds.Phone.TYPE);
 
-					if (!doMerge)
+					for (ContactMethod cm : contact.getContactMethods())
 					{
+						if (!(cm instanceof PhoneContact)) continue;
+
+						boolean found = false;
+						String newNumber = cm.getData();
+						int newType = cm.getType();
+
+						queryCursor.moveToFirst();							
 						do
 						{
-							ops.add(ContentProviderOperation
-									.newDelete(
-											addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-									.withSelection(
-											ContactsContract.Data._ID + "=?",
-											new String[] { String
-													.valueOf(queryCursor
-															.getInt(idCol)) })
-									.build());
-						} while (queryCursor.moveToNext());
-					}
-					else
-					{
-						for (ContactMethod cm : contact.getContactMethods())
-						{
-							if (!(cm instanceof PhoneContact)) continue;
+							//String numberIn = queryCursor
+							//		.getString(numberCol);
+							int typeIn = queryCursor.getInt(typeCol);
+							int idIn = queryCursor.getInt(idCol);
 
-							boolean found = false;
-							String newNumber = cm.getData();
-							int newType = cm.getType();
-
-							do
+							if (typeIn == newType)
+									//&& numberIn.equals(newNumber))
 							{
-								String numberIn = queryCursor
-										.getString(numberCol);
-								int typeIn = queryCursor.getInt(typeCol);
-
-								if (typeIn == newType
-										&& numberIn.equals(newNumber))
-								{
-									Log.d("ConH", "SC: Found phone: "
-											+ numberIn + " for contact " + name
-											+ " -> wont add");
-									found = true;
-									break;
-								}
-
-							} while (queryCursor.moveToNext());
-
-							if (!found)
-							{
-								mergedCms.add(cm);
+//									Log.d("ConH", "SC: Found phone: "
+//											+ " for contact " + name
+//											+ " -> wont add");
+								found = true;
+								
+								ops.add(ContentProviderOperation
+										.newUpdate(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
+										.withSelection(BaseColumns._ID + "= ?",
+												new String[] { String.valueOf(idIn) })
+										.withValue(CommonDataKinds.Phone.NUMBER,
+												newNumber).withExpectedCount(1)
+										.build());
+								
+								break;
 							}
+
+						} while (queryCursor.moveToNext());
+
+						if (!found)
+						{
+							//add new number
+							newCMs.add(cm);
 						}
 					}
 				}
 				else
 				{
-					if (doMerge)
+					Log.d("ConH", "SC: No numbers in android for contact "
+							+ name + " -> adding all");
+					// we can add all new Numbers
+					for (ContactMethod cm : contact.getContactMethods())
 					{
-						Log.d("ConH", "SC: No numbers in android for contact "
-								+ name + " -> adding all");
-						// we can add all new Numbers
-						for (ContactMethod cm : contact.getContactMethods())
-						{
-							if (!(cm instanceof PhoneContact)) continue;
-							mergedCms.add(cm);
-						}
+						if (!(cm instanceof PhoneContact)) continue;
+						newCMs.add(cm);
 					}
 				}
 			}
@@ -546,88 +536,68 @@ public class ContactDBHelper
 					if (!queryCursor.moveToFirst()) return;
 					int idCol = queryCursor
 							.getColumnIndex(ContactsContract.Data._ID);
-					int mailCol = queryCursor
-							.getColumnIndex(CommonDataKinds.Email.DATA);
 					int typeCol = queryCursor
 							.getColumnIndex(CommonDataKinds.Email.TYPE);
 
-					if (!doMerge)
+					for (ContactMethod cm : contact.getContactMethods())
 					{
+						if (!(cm instanceof EmailContact)) continue;
+
+						boolean found = false;
+						String newMail = cm.getData();
+						int newType = cm.getType();
+
+						queryCursor.moveToFirst();
 						do
 						{
-							ops.add(ContentProviderOperation
-									.newDelete(
-											addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-									.withSelection(
-											ContactsContract.Data._ID + "=?",
-											new String[] { String
-													.valueOf(queryCursor
-															.getInt(idCol)) })
-									.build());
-						} while (queryCursor.moveToNext());
-					}
-					else
-					{
-						for (ContactMethod cm : contact.getContactMethods())
-						{
-							if (!(cm instanceof EmailContact)) continue;
+							int typeIn = queryCursor.getInt(typeCol);
+							int idIn = queryCursor.getInt(idCol);
 
-							boolean found = false;
-							String newMail = cm.getData();
-							int newType = cm.getType();
-
-							do
+							if (typeIn == newType)
 							{
-								String emailIn = queryCursor.getString(mailCol);
-								int typeIn = queryCursor.getInt(typeCol);
-
-								if (typeIn == newType
-										&& emailIn.equals(newMail))
-								{
-									Log.d("ConH", "SC. Found email: " + emailIn
-											+ " for contact " + name
-											+ " -> wont add");
-									found = true;
-									break;
-								}
-
-							} while (queryCursor.moveToNext());
-
-							if (!found)
-							{
-								mergedCms.add(cm);
+//									Log.d("ConH", "SC. Found email: " + emailIn
+//											+ " for contact " + name
+//											+ " -> wont add");
+								found = true;
+								
+								ops.add(ContentProviderOperation
+										.newUpdate(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
+										.withSelection(BaseColumns._ID + "= ?",
+												new String[] { String.valueOf(idIn) })
+										.withValue(CommonDataKinds.Email.DATA,
+												newMail).withExpectedCount(1)
+										.build());
+								
+								break;
 							}
+
+						} while (queryCursor.moveToNext());
+
+						if (!found)
+						{
+							newCMs.add(cm);
 						}
 					}
 				}
 				else
 				{
-					if (doMerge)
+
+					Log.d("ConH", "SC: No email in android for contact "
+							+ name + " -> adding all");
+					// we can add all new email addresses
+					for (ContactMethod cm : contact.getContactMethods())
 					{
-						Log.d("ConH", "SC: No email in android for contact "
-								+ name + " -> adding all");
-						// we can add all new Numbers
-						for (ContactMethod cm : contact.getContactMethods())
-						{
-							if (!(cm instanceof EmailContact)) continue;
-							mergedCms.add(cm);
-						}
+						if (!(cm instanceof EmailContact)) continue;
+						newCMs.add(cm);
 					}
 				}
 			}
+			
+			if(contact.getId() == 0) //if contact is new, use all its contact methods
+				newCMs = contact.getContactMethods();
 
-			// insert again
-			if (doMerge)
-			{
-				cms = mergedCms;
-			}
-			else
-			{
-				cms = contact.getContactMethods();
-			}
-
-			// for (ContactMethod cm : contact.getContactMethods())
-			for (ContactMethod cm : cms)
+			//do inserts of new ContactMethods
+			for (ContactMethod cm : newCMs)
 			{
 				if (cm instanceof EmailContact)
 				{
