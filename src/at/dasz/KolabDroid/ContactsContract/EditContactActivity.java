@@ -2,6 +2,7 @@ package at.dasz.KolabDroid.ContactsContract;
 
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -37,22 +38,16 @@ public class EditContactActivity extends Activity
 		Uri uri = Uri.parse(intent.getDataString());		
 		Log.i("ECA:", "Edit uri: "+ uri);
 		
-		if(uri.toString().endsWith("contacts"))
-		{
-			//TODO: provide empty form instead of fetching contact from db
-			
-			//we need the sunc account for new contacts: how to retrieve it?
-			TextView txtV = (TextView) findViewById(R.id.TextInfo);
-			txtV.setText("TODO: show empty form for new contact");
-			return;
-			
-			//mContact = new Contact();
+		if(uri.toString().endsWith("contacts")) //new contact
+		{						
+			mContact = new Contact();
 		}
 		else
 		{	
 			try
 			{
-				mContact = ContactDBHelper.getContactByRawURI(uri, getContentResolver());			
+				long contactID = ContentUris.parseId(uri);
+				mContact = ContactDBHelper.getContactByRawID(contactID, getContentResolver());			
 				//Log.i("ECA:", "Got contact");
 			}
 			catch (SyncException ex)
@@ -60,9 +55,7 @@ public class EditContactActivity extends Activity
 				// TODO Auto-generated catch block
 				ex.printStackTrace();
 			}
-		}
-		
-		if(mContact == null) return; //TODO: what if db is broken somehow?
+		}		
 		
 		EditText firstName = (EditText) findViewById(R.id.EditFirstName);
 		firstName.setText(mContact.getGivenName());
@@ -117,6 +110,8 @@ public class EditContactActivity extends Activity
 	public void onBackPressed()
 	{
 		//Log.i("ECA:", "on back");
+//		if(mContact == null) //we save a new contact
+//			mContact = new Contact();
 		
 		EditText firstName = (EditText) findViewById(R.id.EditFirstName);
 		mContact.setGivenName(firstName.getText().toString());
@@ -168,13 +163,10 @@ public class EditContactActivity extends Activity
 		
 		try
 		{
-			//ContactDBHelper.saveContact(mContact, getContentResolver());
 			ContactDBHelper.saveContact(mContact, this);
 			
-			//TODO: toast text in strings.xml
-			
 			//Toast with successfully saved
-			Toast notice = Toast.makeText(this, "Contact saved(EXCEPT for names)", Toast.LENGTH_LONG);
+			Toast notice = Toast.makeText(this, R.string.editor_save_success, Toast.LENGTH_LONG);
 			notice.show();
 			
 		}

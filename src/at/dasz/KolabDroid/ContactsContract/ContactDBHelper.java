@@ -23,22 +23,16 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.Photo;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.util.Log;
+import android.widget.Toast;
 import at.dasz.KolabDroid.Sync.SyncException;
 
 public class ContactDBHelper
 {
-	public static Contact getContactByRawURI(Uri uri, ContentResolver cr) throws SyncException
+	public static Contact getContactByRawID(long contactID, ContentResolver cr) throws SyncException
 	{
-		//ContentResolver cr = getContentResolver();
 		Cursor queryCursor = null;
 		try
 		{
-			//TODO: hack to get Raw ID
-			String tmp = uri.toString();
-			String[] a = tmp.split("/");
-			int idx = a.length -1;
-			int id = Integer.parseInt(a[idx]);
-
 			String where = ContactsContract.Data.RAW_CONTACT_ID + "=?";
 			
 			String[] projection = new String[] {
@@ -54,14 +48,14 @@ public class ContactDBHelper
 			};
 			
 			queryCursor = cr.query(ContactsContract.Data.CONTENT_URI, projection,
-					where, new String[] { Integer.toString(id) }, null);
+					where, new String[] { Long.toString(contactID) }, null);
 
 			if (queryCursor == null) throw new SyncException("",
 					"cr.query returned null");
 			if (!queryCursor.moveToFirst()) return null;
 
 			Contact result = new Contact();
-			result.setId(id);
+			result.setId((int) contactID);
 
 			int idxMimeType = queryCursor.getColumnIndex(ContactsContract.Contacts.Data.MIMETYPE);
 			String mimeType;
@@ -195,20 +189,30 @@ public class ContactDBHelper
 			Account[] accounts = AccountManager.get(ctx).getAccounts();
 			Log.i("CDBH", "Amount of accounts: " + accounts.length);
 			
-//			String accountName = settings.getAccountName();
-//			if("".equals(accountName)) accountName = null;
-//			String accountType = settings.getAccountType();
-//			if("".equals(accountType)) accountType = null;
-
+			if(accounts.length == 0)
+			{
+				Log.e("CDBH:", "No SyncAccounts found, cant store new contact");
+				return;
+			}
 			
-//TODO: WE REALLY NEED AN ACCOUNT HERE, OTHERWISE => EXCEPTION !!!!
+			Account account = null;
 			
-/*			
+			//TODO: we use the first KolabDroid account, could there be more than one?
+			for(Account acc : accounts)
+			{
+				//TODO: Where do we get out account type from? => replace string here
+				if ("at.dasz.kolabdroid".equals(acc.type))
+				{
+					account = acc;
+					break;
+				}
+			}
+			
 			ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.RawContacts.CONTENT_URI))
 	                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, account.type)
 	                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, account.name)
 	                .build());
-*/	        
+
 			ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 	                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
 	                .withValue(ContactsContract.Data.MIMETYPE, CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
@@ -280,31 +284,43 @@ public class ContactDBHelper
 
 			Uri updateUri = ContactsContract.Data.CONTENT_URI;
 
-			//List<ContactMethod> cms = null;
 			List<ContactMethod> newCMs = new ArrayList<ContactMethod>();
 
-			// first remove stuff that is in addressbook
 			Cursor queryCursor;
+			
+			//name
+			String w = ContactsContract.Data.RAW_CONTACT_ID + "='"
+				+ contact.getId() + "' AND "
+				+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
+				+ CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE + "'";
 
-			// update name (broken at the moment :()
-
-			//TODO testing name update (works from form, withoutmergebyname)
-			 ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.
-			 CONTENT_URI) .withValue(ContactsContract.Data.RAW_CONTACT_ID,
-			 contact.getId()) .withValue(ContactsContract.Data.MIMETYPE,
-			 CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-			 .withValue(CommonDataKinds.StructuredName.DISPLAY_NAME, name)
-			 .withValue(CommonDataKinds.StructuredName.GIVEN_NAME, firstName)
-			 .withValue(CommonDataKinds.StructuredName.FAMILY_NAME, lastName)
-			 .build());
-			 
+			queryCursor = cr.query(updateUri,
+					new String[] { BaseColumns._ID }, w, null, null);
+			
+			if(queryCursor != null && queryCursor.moveToFirst())
+			{
+				int idCol = queryCursor.getColumnIndex(BaseColumns._ID);
+				long id = queryCursor.getLong(idCol);
+				
+				ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.
+						 CONTENT_URI)
+						 .withValue(CommonDataKinds.StructuredName.DISPLAY_NAME, name)
+						 .withValue(CommonDataKinds.StructuredName.GIVEN_NAME, firstName)
+						 .withValue(CommonDataKinds.StructuredName.FAMILY_NAME, lastName)
+						 .withSelection(BaseColumns._ID + "= ?",
+										new String[] { String.valueOf(id) })
+						 .build());
+			}
+			else
+			{
+				throw new SyncException("EE", "ContactDBHelper cannot update contact, because name row is missing");
+			}
 
 			// birthday
-			if (contact.getBirthday() != null
-					&& !contact.getBirthday().equals(""))
+			if (contact.getBirthday() != null && !contact.getBirthday().equals(""))
 			{
 
-				String w = ContactsContract.Data.RAW_CONTACT_ID + "='"
+				w = ContactsContract.Data.RAW_CONTACT_ID + "='"
 						+ contact.getId() + "' AND "
 						+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
 						+ CommonDataKinds.Event.CONTENT_ITEM_TYPE + "' AND "
@@ -358,7 +374,7 @@ public class ContactDBHelper
 			// contact notes
 			if (contact.getNotes() != null && !contact.getNotes().equals(""))
 			{
-				String w = ContactsContract.Data.RAW_CONTACT_ID + "='"
+				w = ContactsContract.Data.RAW_CONTACT_ID + "='"
 						+ contact.getId() + "' AND "
 						+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
 						+ CommonDataKinds.Note.CONTENT_ITEM_TYPE + "'";
@@ -399,7 +415,7 @@ public class ContactDBHelper
 			// contact photo
 			if (contact.getPhoto() != null)
 			{
-				String w = ContactsContract.Data.RAW_CONTACT_ID + "='"
+				w = ContactsContract.Data.RAW_CONTACT_ID + "='"
 						+ contact.getId() + "' AND "
 						+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
 						+ CommonDataKinds.Photo.CONTENT_ITEM_TYPE + "'";
@@ -442,7 +458,7 @@ public class ContactDBHelper
 
 			// phone
 			{
-				String w = ContactsContract.Data.RAW_CONTACT_ID + "='"
+				w = ContactsContract.Data.RAW_CONTACT_ID + "='"
 						+ contact.getId() + "' AND "
 						+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
 						+ CommonDataKinds.Phone.CONTENT_ITEM_TYPE + "'";
@@ -473,17 +489,11 @@ public class ContactDBHelper
 						queryCursor.moveToFirst();							
 						do
 						{
-							//String numberIn = queryCursor
-							//		.getString(numberCol);
 							int typeIn = queryCursor.getInt(typeCol);
 							int idIn = queryCursor.getInt(idCol);
 
 							if (typeIn == newType)
-									//&& numberIn.equals(newNumber))
 							{
-//									Log.d("ConH", "SC: Found phone: "
-//											+ " for contact " + name
-//											+ " -> wont add");
 								found = true;
 								
 								ops.add(ContentProviderOperation
@@ -521,7 +531,7 @@ public class ContactDBHelper
 
 			// mail
 			{
-				String w = ContactsContract.Data.RAW_CONTACT_ID + "='"
+				w = ContactsContract.Data.RAW_CONTACT_ID + "='"
 						+ contact.getId() + "' AND "
 						+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
 						+ CommonDataKinds.Email.CONTENT_ITEM_TYPE + "'";
@@ -555,9 +565,6 @@ public class ContactDBHelper
 
 							if (typeIn == newType)
 							{
-//									Log.d("ConH", "SC. Found email: " + emailIn
-//											+ " for contact " + name
-//											+ " -> wont add");
 								found = true;
 								
 								ops.add(ContentProviderOperation
@@ -644,23 +651,14 @@ public class ContactDBHelper
 					ContactsContract.AUTHORITY, ops);
 			// store the first result: it contains the uri of the raw contact
 			// with its ID
+			
 			if (contact.getId() == 0)
 			{
-				int newID = 0;
 				uri = results[0].uri;
-				//TODO: get ID from uri (this is just a dirty hack)
-				String tmp = results[0].uri.toString();
-				String[] a = tmp.split("/");
-				int idx = a.length -1;
+				long newID = ContentUris.parseId(uri);
+				Log.d("CDBH:", "new contact id: " + newID);
 				
-				//continue hack because of ?callerIsSyncAdapter=true behind uri
-				if(a[idx] != null && a[idx].contains("?"))
-				{
-					String[] b = a[idx].split("\\?");
-					newID = Integer.parseInt(b[0]);
-				}
-				
-				contact.setId(newID);
+				contact.setId((int)newID);
 			}
 			else
 			{
@@ -678,14 +676,6 @@ public class ContactDBHelper
 					"Exception encountered while inserting contact: "
 							+ e.getMessage() + e.getStackTrace());
 		}
-/*
-		CacheEntry result = new CacheEntry();
-		result.setLocalId((int) ContentUris.parseId(uri));
-		result.setLocalHash(contact.getLocalHash());
-		result.setRemoteId(contact.getUid());
-*/
-		//localItemsCache.put(contact.getId(), contact);
-		//return result;
 	}
 	
 	private static Uri addCallerIsSyncAdapterParameter(Uri uri) {

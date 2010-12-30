@@ -12,6 +12,7 @@ import at.dasz.KolabDroid.Utils;
 
 public class Contact
 {
+	//TODO: Android raw contact IDs are long!
 	private int					id;
 	//private String				fullName, uid;
 	private String				uid;
