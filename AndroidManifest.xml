@@ -76,7 +76,8 @@
 		<provider android:name="at.dasz.KolabDroid.Calendar.FakeCalendarContentProvider"
 			android:label="Calendar"
           	android:authorities="at.dasz.KolabDroid.Calendar"  />
-	</application>
+	<activity android:name=".Settings.AccountManager" android:label="Account Manager"></activity>
+</application>
 	<uses-sdk android:minSdkVersion="7"/>
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
 	<uses-permission android:name="android.permission.READ_CONTACTS"></uses-permission>

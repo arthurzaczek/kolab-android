@@ -6,13 +6,15 @@
 	<PreferenceScreen android:key="account_status"
 		android:title="KolabDroid status" android:summary="Sync status">
 		<intent 
-			android:targetClass="at.dasz.KolabDroid.Main" android:action="at.dasz.KolabDroid.action.MAIN" android:targetPackage="at.dasz.KolabDroid"/>
+			android:action="at.dasz.KolabDroid.action.MAIN" android:targetClass="at.dasz.KolabDroid.Main" android:targetPackage="at.dasz.KolabDroid"/>
 	</PreferenceScreen>
 
 	<PreferenceScreen android:key="account_settings"
 		android:title="KolabDroid settings" android:summary="Configure Settings">
 		<intent 
-			android:targetPackage="at.dasz.KolabDroid" android:targetClass="at.dasz.KolabDroid.Settings.SettingsView" android:action="at.dasz.KolabDroid.Settings.action.EDIT_TITLE"/>
+			android:action="at.dasz.KolabDroid.Settings.action.EDIT_TITLE" android:targetClass="at.dasz.KolabDroid.Settings.SettingsView" android:targetPackage="at.dasz.KolabDroid"/>
 	</PreferenceScreen>
 
+<PreferenceScreen android:key="account_manager" android:title="Contact Account Manager" android:summary="Edit Accounts of Contacts"><intent 
+			android:targetClass="at.dasz.KolabDroid.Settings.AccountManager" android:targetPackage="at.dasz.KolabDroid" android:action="at.dasz.KolabDroid.Settings.action.ACCOUNT_MANAGER"/></PreferenceScreen>
 </PreferenceScreen>
