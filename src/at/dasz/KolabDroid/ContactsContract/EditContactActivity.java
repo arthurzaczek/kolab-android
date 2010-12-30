@@ -16,6 +16,7 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.Photo;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.util.Log;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -69,6 +70,18 @@ public class EditContactActivity extends Activity
 		
 		EditText emailHome = (EditText) findViewById(R.id.EditEmailHome);
 		
+		EditText birthday = (EditText) findViewById(R.id.EditBirthday);
+		birthday.setText(mContact.getBirthday());
+		
+//		DatePicker bday = (DatePicker) findViewById(R.id.EditBirthdayPicker);		
+//		if(!"".equals(mContact.getBirthday()))
+//		{
+//			bday.updateDate(year, monthOfYear, dayOfMonth)
+//		}
+		
+		EditText notes = (EditText) findViewById(R.id.EditNotes);
+		notes.setText(mContact.getNotes());
+		
 		for (ContactMethod cm : mContact.getContactMethods())
 		{
 			if(cm instanceof EmailContact)
@@ -118,6 +131,15 @@ public class EditContactActivity extends Activity
 		
 		EditText lastName = (EditText) findViewById(R.id.EditLastName);
 		mContact.setFamilyName(lastName.getText().toString());
+		
+		EditText birthday = (EditText) findViewById(R.id.EditBirthday);
+		mContact.setBirthday(birthday.getText().toString());
+		
+		//DatePicker bday = (DatePicker) findViewById(R.id.EditBirthdayPicker);		
+		//bday.updateDate(year, monthOfYear, dayOfMonth)
+		
+		EditText notes = (EditText) findViewById(R.id.EditNotes);
+		mContact.setNote(notes.getText().toString());
 		
 		mContact.clearContactMethods();
 		

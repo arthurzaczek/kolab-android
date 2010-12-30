@@ -200,7 +200,7 @@ public class ContactDBHelper
 			//TODO: we use the first KolabDroid account, could there be more than one?
 			for(Account acc : accounts)
 			{
-				//TODO: Where do we get out account type from? => replace string here
+				//TODO: Where do we get our account type from? => replace string here
 				if ("at.dasz.kolabdroid".equals(acc.type))
 				{
 					account = acc;

@@ -50,4 +50,12 @@
 
 
 
+<LinearLayout android:id="@+id/LinearLayout09" android:layout_height="wrap_content" android:layout_width="fill_parent"><TextView android:id="@+id/TextView01" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Birthday:"></TextView>
+<EditText android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/EditBirthday"></EditText>
+</LinearLayout>
+<LinearLayout android:id="@+id/LinearLayout10" android:layout_height="wrap_content" android:layout_width="fill_parent"><TextView android:id="@+id/TextView04" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Notes:"></TextView>
+
+
+<EditText android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/EditNotes"></EditText>
+</LinearLayout>
 </LinearLayout>
