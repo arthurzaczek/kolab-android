@@ -23,7 +23,6 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.Photo;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.util.Log;
-import android.widget.Toast;
 import at.dasz.KolabDroid.Sync.SyncException;
 
 public class ContactDBHelper
