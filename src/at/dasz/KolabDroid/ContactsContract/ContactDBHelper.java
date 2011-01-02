@@ -220,7 +220,7 @@ public class ContactDBHelper
 	                .withValue(CommonDataKinds.StructuredName.FAMILY_NAME, lastName)
 	                .build());
 			
-			if (contact.getBirthday() != null)
+			if (contact.getBirthday() != null && !"".equals(contact.getBirthday()))
 				ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 						.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
 		                .withValue(ContactsContract.Data.MIMETYPE,
@@ -236,7 +236,7 @@ public class ContactDBHelper
 						.withValue(Photo.PHOTO, contact.getPhoto())
 						.build());
 			
-			if (contact.getNotes() != null)
+			if (contact.getNotes() != null && !"".equals(contact.getNotes()))
 				ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 						.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
 						.withValue(ContactsContract.Data.MIMETYPE, Note.CONTENT_ITEM_TYPE)
