@@ -128,8 +128,15 @@ public class Contact
 	@Override
 	public String toString()
 	{
-		return getFullName() + " with " + getContactMethods().size()
-				+ " contact methods";
+		//I dont know if we need need this for any other reason than for debugging purposes
+		//thats why I set it to return only the full name to show in the Contact AccountManager to fix
+		//sync accounts
+		
+//		if(getContactMethods().size() > 0)
+//			return getFullName() + " with " + getContactMethods().size()
+//				+ " contact methods";
+//		else
+			return getFullName();
 	}
 
 	public String getLocalHash()
