@@ -162,4 +162,29 @@ public class CacheEntry
 		result.put(LocalCacheProvider.COL_REMOTE_HASH, getRemoteHash());
 		return result;
 	}
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("CacheEntry: id ");
+		sb.append(" localHash: ");
+		sb.append(localHash);
+		sb.append("\n");
+		sb.append("localId: ");
+		sb.append(localId);
+		sb.append(" remoteChangeDate: ");
+		sb.append(remoteChangedDate);
+		sb.append(" remoteHash: ");
+		sb.append(remoteHash);
+		sb.append("\n");
+		sb.append("remoteId: ");
+		sb.append(remoteId);
+		sb.append(" remoteImapUid: ");
+		sb.append(remoteImapUid);
+		sb.append(" remoteSize: ");
+		sb.append(remoteSize);
+		
+		return sb.toString();
+	}
 }

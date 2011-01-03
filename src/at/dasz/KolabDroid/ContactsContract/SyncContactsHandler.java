@@ -174,6 +174,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			updateLocalItemFromServer(sync, doc);
 			updateCacheEntryFromMessage(sync, doc);
 
+			/* TODO: We will ignore Merge by name for now
 			if (this.settings.getMergeContactsByName())
 			{
 				Log.d("ConH", "Preparing upload of Contact after merge");
@@ -204,12 +205,12 @@ public class SyncContactsHandler extends AbstractSyncHandler
 
 				updateCacheEntryFromMessage(sync, doc);
 			}
+			*/
 
 		}
 		catch (SAXException ex)
 		{
-			throw new SyncException(getItemText(sync),
-					"Unable to extract XML Document", ex);
+			throw new SyncException(getItemText(sync), "Unable to extract XML Document", ex);
 		}
 	}
 
@@ -217,14 +218,21 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	protected void updateLocalItemFromServer(SyncContext sync, Document xml)
 			throws SyncException
 	{
+		Log.d("ConH", "this is updateLocalItemFromServer");
+		
 		Contact contact = (Contact) sync.getLocalItem();
 		if (contact == null)
 		{
+			Log.d("ConH", "NEW local contact");
 			contact = new Contact();
 		}
+		else
+			Log.d("ConH", "Existing local contact");
+		
 		Element root = xml.getDocumentElement();
 
-		contact.setUid(Utils.getXmlElementString(root, "uid"));
+		contact.setUid(Utils.getXmlElementString(root, "uid"));		
+		Log.d("ConH", "Remote UID: " + contact.getUid());
 
 		Element name = Utils.getXmlElement(root, "name");
 		if (name != null)
@@ -234,16 +242,48 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			String fullName = Utils.getXmlElementString(name, "full-name");
 			if (fullName != null)
 			{
+				Log.d("ConH", "Full-name element exists => split to given and family name");
 				String[] names = fullName.split(" ");
 				if (names.length == 2)
 				{
 					contact.setGivenName(names[0]);
 					contact.setFamilyName(names[1]);
 				}
+				else
+				{
+					Log.w("ConH", "Full-name element exists without space => set only given name");
+					contact.setGivenName(fullName);
+					contact.setFamilyName("");
+				}
+			}
+			else
+			{
+				Log.w("ConH", "Full-name element does NOT exist => use given and last name");
+				//use given and last name
+				String givenName = Utils.getXmlElementString(name, "given-name");
+				String lastName = Utils.getXmlElementString(name, "last-name");
+				if(givenName != null && lastName != null)
+				{
+					contact.setGivenName(givenName);
+					contact.setFamilyName(lastName);
+				}
+				else if(givenName != null && lastName == null)
+				{
+					Log.w("ConH", "Full-name element does NOT exist => ONLY given-name");
+					contact.setGivenName(givenName);
+					contact.setFamilyName("");
+				}
+				else
+				{
+					Log.w("ConH", "Full-name element does NOT exist => ONLY last-name");
+					contact.setGivenName("");
+					contact.setFamilyName(lastName);
+				}
 			}
 		}
 
 		contact.setBirthday(Utils.getXmlElementString(root, "birthday"));
+		Log.d("ConH", "Set Birthday to: " + contact.getBirthday());
 
 		contact.getContactMethods().clear();
 		NodeList nl = Utils.getXmlElements(root, "phone");
@@ -252,6 +292,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			ContactMethod cm = new PhoneContact();
 			cm.fromXml((Element) nl.item(i));
 			contact.getContactMethods().add(cm);
+			Log.d("ConH", "Add phone with: " + cm);
 		}
 		nl = Utils.getXmlElements(root, "email");
 		for (int i = 0; i < nl.getLength(); i++)
@@ -259,12 +300,15 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			ContactMethod cm = new EmailContact();
 			cm.fromXml((Element) nl.item(i));
 			contact.getContactMethods().add(cm);
+			Log.d("ConH", "Add email with: " + cm);
 		}
 
 		byte[] photo = getPhotoFromMessage(sync.getMessage(), xml);
 		contact.setPhoto(photo);
+		Log.d("ConH", "Set Photo to: " + contact.getPhoto());
 
 		contact.setNote(Utils.getXmlElementString(root, "body"));
+		Log.d("ConH", "Set Notes to: " + contact.getNotes());
 
 		sync.setCacheEntry(saveContact(contact));
 	}
@@ -311,13 +355,16 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		Utils.setXmlElementValue(xml, name, "given-name", source.getGivenName());
 		Utils.setXmlElementValue(xml, name, "last-name", source.getFamilyName());
 
-		Utils.setXmlElementValue(xml, root, "birthday", source.getBirthday());
+		if(source.getBirthday() != null && !"".equals(source.getBirthday()))
+			Utils.setXmlElementValue(xml, root, "birthday", source.getBirthday());
 
-		Utils.setXmlElementValue(xml, root, "body", source.getNotes());
+		if(source.getNotes() != null && !"".equals(source.getNotes()))
+			Utils.setXmlElementValue(xml, root, "body", source.getNotes());
 
 		// TODO The method call below is not yet functional because the method
 		// implementation is not yet complete
-		storePhotoInMessage(sync.getMessage(), xml, source.getPhoto());
+		if(source.getPhoto() != null && !"".equals(source.getPhoto()))
+			storePhotoInMessage(sync.getMessage(), xml, source.getPhoto());
 
 		Utils.deleteXmlElements(root, "phone");
 		Utils.deleteXmlElements(root, "email");
@@ -374,8 +421,12 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	@Override
 	public void deleteLocalItem(int localId)
 	{
+		Log.d("ConH", "Deleting local item from Db with raw_contact ID: " + localId);
+		
 		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 
+		//TODO: who put this syncadapter to the first call and why is it still working? O_o
+		
 		// normal delete first, then with syncadapter flag
 		Uri rawUri = addCallerIsSyncAdapterParameter(ContactsContract.RawContacts.CONTENT_URI);
 		ops.add(ContentProviderOperation
@@ -404,6 +455,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 
 	private void deleteLocalItemFinally(int localId)
 	{
+		Log.d("ConH", "Delete raw_contract from DB with raw_contact ID: " + localId);
 		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 
 		// remove contact from raw_contact table (with syncadapter flag set)
@@ -433,6 +485,10 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		// remove contents too, to avoid confusing the butchered JAF
 		// message.setContent("", "text/plain");
 		// message.saveChanges();
+		
+		//TODO: the local item doesn't exist here anyway, does it?
+		
+		Log.d("sync", "Deleting local cache entry with id: " + sync.getCacheEntry().getId());
 		getLocalCacheProvider().deleteEntry(sync.getCacheEntry());
 
 		// make sure it gets flushed from the raw_contacts table on the phone as
@@ -452,17 +508,28 @@ public class SyncContactsHandler extends AbstractSyncHandler
 
 		//localItemsCache.put(contact.getId(), contact);
 		localItemsCache.put(contact.getId(), contact);
+		
+		Log.d("ConH", "Contact saved with: " + result);
+		
 		return result;
 	}
 
 	private Contact getLocalItem(SyncContext sync) throws SyncException,
 			MessagingException
 	{
-		if (sync.getLocalItem() != null) return (Contact) sync.getLocalItem();
+		Log.d("ConH", "This is getLocalItem");
+		
+		if (sync.getLocalItem() != null)
+		{
+			Log.d("ConH", "return local item as contact");
+			return (Contact) sync.getLocalItem();
+		}
 
+		Log.d("ConH", "Fetch contact from localcache with localID: " + sync.getCacheEntry().getLocalId());
 		Contact c = localItemsCache.get(sync.getCacheEntry().getLocalId());
 		if (c != null)
 		{
+			Log.d("ConH", "Change Uid of contact to cacheentry.remoteId: " + sync.getCacheEntry().getRemoteId());
 			c.setUid(sync.getCacheEntry().getRemoteId());
 		}
 		sync.setLocalItem(c);

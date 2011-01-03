@@ -145,9 +145,6 @@ public class SyncWorker
 			throws MessagingException, IOException,
 			ParserConfigurationException, SyncException, CertificateException
 	{
-		// handler.setSettings(settings); //handler should be able to react on
-		// settings
-
 		Store server = null;
 		Folder sourceFolder = null;
 		try
@@ -203,13 +200,17 @@ public class SyncWorker
 				{
 					sync.setMessage(m);
 
-					StatusHandler.writeStatus(String.format(
-							processMessageFormat, status.incrementItems(),
-							msgs.length));
+					StatusHandler.writeStatus(String.format(processMessageFormat, status.incrementItems(), msgs.length));
 
 					// 2. check message headers for changes
 					String subject = sync.getMessage().getSubject();
 					Log.d("sync", "2. Checking message " + subject);
+					
+					if(subject == null || "".equals(subject))
+					{
+						Log.w("sync", "2. Message does NOT have a subject => will ignore it");
+						continue;
+					}
 
 					// 5. fetch local cache entry
 					sync.setCacheEntry(cache.getEntryFromRemoteId(subject));
@@ -217,74 +218,65 @@ public class SyncWorker
 					if (sync.getCacheEntry() == null)
 					{
 						Log.i("sync", "6. found no local entry => save");
-						handler.createLocalItemFromServer(session,
-								sourceFolder, sync);
+						handler.createLocalItemFromServer(session, sourceFolder, sync);
 						status.incrementLocalNew();
 						if (sync.getCacheEntry() == null)
 						{
-							Log.w("sync",
-									"createLocalItemFromServer returned a null object! See Logfile for parsing errors");
+							Log.w("sync", "createLocalItemFromServer returned a null object! See Logfile for parsing errors");
 						}
 
 					}
 					else
 					{
-						Log.d("sync",
-								"7. compare data to figure out what happened");
+						Log.d("sync", "7. compare data to figure out what happened");
 
 						boolean cacheIsSame = false;
 						if (settings.getCreateRemoteHash())
 						{
-							cacheIsSame = handler.isSameRemoteHash(
-									sync.getCacheEntry(), sync.getMessage());
+							Log.d("sync", "We are using the RemoteHash option");
+							cacheIsSame = handler.isSameRemoteHash(sync.getCacheEntry(), sync.getMessage());
 						}
 						else
 						{
-							cacheIsSame = handler.isSame(sync.getCacheEntry(),
-									sync.getMessage());
+							Log.d("sync", "We are NOT using the RemoteHash option");
+							cacheIsSame = handler.isSame(sync.getCacheEntry(), sync.getMessage());
 						}
 
-						// if (CacheEntry.isSame(sync.getCacheEntry(),
-						// sync.getMessage()) && !DBG_REMOTE_CHANGED)
 						if (cacheIsSame && !DBG_REMOTE_CHANGED)
 						{
-							Log.d("sync", "7.a/d cur=localdb");
+							Log.d("sync", "7.a/d cur=localdb (cache is same)");
 							if (handler.hasLocalItem(sync))
 							{
-								Log.d("sync",
-										"7.a check for local changes and upload them");
-								if (handler.hasLocalChanges(sync)
-										|| DBG_LOCAL_CHANGED)
+								Log.d("sync", "7.a check for local changes and upload them");
+								if (handler.hasLocalChanges(sync) || DBG_LOCAL_CHANGED)
 								{
-									Log.i("sync",
-											"local changes found: updating ServerItem from Local");
-									handler.updateServerItemFromLocal(session,
-											sourceFolder, sync);
+									Log.i("sync", "7.a local changes found: updating ServerItem from Local");
+									handler.updateServerItemFromLocal(session, sourceFolder, sync);
 									status.incrementRemoteChanged();
+								}
+								else
+								{
+									Log.i("sync", "7.a NO local changes found => doing nothing");
 								}
 							}
 							else
 							{
-								Log.i("sync",
-										"7.d entry missing => delete on server");
+								Log.i("sync", "7.d entry missing => delete on server");
 								handler.deleteServerItem(sync);
 								status.incrementRemoteDeleted();
 							}
 						}
 						else
 						{
-							Log.d("sync",
-									"7.b/c check for local changes and \"resolve\" the conflict");
+							Log.d("sync", "7.b/c check for local changes and \"resolve\" the conflict");
 							if (handler.hasLocalChanges(sync))
 							{
-								Log.i("sync",
-										"7.c local changes found: conflicting, updating local item from server");
+								Log.i("sync", "7.c local changes found: conflicting, updating local item from server");
 								status.incrementConflicted();
 							}
 							else
 							{
-								Log.i("sync", "7.b no local changes found:"
-										+ " updating local item from server");
+								Log.i("sync", "7.b no local changes found: updating local item from server");
 							}
 							handler.updateLocalItemFromServer(sync);
 							status.incrementLocalChanged();
@@ -298,8 +290,7 @@ public class SyncWorker
 				}
 				if (sync.getCacheEntry() != null)
 				{
-					Log.d("sync", "8. remember message as processed (item id="
-							+ sync.getCacheEntry().getLocalId() + ")");
+					Log.d("sync", "8. remember message as processed (item id=" + sync.getCacheEntry().getLocalId() + ")");
 					processedEntries.add(sync.getCacheEntry().getLocalId());
 				}
 			}
@@ -309,8 +300,7 @@ public class SyncWorker
 			Log.d("sync", "9. process unprocessed local items");
 
 			Set<Integer> localIDs = handler.getAllLocalItemsIDs();
-			if (localIDs == null) throw new SyncException("getAllLocalItems",
-					"cr.query returned null");
+			if (localIDs == null) throw new SyncException("getAllLocalItems", "cr.query returned null");
 			int currentLocalItemNo = 1;
 			int itemsCount = localIDs.size();
 			try
@@ -320,7 +310,7 @@ public class SyncWorker
 
 				for (int localId : localIDs)
 				{
-					Log.d("sync", "9. processing #" + localId);
+					Log.d("sync", "9. processing local#" + localId);
 
 					StatusHandler.writeStatus(String.format(processItemFormat,
 							currentLocalItemNo++, itemsCount));
@@ -336,8 +326,7 @@ public class SyncWorker
 					sync.setCacheEntry(cache.getEntryFromLocalId(localId));
 					if (sync.getCacheEntry() != null)
 					{
-						Log.i("sync",
-								"9.b found in local cache: deleting locally");
+						Log.i("sync", "9.b found in local cache: deleting localy");
 						handler.deleteLocalItem(sync);
 						status.incrementLocalDeleted();
 						status.incrementItems();
@@ -345,10 +334,8 @@ public class SyncWorker
 					}
 					else
 					{
-						Log.i("sync",
-								"9.c not found in local cache: creating on server");
-						handler.createServerItemFromLocal(session,
-								sourceFolder, sync, localId);
+						Log.i("sync", "9.c NOT found in local cache: creating on server");
+						handler.createServerItemFromLocal(session, sourceFolder, sync, localId);
 						status.incrementRemoteNew();
 						status.incrementItems();
 						processedEntries.add(localId);

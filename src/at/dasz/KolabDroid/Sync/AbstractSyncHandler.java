@@ -199,6 +199,8 @@ public abstract class AbstractSyncHandler implements SyncHandler
 	protected void updateCacheEntryFromMessage(SyncContext sync, Document doc)
 			throws MessagingException
 	{
+		Log.d("ConH", "This is updateCacheEntryFromMessage");
+		
 		CacheEntry c = sync.getCacheEntry();
 		Message m = sync.getMessage();
 		Date dt = Utils.getMailDate(m);
@@ -220,6 +222,9 @@ public abstract class AbstractSyncHandler implements SyncHandler
 			if (doc != null)
 			{
 				String docText = Utils.getXml(doc.getDocumentElement());
+				
+				Log.v("ASH DocDebug:", docText);
+				
 				byte[] remoteHash = Utils.sha1Hash(docText);
 				c.setRemoteHash(remoteHash);
 			}
@@ -228,6 +233,9 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		{
 			Log.e("EE", ex.toString());
 		}
+		
+		Log.d("ASH", "Updated Cacheentry to: " + c);
+		
 		getLocalCacheProvider().saveEntry(c);
 	}
 
@@ -235,13 +243,17 @@ public abstract class AbstractSyncHandler implements SyncHandler
 			SyncContext sync, int localId) throws MessagingException,
 			ParserConfigurationException, SyncException
 	{
-		Log.d("sync", "Uploading: #" + localId);
+		Log.d("sync", "Uploading: localID #" + localId);
 
 		// initialize cache entry with values that should go
 		// into the new server item
 		CacheEntry entry = new CacheEntry();
 		entry.setLocalId(localId);
 		sync.setCacheEntry(entry);
+		
+		Log.d("ASH", "Created new Cacheentry with localID: " + localId);
+		
+		Log.d("ASH", "Writing XML and uploading IMAP message");
 
 		String xml = writeXml(sync);
 		Message m = wrapXmlInMessage(session, sync, xml);
@@ -428,7 +440,16 @@ public abstract class AbstractSyncHandler implements SyncHandler
 			{
 				doc = Utils.getDocument(is);
 				String docText = Utils.getXml(doc.getDocumentElement());
+				
+				Log.v("DocDebug isSame:", docText);
+				
 				byte[] remoteHash = Utils.sha1Hash(docText);
+				
+				//String eh = String.format("%x", entry.getRemoteHash());
+				//String rh = String.format("%x", remoteHash);				
+				
+				Log.d("ASH", "Compare Remotehashes: entry: " + entry.getRemoteHash()  + " message: " + remoteHash);
+				
 				if (Arrays.equals(remoteHash, entry.getRemoteHash()))
 				{
 					remoteHashIsSame = true;
@@ -442,6 +463,10 @@ public abstract class AbstractSyncHandler implements SyncHandler
 			{
 				Log.e("EE", ex.toString());
 			}
+		}
+		else
+		{
+			Log.d("ASH", "Cannot extract XML from message in isSameRemoteHash");
 		}
 
 		boolean result = entry != null && message != null

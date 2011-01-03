@@ -58,7 +58,7 @@ public abstract class ContactMethod {
 	@Override
 	public String toString()
 	{
-		return getData();
+		return "CM: Type: " + getType() + " Data: " +getData();
 	}
 
 	//public abstract ContentValues toContentValues();
