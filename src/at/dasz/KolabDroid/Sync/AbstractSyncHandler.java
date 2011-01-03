@@ -223,7 +223,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 			{
 				String docText = Utils.getXml(doc.getDocumentElement());
 				
-				Log.v("ASH DocDebug:", docText);
+				//Log.v("ASH DocDebug:", docText);
 				
 				byte[] remoteHash = Utils.sha1Hash(docText);
 				c.setRemoteHash(remoteHash);
@@ -441,7 +441,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 				doc = Utils.getDocument(is);
 				String docText = Utils.getXml(doc.getDocumentElement());
 				
-				Log.v("DocDebug isSame:", docText);
+				//Log.v("DocDebug isSame:", docText);
 				
 				byte[] remoteHash = Utils.sha1Hash(docText);
 				
