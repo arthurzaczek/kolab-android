@@ -74,9 +74,10 @@ public class AccountManager extends Activity
 		OnItemSelectedListener spinnerListener = new AccountSelectedListener(this, "source");
 		accSpinner.setOnItemSelectedListener(spinnerListener);
 		
-		String[] newAccItems = new String[accounts.length+1];
-		newAccItems[0] = "Dummy"+ACC_DELIMITER+"DummyType";
-		i = 1;
+		String[] newAccItems = new String[accounts.length];
+		//String[] newAccItems = new String[accounts.length+1]; //for dummy
+		//newAccItems[0] = "Dummy"+ACC_DELIMITER+"DummyType";
+		i = 0;
 		for(Account acc: accounts)
 		{
 			newAccItems[i] = acc.name + ACC_DELIMITER + acc.type;

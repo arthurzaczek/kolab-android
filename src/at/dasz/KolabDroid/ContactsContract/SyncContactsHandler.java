@@ -60,6 +60,7 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.Photo;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.util.Log;
+import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.Utils;
 import at.dasz.KolabDroid.Provider.LocalCacheProvider;
 import at.dasz.KolabDroid.Settings.Settings;
@@ -152,8 +153,15 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		// String where = ContactsContract.RawContacts.DELETED+"='0'";
 
 		// return all again
-		return cr.query(ContactsContract.RawContacts.CONTENT_URI, null, null,
-				null, null);
+		//return cr.query(ContactsContract.RawContacts.CONTENT_URI, null, null,
+		//		null, null);
+		
+		//only return those from our account
+		String where = ContactsContract.RawContacts.ACCOUNT_NAME +"=? and " +
+						ContactsContract.RawContacts.ACCOUNT_TYPE + "=?";		
+		
+		return cr.query(ContactsContract.RawContacts.CONTENT_URI, null, where,
+				new String[]{ctx.getString(R.string.SYNC_ACCOUNT_NAME), ctx.getString(R.string.SYNC_ACCOUNT_TYPE)}, null);
 	}
 
 	public int getIdColumnIndex(Cursor c)
@@ -695,20 +703,27 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		String photoFileName = Utils.getXmlElementString(root, "picture");
 		try
 		{
-			Multipart multipart = (Multipart) message.getContent();
-
-			for (int i = 0, n = multipart.getCount(); i < n; i++)
+			if(message.getContent() instanceof Multipart) //hopefully prevents nullpointer (if my log message doesnt create a new one, that is :)
 			{
-				Part part = multipart.getBodyPart(i);
-				String disposition = part.getDisposition();
-
-				if ((part.getFileName() != null)
-						&& (part.getFileName().equals(photoFileName))
-						&& (disposition != null)
-						&& ((disposition.equals(Part.ATTACHMENT) || (disposition
-								.equals(Part.INLINE))))) {
-
-				return inputStreamToBytes(part.getInputStream()); }
+				Multipart multipart = (Multipart) message.getContent();
+	
+				for (int i = 0, n = multipart.getCount(); i < n; i++)
+				{
+					Part part = multipart.getBodyPart(i);
+					String disposition = part.getDisposition();
+	
+					if ((part.getFileName() != null)
+							&& (part.getFileName().equals(photoFileName))
+							&& (disposition != null)
+							&& ((disposition.equals(Part.ATTACHMENT) || (disposition
+									.equals(Part.INLINE))))) {
+	
+					return inputStreamToBytes(part.getInputStream()); }
+				}
+			}
+			else
+			{
+				Log.w("ConH", "getPhotoFromMessage: Strange message content of type: " + message.getContent().getClass().getCanonicalName());
 			}
 		}
 		catch (IOException ex)
