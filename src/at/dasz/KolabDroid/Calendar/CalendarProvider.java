@@ -260,7 +260,7 @@ public class CalendarProvider
 			accountType = account.type;
 		}
 		
-		String selection = "sync_account=? and sync_account_type=?";
+		String selection = "_sync_account=? and _sync_account_type=?";
 		
 		Cursor cur = cr.query(CalendarProvider.CALENDAR_CALENDARS_URI,
 				null, selection, new String[]{accountName, accountType}, null);
@@ -271,14 +271,16 @@ public class CalendarProvider
 			return;
 		}
 		
+		//TODO: something still missing: calendar appears and disappaers on device...
+		
 		if(cur.getCount() == 0)
 		{
 			//create one			
 			ContentValues cvs = new ContentValues();
-			cvs.put("sync_account", account.name);
-			cvs.put("sync_account_type", account.type);
-			cvs.put("name", account.name);
-			cvs.put("displayName", account.name);
+			cvs.put("_sync_account", accountName);
+			cvs.put("_sync_account_type", accountType);
+			cvs.put("name", accountName);
+			cvs.put("displayName", accountName);
 			//cvs.put("color", 23);
 			cvs.put("selected", 1);
 			cvs.put("access_level", 700);
