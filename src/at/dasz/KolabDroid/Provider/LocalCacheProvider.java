@@ -108,6 +108,34 @@ public abstract class LocalCacheProvider
 			if (db != null) db.close();
 		}
 	}
+	
+	public static void resetContacts(Context ctx)
+	{
+		DatabaseHelper dbHelper = new DatabaseHelper(ctx);
+		SQLiteDatabase db = dbHelper.getWritableDatabase();
+		try
+		{
+			dbHelper.clearContactTable(db);
+		}
+		finally
+		{
+			if (db != null) db.close();
+		}
+	}
+	
+	public static void resetCalendar(Context ctx)
+	{
+		DatabaseHelper dbHelper = new DatabaseHelper(ctx);
+		SQLiteDatabase db = dbHelper.getWritableDatabase();
+		try
+		{
+			dbHelper.clearCalendarTable(db);
+		}
+		finally
+		{
+			if (db != null) db.close();
+		}
+	}
 
 	public CacheEntry getEntryFromRemoteId(String remoteId)
 	{

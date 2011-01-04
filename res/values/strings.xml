@@ -103,4 +103,12 @@
 		below:</string>
 	<string name="crash_dialog_ok_toast">Thank you !</string>
 <string name="editor_save_success">Contact saved successfully</string>
+<string name="ResetCalendar">Reset Calendar</string>
+<string name="ResetContacts">Reset Contacts</string>
+<string name="ResetCalendarSoft">Reset Calendar Soft</string>
+<string name="ResetContactsSoft">Reset Contacts Soft</string>
+<string name="really_reset_calendar">Do you really want do delete all your Kolab Calendar items?</string>
+<string name="really_reset_contacts">Do you really want do delete all your Kolab Contact items?</string>
+<string name="really_reset_contacts_soft">Do you really want to delete KolabDroid contact SYNC info?</string>
+<string name="really_reset_calendar_soft">Do you really want to delete KolabDroid calendar SYNC info?</string>
 </resources>

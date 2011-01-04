@@ -34,13 +34,13 @@ public class ResetService extends WakefulIntentService
 		super("ResetService");
 	}
 
-	public static void startReset(Context context)
+	public static void startReset(Context context, int what)
 	{
 		if(!BaseWorker.isRunning())
 		{
 			Log.i("Service", "starting service");
 			WakefulIntentService.acquireStaticLock(context);
-			context.startService(new Intent(context, ResetService.class));		
+			context.startService(new Intent(context, ResetService.class).putExtra("what", what));		
 		}
 		else
 		{
@@ -51,10 +51,15 @@ public class ResetService extends WakefulIntentService
 	@Override
 	protected void doWakefulWork(Intent intent)
 	{
+		int what = 0;
+		
+		if(intent.getExtras() != null)
+			what = intent.getExtras().getInt("what");
+		
 		Log.i("Service", "starting reset");
 		try
 		{
-			ResetWorker r = new ResetWorker(this);
+			ResetWorker r = new ResetWorker(this, what);
 			r.start();
 			Log.i("Service", "reset finished");
 		}

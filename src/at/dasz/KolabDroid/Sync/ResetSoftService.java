@@ -24,6 +24,7 @@ package at.dasz.KolabDroid.Sync;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import at.dasz.KolabDroid.Main;
 
 import com.commonsware.cwac.wakeful.WakefulIntentService;
 
@@ -34,13 +35,14 @@ public class ResetSoftService extends WakefulIntentService
 		super("ResetSoftService");
 	}
 
-	public static void startReset(Context context)
+	public static void startReset(Context context, int what)
 	{
 		if(!BaseWorker.isRunning())
 		{
 			Log.i("Service", "starting service");
 			WakefulIntentService.acquireStaticLock(context);
-			context.startService(new Intent(context, ResetSoftService.class));		
+			context.startService(new Intent(context, ResetSoftService.class).putExtra("what", what));	
+					
 		}
 		else
 		{
@@ -51,10 +53,15 @@ public class ResetSoftService extends WakefulIntentService
 	@Override
 	protected void doWakefulWork(Intent intent)
 	{
+		int what = 0;
+		
+		if(intent.getExtras() != null)
+			what = intent.getExtras().getInt("what");
+		
 		Log.i("Service", "starting soft reset");
 		try
 		{
-			ResetSoftWorker r = new ResetSoftWorker(this);
+			ResetSoftWorker r = new ResetSoftWorker(this, what);
 			r.start();
 			Log.i("Service", "soft reset finished");
 		}

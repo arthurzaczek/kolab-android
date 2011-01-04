@@ -23,6 +23,7 @@ package at.dasz.KolabDroid.Sync;
 
 import android.content.Context;
 import android.database.Cursor;
+import at.dasz.KolabDroid.Main;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.StatusHandler;
 import at.dasz.KolabDroid.Calendar.SyncCalendarHandler;
@@ -32,9 +33,12 @@ import at.dasz.KolabDroid.Provider.LocalCacheProvider;
 
 public class ResetWorker extends BaseWorker
 {
-	public ResetWorker(Context context)
+	private int reset_what = 0;
+	
+	public ResetWorker(Context context, int what)
 	{
 		super(context);
+		reset_what = what;
 	}
 
 	@Override
@@ -51,8 +55,19 @@ public class ResetWorker extends BaseWorker
 
 			LocalCacheProvider.resetDatabase(context);
 
-			currentItemNo = resetContacts(deleteMessageFormat, currentItemNo);
-			currentItemNo = resetCalendar(deleteMessageFormat, currentItemNo);
+			switch (reset_what)
+			{
+				case Main.MENU_RESET_CALENDAR:
+					currentItemNo = resetCalendar(deleteMessageFormat, currentItemNo);
+					break;
+					
+				case Main.MENU_RESET_CONTACTS:
+					currentItemNo = resetContacts(deleteMessageFormat, currentItemNo);
+					break;
+
+				default:
+					break;
+			}
 
 			StatusHandler.writeStatus(R.string.reseting_finished);
 		}

@@ -161,4 +161,15 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		db.execSQL("DELETE FROM " + LocalCacheProvider.CALENDAR_TABLE_NAME);
 		db.execSQL("DELETE FROM " + StatusProvider.STATUS_TABLE_NAME);
 	}
+	
+	public void clearContactTable(SQLiteDatabase db)
+	{
+		db.execSQL("DELETE FROM " + LocalCacheProvider.CONTACT_TABLE_NAME);
+	}
+	
+	public void clearCalendarTable(SQLiteDatabase db)
+	{
+		db.execSQL("DELETE FROM " + LocalCacheProvider.CALENDAR_TABLE_NAME);
+	}
+	
 }

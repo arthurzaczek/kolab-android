@@ -23,6 +23,7 @@ package at.dasz.KolabDroid.Sync;
 
 import android.content.Context;
 //import android.database.Cursor;
+import at.dasz.KolabDroid.Main;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.StatusHandler;
 //import at.dasz.KolabDroid.Calendar.SyncCalendarHandler;
@@ -31,9 +32,12 @@ import at.dasz.KolabDroid.Provider.LocalCacheProvider;
 
 public class ResetSoftWorker extends BaseWorker
 {
-	public ResetSoftWorker(Context context)
+	private int reset_what = 0;
+	
+	public ResetSoftWorker(Context context, int what)
 	{
 		super(context);
+		reset_what = what;
 	}
 
 	@Override
@@ -44,15 +48,21 @@ public class ResetSoftWorker extends BaseWorker
 		{
 			StatusHandler.writeStatus(R.string.resetting_soft_start);
 
-			//final String deleteMessageFormat = this.context.getResources()
-			//		.getString(R.string.delete_message_format);
-			//int currentItemNo = 0;
-
-			LocalCacheProvider.resetDatabase(context);
-
-			//do not reset mobile phone contact data
-			//currentItemNo = resetContacts(deleteMessageFormat, currentItemNo);
-			//currentItemNo = resetCalendar(deleteMessageFormat, currentItemNo);
+			switch (reset_what)
+			{
+				case Main.MENU_RESET_CONTACTS_SOFT:
+					LocalCacheProvider.resetContacts(context);
+					break;
+					
+				case Main.MENU_RESET_CALENDAR_SOFT:
+					LocalCacheProvider.resetCalendar(context);
+					break;
+	
+				default:
+					break;
+			}
+			
+			//LocalCacheProvider.resetDatabase(context);
 
 			StatusHandler.writeStatus(R.string.resetting_soft_finished);
 		}
@@ -67,63 +77,5 @@ public class ResetSoftWorker extends BaseWorker
 			ex.printStackTrace();
 		}
 	}
-
-	/*
-	private int resetCalendar(final String deleteMessageFormat,
-			int currentItemNo)
-	{
-		SyncCalendarHandler calendar = new SyncCalendarHandler(context);
-		Cursor c = calendar.getAllLocalItemsCursor();
-		if (c != null)
-		{
-			try
-			{
-				final int idIdx = calendar.getIdColumnIndex(c);
-				while (c.moveToNext())
-				{
-					calendar.deleteLocalItem(c.getInt(idIdx));
-					if (++currentItemNo % 10 == 0)
-					{
-						StatusHandler.writeStatus(String.format(
-								deleteMessageFormat, currentItemNo));
-					}
-				}
-			}
-			finally
-			{
-				if (c != null) c.close();
-			}
-		}
-		return currentItemNo;
-	}
-
-	private int resetContacts(final String deleteMessageFormat,
-			int currentItemNo)
-	{
-		SyncContactsHandler contacts = new SyncContactsHandler(context);
-		Cursor c = contacts.getAllLocalItemsCursor();
-		if (c != null)
-		{
-			try
-			{
-				final int idIdx = contacts.getIdColumnIndex(c);
-				while (c.moveToNext())
-				{
-					contacts.deleteLocalItem(c.getInt(idIdx));
-
-					if (++currentItemNo % 10 == 0)
-					{
-						StatusHandler.writeStatus(String.format(
-								deleteMessageFormat, currentItemNo));
-					}
-				}
-			}
-			finally
-			{
-				if (c != null) c.close();
-			}
-		}
-		return currentItemNo;
-	}
-	*/
+	
 }
