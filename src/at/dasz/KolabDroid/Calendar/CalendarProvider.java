@@ -21,15 +21,21 @@
 
 package at.dasz.KolabDroid.Calendar;
 
+import java.util.HashMap;
+
+import android.accounts.Account;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.util.Log;
+import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.Sync.SyncException;
 
 public class CalendarProvider
@@ -37,28 +43,40 @@ public class CalendarProvider
 	public static Uri CALENDAR_URI;
 	public static Uri CALENDAR_ALERT_URI;
 	public static Uri CALENDAR_REMINDER_URI;
+	
+	public static Uri CALENDAR_CALENDARS_URI;
+	
 	public static final String		_ID				= "_id";
 
 	public static final String[]	projection		= new String[] { "_id",
 			"calendar_id", "title", "allDay", "dtstart", "dtend",
 			"description", "eventLocation", "visibility", "hasAlarm", "rrule", "exdate" };
 	private ContentResolver			cr;
+	
+	private long calendarID = -1;
+	
+	private Context ctx = null;
 
-	public CalendarProvider(ContentResolver cr)
+	public CalendarProvider(Context ctx)
 	{
-		this.cr = cr;
+		this.cr = ctx.getContentResolver();
+		this.ctx = ctx;
 		
 		if(Build.VERSION.SDK_INT <= 7) // android 2.1
 		{
 			CALENDAR_URI	= Uri.parse("content://calendar/events");
 			CALENDAR_ALERT_URI = Uri.parse("content://calendar/calendar_alerts");
 			CALENDAR_REMINDER_URI = Uri.parse("content://calendar/reminders");
+			
+			CALENDAR_CALENDARS_URI = Uri.parse("content://calendar/calendars");
 		}
 		else if(Build.VERSION.SDK_INT == 8) //android 2.2
 		{
 			CALENDAR_URI	= Uri.parse("content://com.android.calendar/events");
 			CALENDAR_ALERT_URI = Uri.parse("content://com.android.calendar/calendar_alerts");
 			CALENDAR_REMINDER_URI = Uri.parse("content://com.android.calendar/reminders");
+			
+			CALENDAR_CALENDARS_URI = Uri.parse("content://com.android.calendar/calendars");
 		}
 	}
 
@@ -224,5 +242,72 @@ public class CalendarProvider
 			
 			cr.insert(CALENDAR_ALERT_URI, alertValues);			
 		}
+	}
+	
+	public void setOrCreateKolabCalendar(Account account)
+	{
+		String accountName = "";
+		String accountType = "";
+		
+		if(account == null) //called by reset button
+		{
+			accountName = ctx.getString(R.string.SYNC_ACCOUNT_NAME);
+			accountType = ctx.getString(R.string.SYNC_ACCOUNT_TYPE);
+		}
+		else
+		{
+			accountName = account.name;
+			accountType = account.type;
+		}
+		
+		String selection = "sync_account=? and sync_account_type=?";
+		
+		Cursor cur = cr.query(CalendarProvider.CALENDAR_CALENDARS_URI,
+				null, selection, new String[]{accountName, accountType}, null);
+		
+		if(cur == null)
+		{
+			Log.e("CalProvider","Cannot query calendars");
+			return;
+		}
+		
+		if(cur.getCount() == 0)
+		{
+			//create one			
+			ContentValues cvs = new ContentValues();
+			cvs.put("sync_account", account.name);
+			cvs.put("sync_account_type", account.type);
+			cvs.put("name", account.name);
+			cvs.put("displayName", account.name);
+			//cvs.put("color", 23);
+			cvs.put("selected", 1);
+			cvs.put("access_level", 700);
+			cvs.put("timezone", "Europe/Berlin"); //TODO: where to get timezone for calendar from?
+			
+			Uri newUri = cr.insert(CALENDAR_CALENDARS_URI, cvs);
+			if(newUri == null)
+			{
+				Log.e("CalProvider", "Unable to create new Calender, provider returned null uri.");
+				return;
+			}
+			calendarID = ContentUris.parseId(newUri);
+		}
+		else //TODO: we only support one calendar for now
+		{
+			//pick first
+			if (!cur.moveToFirst())
+				return;
+		
+			int idx = cur.getColumnIndex("_id");			
+			calendarID = cur.getLong(idx);		
+		}
+		
+		cur.close();
+		
+	}
+	
+	public long getCalendarID()
+	{
+		return calendarID;
 	}
 }

@@ -38,8 +38,10 @@ import org.w3c.dom.NodeList;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
 import android.text.format.Time;
 import android.util.Log;
 import at.dasz.KolabDroid.Utils;
@@ -67,10 +69,12 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		settings = s;
 		defaultFolderName = s.getCalendarFolder();
 		cacheProvider = new LocalCacheProvider.CalendarCacheProvider(context);
-		calendarProvider = new CalendarProvider(context.getContentResolver());
+		calendarProvider = new CalendarProvider(context);
 		cr = context.getContentResolver();
 		status.setTask("Calendar");
-	}
+		
+		calendarProvider.setOrCreateKolabCalendar(account);
+	}	
 
 	public String getDefaultFolderName()
 	{
@@ -97,14 +101,16 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	public void fetchAllLocalItems()
 	{
 		localItemsCache = new HashMap<Integer, CalendarEntry>();
+		
+		String where = "calendar_id=?";
+		
 		Cursor cur = cr.query(CalendarProvider.CALENDAR_URI,
-				CalendarProvider.projection, null, null, null);
+				CalendarProvider.projection, where, new String[]{String.valueOf(calendarProvider.getCalendarID())}, null);
 		try
 		{
 			while (cur.moveToNext())
 			{
-				CalendarEntry e = calendarProvider.loadCalendarEntry(cur,
-						"empty");
+				CalendarEntry e = calendarProvider.loadCalendarEntry(cur, "empty");
 				localItemsCache.put(e.getId(), e);
 			}
 		}
@@ -121,8 +127,10 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 	public Cursor getAllLocalItemsCursor()
 	{
+		String where = "calendar_id=?";
+		
 		return cr.query(CalendarProvider.CALENDAR_URI,
-				new String[] { CalendarProvider._ID }, null, null, null);
+				new String[] { CalendarProvider._ID }, where, new String[]{String.valueOf(calendarProvider.getCalendarID())}, null);
 	}
 
 	@Override

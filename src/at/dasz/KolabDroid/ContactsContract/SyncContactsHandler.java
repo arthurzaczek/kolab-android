@@ -160,6 +160,8 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		String where = ContactsContract.RawContacts.ACCOUNT_NAME +"=? and " +
 						ContactsContract.RawContacts.ACCOUNT_TYPE + "=?";		
 		
+		//TODO: maybe we should use the account.name and account.type instead of string 
+		
 		return cr.query(ContactsContract.RawContacts.CONTENT_URI, null, where,
 				new String[]{ctx.getString(R.string.SYNC_ACCOUNT_NAME), ctx.getString(R.string.SYNC_ACCOUNT_TYPE)}, null);
 	}
