@@ -4,12 +4,13 @@
   android:layout_height="wrap_content" android:orientation="vertical" android:layout_width="fill_parent">
 
 
-<LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout01" android:orientation="horizontal" android:layout_width="fill_parent">
-<EditText android:id="@+id/EditFirstName" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+<LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout01" android:layout_width="fill_parent" android:orientation="vertical">
+<TextView android:id="@+id/TextView05" android:layout_height="wrap_content" android:layout_marginTop="10px" android:layout_width="fill_parent" android:text="Firstname:"></TextView><EditText android:id="@+id/EditFirstName" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+
 
 </LinearLayout>
 
-<LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout02" android:layout_width="fill_parent">
+<TextView android:id="@+id/TextView06" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Lastname:"></TextView><LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout02" android:layout_width="fill_parent">
 <EditText android:layout_height="wrap_content" android:id="@+id/EditLastName" android:layout_width="fill_parent"></EditText>
 </LinearLayout>
 
@@ -58,4 +59,5 @@
 
 <EditText android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/EditNotes"></EditText>
 </LinearLayout>
+
 </LinearLayout>
