@@ -188,7 +188,8 @@ public class CalendarProvider
 		}
 
 		values.put("_sync_account", account.name);
-		values.put("_sync_account_type", account.type);
+		//values.put("_sync_account_type", account.type);
+		values.put("_sync_account_type", "com.google"); //fake google
 		
 		//values.put("eventTimezone", "UTC"); //TODO: put eventTimezone here: UTC from kolab?
 		
@@ -276,6 +277,8 @@ if(false && e.getHasAlarm() == 1) //TODO: fix calendar alerts
 			accountName = account.name;
 			accountType = account.type;
 		}
+		
+		//accountType = "com.google"; //fake google => doesnt work, calender still gets deleted
 		
 		String selection = "_sync_account=? and _sync_account_type=?";
 		
