@@ -21,8 +21,6 @@
 
 package at.dasz.KolabDroid.Calendar;
 
-import java.util.HashMap;
-
 import android.accounts.Account;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -31,7 +29,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
-import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.util.Log;
@@ -56,11 +53,13 @@ public class CalendarProvider
 	private long calendarID = -1;
 	
 	private Context ctx = null;
+	private Account account = null;
 
-	public CalendarProvider(Context ctx)
+	public CalendarProvider(Context ctx, Account account)
 	{
 		this.cr = ctx.getContentResolver();
 		this.ctx = ctx;
+		this.account = account;
 		
 		if(Build.VERSION.SDK_INT <= 7) // android 2.1
 		{
@@ -188,6 +187,11 @@ public class CalendarProvider
 			duration = "P" + seconds + "S";
 		}
 
+		values.put("_sync_account", account.name);
+		values.put("_sync_account_type", account.type);
+		
+		//values.put("eventTimezone", "UTC"); //TODO: put eventTimezone here: UTC from kolab?
+		
 		values.put("calendar_id", e.getCalendar_id());
 		values.put("title", e.getTitle());
 		values.put("allDay", e.getAllDay() ? 1 : 0);
@@ -213,7 +217,7 @@ public class CalendarProvider
 			cr.update(uri, values, null, null);
 		}
 		
-		if(e.getHasAlarm() == 1)
+if(false && e.getHasAlarm() == 1) //TODO: fix calendar alerts
 		{
 			//delete existing alerts to replace them with the ones from the synchronisation		
 			cr.delete(CALENDAR_ALERT_URI, "event_id=?", new String[]{Integer.toString(e.getId())});
@@ -236,15 +240,28 @@ public class CalendarProvider
 			alertValues.put("begin", start);
 			alertValues.put("end", end);
 			alertValues.put("alarmTime", (start - e.getReminderTime()*60000));
-			alertValues.put("state", 0);
+			
+			//alertValues.put("state", 0);
+			
 			//alertValues.put("creationTime", value);
 			alertValues.put("minutes", e.getReminderTime());
-			
-			cr.insert(CALENDAR_ALERT_URI, alertValues);			
+
+			try
+			{
+				cr.insert(CALENDAR_ALERT_URI, alertValues);
+			}
+			catch (Exception ex)
+			{
+				Log.e("CalProvider:", "Exception while inserting alert");
+				
+				Log.e("CalProvider:", ex.getMessage());
+				
+				Log.e("CalProvider:", ex.toString());
+			}
 		}
 	}
 	
-	public void setOrCreateKolabCalendar(Account account)
+	public void setOrCreateKolabCalendar()
 	{
 		String accountName = "";
 		String accountType = "";
@@ -281,10 +298,11 @@ public class CalendarProvider
 			cvs.put("_sync_account_type", accountType);
 			cvs.put("name", accountName);
 			cvs.put("displayName", accountName);
-			//cvs.put("color", 23);
+			cvs.put("color", 1); //TODO: how are colors represented? 
 			cvs.put("selected", 1);
 			cvs.put("access_level", 700);
 			cvs.put("timezone", "Europe/Berlin"); //TODO: where to get timezone for calendar from?
+			cvs.put("ownerAccount", "kolab-android@dasz.at"); //TODO: which owner? use same as for contacts
 			
 			Uri newUri = cr.insert(CALENDAR_CALENDARS_URI, cvs);
 			if(newUri == null)

@@ -36,7 +36,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -69,12 +68,21 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		settings = s;
 		defaultFolderName = s.getCalendarFolder();
 		cacheProvider = new LocalCacheProvider.CalendarCacheProvider(context);
-		calendarProvider = new CalendarProvider(context);
+		calendarProvider = new CalendarProvider(context, account);
 		cr = context.getContentResolver();
 		status.setTask("Calendar");
 		
-		calendarProvider.setOrCreateKolabCalendar(account);
-	}	
+		calendarProvider.setOrCreateKolabCalendar();
+	}
+	
+	public void removeOurCalendar()
+	{
+		if(calendarProvider.getCalendarID() > 0)
+		{
+			Uri delUri = ContentUris.withAppendedId(CalendarProvider.CALENDAR_CALENDARS_URI, calendarProvider.getCalendarID());			
+			cr.delete(delUri, null, null);
+		}
+	}
 
 	public String getDefaultFolderName()
 	{
@@ -354,7 +362,13 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 	private CacheEntry saveCalender(CalendarEntry cal) throws SyncException
 	{
+		//TODO: put our calendar id here if calendar app doesnt delete our calendar
+		
 		cal.setCalendar_id(1);
+		//int tmpID = (int)calendarProvider.getCalendarID();		
+		//Log.i("WAAA:", "CALENDAR ID: " + tmpID);
+		//cal.setCalendar_id(tmpID);
+		//cal.setCalendar_id((int)calendarProvider.getCalendarID());
 		calendarProvider.save(cal);
 		CacheEntry result = new CacheEntry();
 		result.setLocalId(cal.getId());
