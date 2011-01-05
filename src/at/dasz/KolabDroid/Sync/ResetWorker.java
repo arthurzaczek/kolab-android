@@ -53,7 +53,7 @@ public class ResetWorker extends BaseWorker
 					.getString(R.string.delete_message_format);
 			int currentItemNo = 0;
 
-			LocalCacheProvider.resetDatabase(context);
+			//LocalCacheProvider.resetDatabase(context);
 
 			switch (reset_what)
 			{
@@ -108,6 +108,10 @@ public class ResetWorker extends BaseWorker
 				if (c != null) c.close();
 			}
 		}
+		
+		//remove complete calendar
+		calendar.removeOurCalendar();
+		
 		return currentItemNo;
 	}
 
