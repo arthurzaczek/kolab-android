@@ -34,7 +34,9 @@ import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.MultipartDataSource;
+import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.Flags.Flag;
 import javax.mail.Message.RecipientType;
@@ -399,10 +401,42 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		}
 		messageBodyPart.setDataHandler(new DataHandler(source));
 		messageBodyPart.setFileName("kolab.xml");
-		mp.addBodyPart(messageBodyPart);
+		mp.addBodyPart(messageBodyPart);		
 		
-		//TODO: append attachments from message
+		//append picture attachment to new message
+		Message syncMessage = sync.getMessage();
+		
+		try
+		{
+			if(syncMessage.getContent() instanceof Multipart)
+			{
+				Multipart smp = (Multipart) syncMessage.getContent();
+				
+				//find picture attachment and add it to new message
+				BodyPart photoPart = null;
+				for(int i=0; i < smp.getCount(); i++)
+				{
+					BodyPart p = smp.getBodyPart(i);
+					String disposition = p.getDisposition();
 
+					if ((p.getFileName() != null)
+							&& "kolab-picture.png".equals(p.getFileName())
+							&& (disposition.equals(Part.ATTACHMENT)))
+					{
+						photoPart = p;
+					}
+				}
+				if(photoPart != null)
+				{
+					mp.addBodyPart(photoPart);
+				}
+			}
+		}
+		catch (IOException ioex)
+		{
+			Log.e("ASH Ex:", ioex.toString());
+		}
+		
 		result.setContent(mp);
 
 		// avoid later change in timestamp when the SEEN flag would be updated

@@ -30,6 +30,9 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.mail.BodyPart;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -37,12 +40,18 @@ import javax.mail.Multipart;
 import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.Flags.Flag;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.sun.mail.imap.IMAPBodyPart;
+import com.sun.mail.imap.protocol.BODYSTRUCTURE;
 
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
@@ -375,6 +384,8 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		// implementation is not yet complete
 		if(source.getPhoto() != null && !"".equals(source.getPhoto()))
 			storePhotoInMessage(sync.getMessage(), xml, source.getPhoto());
+		else
+			Utils.deleteXmlElements(root, "picture"); //remove the picture
 
 		Utils.deleteXmlElements(root, "phone");
 		Utils.deleteXmlElements(root, "email");
@@ -759,56 +770,51 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		Element root = messageXml.getDocumentElement();
 		Utils.setXmlElementValue(messageXml, root, "picture", "kolab-picture.png");
 		
-		// TODO uncomment and test this method
+		// TODO test this method
 		
 		Utils.setXmlElementValue(messageXml, root, "picture",
 				"kolab-picture.png");
 
-		// TODO complete this method
-
-		// delete existing photo if any
-
 		// create new attachment for new photo
 		// http://java.sun.com/developer/onlineTraining/JavaMail/contents.html#SendingAttachments explains how
-/*
+
 		try
-		{
-			if(message.getContent() instanceof MimeMultipart)
+		{		
+			if(message.getContent() instanceof Multipart)
 			{
-				//TODO: this gives us a copy instead of a reference to the message content?
-				MimeMultipart mmp = (MimeMultipart) message.getContent();
+				Multipart mp = (Multipart) message.getContent();
 				
 				//find picture attachment and remove it
 				int removePartNo = -1;
-				for(int i=0; i < mmp.getCount(); i++)
+				for(int i=0; i < mp.getCount(); i++)
 				{
-					Part p = mmp.getBodyPart(i);
-					//if ("kolab-picture.png".equals(p.getFileName()) &&
-					//	p.getContentType().equals("image/png"))
-					if ("kolab-picture.png".equals(p.getFileName()))
+					Part p = mp.getBodyPart(i);
+					String disposition = p.getDisposition();
+					
+					if ((p.getFileName() != null)
+							&& "kolab-picture.png".equals(p.getFileName())
+							&& (disposition.equals(Part.ATTACHMENT)))
 					{
 						removePartNo = i;
 					}
 				}
 				if(removePartNo > -1)
 				{
-					mmp.removeBodyPart(removePartNo);
+					mp.removeBodyPart(removePartNo);
 				}
 				
 				//add picture as kolab-picture.png
 				if(photo != null)
 				{
-					//TODO: which part type? IMAPBodyPart?
 					BodyPart part = new MimeBodyPart();
-					//TODO: type with name?
 					DataSource source = new ByteArrayDataSource(photo, "image/png");
 					part.setDataHandler(new DataHandler(source));
 					part.setFileName("kolab-picture.png");
 					
-					mmp.addBodyPart(part);
+					mp.addBodyPart(part);
 				}
 				
-				Log.d("ConH:", "multipart complete?");
+				//Log.d("ConH:", "multipart complete?");
 			}
 		}
 		catch (IOException ex)
@@ -822,8 +828,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			ex.printStackTrace();
 		}
 
-		Log.d("ConH", "bla");
-*/
+		//Log.d("ConH", "bla");
 	}
 
 	/**
