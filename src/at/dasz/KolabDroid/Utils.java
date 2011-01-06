@@ -327,4 +327,43 @@ public final class Utils
 		
 		return null;		
 	}
+	
+	public final static byte[] sha1Hash(byte[] input)
+	{
+		MessageDigest hash = null;
+		
+		try
+		{
+			hash = MessageDigest.getInstance("SHA1");
+			
+			byte[] hashValue = hash.digest(input);
+			
+			//Log.i("II","out digest: " + hashValue);
+			return hashValue;
+		}
+		catch (Exception ex)
+		{
+			Log.e("EE", "Exception in sha1hash: " + ex.toString());
+		}
+		
+		return null;		
+	}
+	
+	public final static String getBytesAsHexString(byte[] raw)
+	{
+		final String HEXES = "0123456789ABCDEF";
+		if ( raw == null )
+			return null;
+		    
+		StringBuilder hex = new StringBuilder( 2 * raw.length );
+		
+		for ( final byte b : raw )
+		{
+		      hex.append(HEXES.charAt((b & 0xF0) >> 4))
+		         .append(HEXES.charAt((b & 0x0F)));
+	    }
+		
+	    return hex.toString();		
+	}
+	
 }

@@ -380,10 +380,11 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		if(source.getNotes() != null && !"".equals(source.getNotes()))
 			Utils.setXmlElementValue(xml, root, "body", source.getNotes());
 
-		// TODO The method call below is not yet functional because the method
-		// implementation is not yet complete
 		if(source.getPhoto() != null && !"".equals(source.getPhoto()))
-			storePhotoInMessage(sync.getMessage(), xml, source.getPhoto());
+		{
+			//Log.d("ConH", "writeXml Photo Hash: " + Utils.getBytesAsHexString(Utils.sha1Hash(source.getPhoto())));
+			storePhotoInMessage(sync, xml, source.getPhoto());	
+		}
 		else
 			Utils.deleteXmlElements(root, "picture"); //remove the picture
 
@@ -764,13 +765,13 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	 *            a byte array of the photo to be stored or <code>null</code> if
 	 *            no photo is to be stored.
 	 */
-	private void storePhotoInMessage(Message message, Document messageXml,
+	private void storePhotoInMessage(SyncContext sync, Document messageXml,
 			byte[] photo)
 	{
+		//We store the photo in SyncContext.newMessageContent because the Message itself is readonly!
+		
 		Element root = messageXml.getDocumentElement();
 		Utils.setXmlElementValue(messageXml, root, "picture", "kolab-picture.png");
-		
-		// TODO test this method
 		
 		Utils.setXmlElementValue(messageXml, root, "picture",
 				"kolab-picture.png");
@@ -778,57 +779,29 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		// create new attachment for new photo
 		// http://java.sun.com/developer/onlineTraining/JavaMail/contents.html#SendingAttachments explains how
 
+		MimeMultipart mp = new MimeMultipart();		
 		try
-		{		
-			if(message.getContent() instanceof Multipart)
-			{
-				Multipart mp = (Multipart) message.getContent();
-				
-				//find picture attachment and remove it
-				int removePartNo = -1;
-				for(int i=0; i < mp.getCount(); i++)
-				{
-					Part p = mp.getBodyPart(i);
-					String disposition = p.getDisposition();
-					
-					if ((p.getFileName() != null)
-							&& "kolab-picture.png".equals(p.getFileName())
-							&& (disposition.equals(Part.ATTACHMENT)))
-					{
-						removePartNo = i;
-					}
-				}
-				if(removePartNo > -1)
-				{
-					mp.removeBodyPart(removePartNo);
-				}
-				
-				//add picture as kolab-picture.png
-				if(photo != null)
-				{
-					BodyPart part = new MimeBodyPart();
-					DataSource source = new ByteArrayDataSource(photo, "image/png");
-					part.setDataHandler(new DataHandler(source));
-					part.setFileName("kolab-picture.png");
-					
-					mp.addBodyPart(part);
-				}
-				
-				//Log.d("ConH:", "multipart complete?");
-			}
-		}
-		catch (IOException ex)
 		{
-			// TODO Auto-generated catch block
-			ex.printStackTrace();
+			//add picture as kolab-picture.png
+			if(photo != null)
+			{
+				BodyPart part = new MimeBodyPart();
+				DataSource source = new ByteArrayDataSource(photo, "image/png");
+				part.setDataHandler(new DataHandler(source));
+				part.setFileName("kolab-picture.png");
+				
+				//Log.d("ConH", "storePhotoinMsg 1 Photo Hash: " + Utils.getBytesAsHexString(Utils.sha1Hash(photo)));
+				
+				mp.addBodyPart(part);
+			}
+			
+			sync.setNewMessageContent(mp);
 		}
 		catch (MessagingException ex)
 		{
 			// TODO Auto-generated catch block
-			ex.printStackTrace();
+			Log.e("ConH", ex.toString());
 		}
-
-		//Log.d("ConH", "bla");
 	}
 
 	/**

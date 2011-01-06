@@ -22,6 +22,7 @@
 package at.dasz.KolabDroid.Sync;
 
 import javax.mail.Message;
+import javax.mail.Multipart;
 
 /**
  * A "cursor" item for the currently synchronized item. Keeps references to the 
@@ -32,7 +33,17 @@ public class SyncContext
 	private Object localItem = null;
 	private CacheEntry cacheEntry = null;
 	private Message message = null;
-
+	
+	private Multipart newMessageContent = null;
+	
+	public Multipart getNewMessageContent()
+	{
+		return newMessageContent;
+	}
+	public void setNewMessageContent(Multipart newMessageContent)
+	{
+		this.newMessageContent = newMessageContent;
+	}
 	public Object getLocalItem()
 	{
 		return localItem;

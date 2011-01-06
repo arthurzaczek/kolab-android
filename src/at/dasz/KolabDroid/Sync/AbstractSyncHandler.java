@@ -21,6 +21,7 @@
 
 package at.dasz.KolabDroid.Sync;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -403,38 +404,29 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		messageBodyPart.setFileName("kolab.xml");
 		mp.addBodyPart(messageBodyPart);		
 		
-		//append picture attachment to new message
-		Message syncMessage = sync.getMessage();
-		
-		try
+		//append picture attachment		
+		if(sync.getNewMessageContent() != null)
 		{
-			if(syncMessage.getContent() instanceof Multipart)
+			Multipart smp = sync.getNewMessageContent();
+			
+			//find picture attachment and add it to new message
+			BodyPart photoPart = null;
+			for(int i=0; i < smp.getCount(); i++)
 			{
-				Multipart smp = (Multipart) syncMessage.getContent();
-				
-				//find picture attachment and add it to new message
-				BodyPart photoPart = null;
-				for(int i=0; i < smp.getCount(); i++)
-				{
-					BodyPart p = smp.getBodyPart(i);
-					String disposition = p.getDisposition();
+				BodyPart p = smp.getBodyPart(i);
+				String disposition = p.getDisposition();
 
-					if ((p.getFileName() != null)
-							&& "kolab-picture.png".equals(p.getFileName())
-							&& (disposition.equals(Part.ATTACHMENT)))
-					{
-						photoPart = p;
-					}
-				}
-				if(photoPart != null)
+				if ((p.getFileName() != null)
+						&& "kolab-picture.png".equals(p.getFileName())
+						&& (disposition.equals(Part.ATTACHMENT)))
 				{
-					mp.addBodyPart(photoPart);
+					photoPart = p;
 				}
 			}
-		}
-		catch (IOException ioex)
-		{
-			Log.e("ASH Ex:", ioex.toString());
+			if(photoPart != null)
+			{
+				mp.addBodyPart(photoPart);
+			}
 		}
 		
 		result.setContent(mp);
@@ -477,12 +469,9 @@ public abstract class AbstractSyncHandler implements SyncHandler
 				
 				//Log.v("DocDebug isSame:", docText);
 				
-				byte[] remoteHash = Utils.sha1Hash(docText);
+				byte[] remoteHash = Utils.sha1Hash(docText);			
 				
-				//String eh = String.format("%x", entry.getRemoteHash());
-				//String rh = String.format("%x", remoteHash);				
-				
-				Log.d("ASH", "Compare Remotehashes: entry: " + entry.getRemoteHash()  + " message: " + remoteHash);
+				Log.d("ASH", "Compare Remotehashes: entry: " + Utils.getBytesAsHexString(entry.getRemoteHash())  + " message: " + Utils.getBytesAsHexString(remoteHash));
 				
 				if (Arrays.equals(remoteHash, entry.getRemoteHash()))
 				{

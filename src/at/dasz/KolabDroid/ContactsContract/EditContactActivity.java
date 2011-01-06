@@ -6,11 +6,8 @@ import java.io.FileInputStream;
 
 import android.app.Activity;
 import android.content.ContentUris;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,8 +23,7 @@ import at.dasz.KolabDroid.Sync.SyncException;
 
 public class EditContactActivity extends Activity
 {
-	private Contact mContact = null;
-	
+	private Contact mContact = null;	
 	private ImageButton photoBtn = null;
 	
 	@Override

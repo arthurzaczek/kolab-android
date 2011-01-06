@@ -23,6 +23,8 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.Photo;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.util.Log;
+import at.dasz.KolabDroid.R;
+import at.dasz.KolabDroid.Utils;
 import at.dasz.KolabDroid.Sync.SyncException;
 
 public class ContactDBHelper
@@ -199,8 +201,8 @@ public class ContactDBHelper
 			//TODO: we use the first KolabDroid account, could there be more than one?
 			for(Account acc : accounts)
 			{
-				//TODO: Where do we get our account type from? => replace string here
-				if ("at.dasz.kolabdroid".equals(acc.type))
+				String accType = ctx.getString(R.string.SYNC_ACCOUNT_TYPE);				
+				if (accType.equals(acc.type))
 				{
 					account = acc;
 					break;
@@ -230,11 +232,16 @@ public class ContactDBHelper
 		                .build());
 			
 			if (contact.getPhoto() != null)
+			{
 				ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
 						.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
 						.withValue(ContactsContract.Data.MIMETYPE, CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
 						.withValue(Photo.PHOTO, contact.getPhoto())
 						.build());
+				
+				//Log.d("ConH", "NEW contat Photo Hash: " + Utils.getBytesAsHexString(Utils.sha1Hash(contact.getPhoto())));
+				
+			}
 			
 			if (contact.getNotes() != null && !"".equals(contact.getNotes()))
 				ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
@@ -453,6 +460,7 @@ public class ContactDBHelper
 				}
 
 				Log.d("ConH", "Inserting photo for contact " + name);
+				//Log.d("ConH", "update contact Photo Hash: " + Utils.getBytesAsHexString(Utils.sha1Hash(contact.getPhoto())));
 			}
 
 			// phone
