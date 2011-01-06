@@ -1,20 +1,34 @@
 package at.dasz.KolabDroid.ContactsContract;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+
 import android.app.Activity;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.Sync.SyncException;
 
 public class EditContactActivity extends Activity
 {
-	private Contact mContact = null;	
+	private Contact mContact = null;
+	
+	private ImageButton photoBtn = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -68,6 +82,19 @@ public class EditContactActivity extends Activity
 //			bday.updateDate(year, monthOfYear, dayOfMonth)
 //		}
 		
+		photoBtn = (ImageButton) findViewById(R.id.EditPhotoButton);
+		
+		if(mContact.getPhoto() != null)
+		{
+			ByteArrayInputStream bais = new ByteArrayInputStream(mContact.getPhoto());		
+			Drawable d = Drawable.createFromStream(bais, "picture");
+			
+			photoBtn.setBackgroundDrawable(d);
+		}
+		
+		PhotoButtonOnClickListener pbocl = new PhotoButtonOnClickListener();		
+		photoBtn.setOnClickListener(pbocl);
+		
 		EditText notes = (EditText) findViewById(R.id.EditNotes);
 		notes.setText(mContact.getNotes());
 		
@@ -112,8 +139,6 @@ public class EditContactActivity extends Activity
 	public void onBackPressed()
 	{
 		//Log.i("ECA:", "on back");
-//		if(mContact == null) //we save a new contact
-//			mContact = new Contact();
 		
 		EditText firstName = (EditText) findViewById(R.id.EditFirstName);
 		mContact.setGivenName(firstName.getText().toString());
@@ -188,6 +213,68 @@ public class EditContactActivity extends Activity
 		}
 		
 		super.onBackPressed();
+	}
+	
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+	    if (resultCode == RESULT_OK) {
+	        if (requestCode == 1) {
+	            Uri selectedImageUri = data.getData();
+	            //Log.i("ECA:", "Selected pic uri:" + selectedImageUri);
+	            
+	            String[] filePathColumn = {MediaStore.Images.Media.DATA};
+
+	            Cursor cursor = getContentResolver().query(selectedImageUri, filePathColumn, null, null, null);
+	            cursor.moveToFirst();
+
+	            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+	            String filePath = cursor.getString(columnIndex);
+	            cursor.close();
+
+	            byte[] fileData = null;
+	            
+	            File imageFile = new File(filePath);
+	            try
+	            {
+		            FileInputStream fis = new FileInputStream(imageFile);
+		            
+		            fileData = new byte[(int) imageFile.length()];
+		            fis.read(fileData);
+		            fis.close();
+	            }
+	            catch(Exception e)
+	            {
+	            	Log.e("ECA:", e.toString());
+	            }
+	            
+	            //TODO: photo gets changed for contact, but not stored in contacts2.db?
+	            
+	            if(fileData != null)
+	            {
+		            ByteArrayInputStream bais = new ByteArrayInputStream(fileData);		
+					Drawable d = Drawable.createFromStream(bais, "picture");
+					
+					photoBtn.setBackgroundDrawable(d);
+		            mContact.setPhoto(fileData);
+	            }
+	            //Log.i("ECA:", "saved pic");
+	            
+	        }
+	    }
+	}
+	
+	public class PhotoButtonOnClickListener implements View.OnClickListener
+	{		
+		public PhotoButtonOnClickListener()
+		{
+		}
+
+		public void onClick(View v)
+		{		
+			Intent i = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI);			
+			//startActivityForResult(i, 1);
+			startActivityForResult(Intent.createChooser(i, "Select Picture"), 1);
+		}		
 	}
 	
 }

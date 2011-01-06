@@ -5,7 +5,8 @@
 
 
 <LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout01" android:layout_width="fill_parent" android:orientation="vertical">
-<TextView android:id="@+id/TextView05" android:layout_height="wrap_content" android:layout_marginTop="10px" android:layout_width="fill_parent" android:text="Firstname:"></TextView><EditText android:id="@+id/EditFirstName" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+<ImageButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="100px" android:maxHeight="100px" android:minHeight="100px" android:minWidth="100px" android:id="@+id/EditPhotoButton" android:layout_marginTop="5px"></ImageButton><TextView android:id="@+id/TextView05" android:layout_height="wrap_content" android:layout_width="fill_parent" android:text="Firstname:"></TextView><EditText android:id="@+id/EditFirstName" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+
 
 
 </LinearLayout>
