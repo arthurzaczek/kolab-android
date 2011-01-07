@@ -323,24 +323,19 @@ public class ContactDBHelper
 			}
 
 			// birthday
+			w = ContactsContract.Data.RAW_CONTACT_ID + "='"
+				+ contact.getId() + "' AND "
+				+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
+				+ CommonDataKinds.Event.CONTENT_ITEM_TYPE + "' AND "
+				+ CommonDataKinds.Event.TYPE + " = '"
+				+ CommonDataKinds.Event.TYPE_BIRTHDAY + "'";
+	
+			queryCursor = cr.query(updateUri, new String[] { BaseColumns._ID }, w, null, null);
+	
+			if (queryCursor == null) throw new SyncException("EE", "cr.query returned null");
+			
 			if (contact.getBirthday() != null && !contact.getBirthday().equals(""))
 			{
-
-				w = ContactsContract.Data.RAW_CONTACT_ID + "='"
-						+ contact.getId() + "' AND "
-						+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
-						+ CommonDataKinds.Event.CONTENT_ITEM_TYPE + "' AND "
-						+ CommonDataKinds.Event.TYPE + " = '"
-						+ CommonDataKinds.Event.TYPE_BIRTHDAY + "'";
-
-				// Log.i("II", "w: " + w);
-
-				queryCursor = cr.query(updateUri,
-						new String[] { BaseColumns._ID }, w, null, null);
-
-				if (queryCursor == null) throw new SyncException("EE",
-						"cr.query returned null");
-
 				if (queryCursor.moveToFirst()) // otherwise no events
 				{
 					int idCol = queryCursor.getColumnIndex(BaseColumns._ID);
@@ -371,23 +366,33 @@ public class ContactDBHelper
 									CommonDataKinds.Event.TYPE_BIRTHDAY)
 							.build());
 
-					Log.d("ConH",
-							"Inserting birthday: " + contact.getBirthday()
-									+ " for contact " + name);
+					Log.d("ConH", "Inserting birthday: " + contact.getBirthday() + " for contact " + name);
+				}
+			}
+			else //delete birthday
+			{
+				if (queryCursor.moveToFirst()) // otherwise no events
+				{
+					int idCol = queryCursor.getColumnIndex(BaseColumns._ID);
+					long id = queryCursor.getLong(idCol);
+
+					ops.add(ContentProviderOperation.newDelete(addCallerIsSyncAdapterParameter(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI,id))).build());
+
+					Log.d("ConH", "Deleting birthday: " + contact.getBirthday()	+ " for contact " + name);
 				}
 			}
 
 			// contact notes
+			w = ContactsContract.Data.RAW_CONTACT_ID + "='"
+			+ contact.getId() + "' AND "
+			+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
+			+ CommonDataKinds.Note.CONTENT_ITEM_TYPE + "'";
+
+			queryCursor = cr.query(updateUri,
+					new String[] { BaseColumns._ID }, w, null, null);			
+			
 			if (contact.getNotes() != null && !contact.getNotes().equals(""))
 			{
-				w = ContactsContract.Data.RAW_CONTACT_ID + "='"
-						+ contact.getId() + "' AND "
-						+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
-						+ CommonDataKinds.Note.CONTENT_ITEM_TYPE + "'";
-
-				queryCursor = cr.query(updateUri,
-						new String[] { BaseColumns._ID }, w, null, null);
-
 				if (queryCursor.moveToFirst())
 				{
 					long id = queryCursor.getLong(queryCursor
@@ -417,21 +422,33 @@ public class ContactDBHelper
 					Log.d("ConH", "Inserting notes for contact " + name);
 				}
 			}
+			else
+			{
+				if (queryCursor.moveToFirst())
+				{
+					long id = queryCursor.getLong(queryCursor
+							.getColumnIndex(BaseColumns._ID));
+
+					ops.add(ContentProviderOperation.newDelete(addCallerIsSyncAdapterParameter(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI,id))).build());
+					
+					Log.d("ConH", "Deleting notes for contact " + name);
+				}
+			}
 
 			// contact photo
+			w = ContactsContract.Data.RAW_CONTACT_ID + "='"
+				+ contact.getId() + "' AND "
+				+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
+				+ CommonDataKinds.Photo.CONTENT_ITEM_TYPE + "'";
+
+			queryCursor = cr.query(updateUri,
+					new String[] { BaseColumns._ID }, w, null, null);
+			
+			if (queryCursor == null) throw new SyncException("EE",
+				"cr.query returned null");
+	
 			if (contact.getPhoto() != null)
 			{
-				w = ContactsContract.Data.RAW_CONTACT_ID + "='"
-						+ contact.getId() + "' AND "
-						+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
-						+ CommonDataKinds.Photo.CONTENT_ITEM_TYPE + "'";
-
-				queryCursor = cr.query(updateUri,
-						new String[] { BaseColumns._ID }, w, null, null);
-
-				if (queryCursor == null) throw new SyncException("EE",
-						"cr.query returned null");
-
 				if (queryCursor.moveToFirst()) // otherwise no photo
 				{
 					int colIdx = queryCursor.getColumnIndex(BaseColumns._ID);
@@ -461,6 +478,18 @@ public class ContactDBHelper
 
 				Log.d("ConH", "Inserting photo for contact " + name);
 				//Log.d("ConH", "update contact Photo Hash: " + Utils.getBytesAsHexString(Utils.sha1Hash(contact.getPhoto())));
+			}
+			else //remove photo
+			{		
+				if (queryCursor.moveToFirst()) // otherwise no photo
+				{
+					int colIdx = queryCursor.getColumnIndex(BaseColumns._ID);
+					long id = queryCursor.getLong(colIdx);
+		
+					ops.add(ContentProviderOperation.newDelete(addCallerIsSyncAdapterParameter(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI,id))).build());
+		
+					Log.d("ConH", "Deleting photo for contact " + name);
+				}
 			}
 
 			// phone
@@ -520,17 +549,41 @@ public class ContactDBHelper
 						{
 							//add new number
 							newCMs.add(cm);
-						}
+						}						
 					}
+					
+					//remove from db if not in contact object
+					queryCursor.moveToFirst();							
+					do
+					{
+						int typeIn = queryCursor.getInt(typeCol);
+						int idIn = queryCursor.getInt(idCol);
+
+						boolean found = false;
+						for(ContactMethod cm : contact.getContactMethods())
+						{							
+							if(! (cm instanceof PhoneContact)) continue;
+						
+							if (typeIn == cm.getType())
+							{
+								found = true;								
+								break;
+							}
+						}
+						
+						if(!found) //remove this cm from contact in db
+							ops.add(ContentProviderOperation.newDelete(addCallerIsSyncAdapterParameter(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI,idIn))).build());
+
+					} while (queryCursor.moveToNext());
+					
 				}
 				else
 				{
-					Log.d("ConH", "SC: No numbers in android for contact "
-							+ name + " -> adding all");
+					Log.d("ConH", "SC: No numbers in android for contact "+ name + " => adding all");
 					// we can add all new Numbers
 					for (ContactMethod cm : contact.getContactMethods())
 					{
-						if (!(cm instanceof PhoneContact)) continue;
+						if (!(cm instanceof PhoneContact)) continue;						
 						newCMs.add(cm);
 					}
 				}
@@ -592,6 +645,32 @@ public class ContactDBHelper
 							newCMs.add(cm);
 						}
 					}
+					
+					//remove from db if not in contact object
+					queryCursor.moveToFirst();							
+					do
+					{
+						int typeIn = queryCursor.getInt(typeCol);
+						int idIn = queryCursor.getInt(idCol);
+
+						boolean found = false;
+						for(ContactMethod cm : contact.getContactMethods())
+						{							
+							if(! (cm instanceof EmailContact)) continue;
+						
+							if (typeIn == cm.getType())
+							{
+								found = true;								
+								break;
+							}
+						}
+						
+						if(!found) //remove this cm from contact in db
+							ops.add(ContentProviderOperation.newDelete(addCallerIsSyncAdapterParameter(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI,idIn))).build());
+
+					} while (queryCursor.moveToNext());
+
+					
 				}
 				else
 				{

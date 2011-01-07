@@ -15,6 +15,7 @@ import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -90,6 +91,16 @@ public class EditContactActivity extends Activity
 		
 		PhotoButtonOnClickListener pbocl = new PhotoButtonOnClickListener();		
 		photoBtn.setOnClickListener(pbocl);
+		
+		Button remPhoto = (Button) findViewById(R.id.EditRemovePhotoButton);
+		remPhoto.setOnClickListener(new View.OnClickListener() {
+			
+			public void onClick(View v)
+			{
+				mContact.setPhoto(null);
+				photoBtn.setBackgroundDrawable(null);
+			}
+		});
 		
 		EditText notes = (EditText) findViewById(R.id.EditNotes);
 		notes.setText(mContact.getNotes());
@@ -242,8 +253,6 @@ public class EditContactActivity extends Activity
 	            {
 	            	Log.e("ECA:", e.toString());
 	            }
-	            
-	            //TODO: photo gets changed for contact, but not stored in contacts2.db?
 	            
 	            if(fileData != null)
 	            {

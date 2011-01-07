@@ -4,8 +4,12 @@
   android:layout_height="wrap_content" android:orientation="vertical" android:layout_width="fill_parent">
 
 
-<LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout01" android:layout_width="fill_parent" android:orientation="vertical">
-<ImageButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="100px" android:maxHeight="100px" android:minHeight="100px" android:minWidth="100px" android:id="@+id/EditPhotoButton" android:layout_marginTop="5px"></ImageButton><TextView android:id="@+id/TextView05" android:layout_height="wrap_content" android:layout_width="fill_parent" android:text="Firstname:"></TextView><EditText android:id="@+id/EditFirstName" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+<LinearLayout android:id="@+id/LinearLayout11" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_width="fill_parent"><ImageButton android:maxWidth="100px" android:minHeight="100px" android:layout_width="wrap_content" android:layout_marginTop="5px" android:minWidth="100px" android:maxHeight="100px" android:id="@+id/EditPhotoButton" android:layout_height="wrap_content"></ImageButton><Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Remove Photo" android:id="@+id/EditRemovePhotoButton"></Button>
+
+
+</LinearLayout><LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout01" android:layout_width="fill_parent" android:orientation="vertical">
+<TextView android:id="@+id/TextView05" android:layout_height="wrap_content" android:layout_width="fill_parent" android:text="Firstname:"></TextView><EditText android:id="@+id/EditFirstName" android:layout_height="wrap_content" android:layout_width="fill_parent"></EditText>
+
 
 
 
@@ -60,5 +64,7 @@
 
 <EditText android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/EditNotes"></EditText>
 </LinearLayout>
+
+
 
 </LinearLayout>
