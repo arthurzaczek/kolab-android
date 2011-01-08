@@ -21,6 +21,8 @@
 
 package at.dasz.KolabDroid.Calendar;
 
+import java.util.Calendar;
+
 import android.accounts.Account;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -158,6 +160,9 @@ public class CalendarProvider
 
 	public void save(CalendarEntry e) throws SyncException
 	{
+		// some useful information:
+		// http://www.google.com/codesearch/p?hl=en&sa=N&cd=3&ct=rc#uX1GffpyOZk/core/java/android/provider/Calendar.java
+		
 		ContentValues values = new ContentValues();
 		if (e == null) {
 			Log.e("CalendarProvider.save()", "e == null ; cannot save calendar entry");
@@ -188,8 +193,8 @@ public class CalendarProvider
 		}
 
 		values.put("_sync_account", account.name);
-		//values.put("_sync_account_type", account.type);
-		values.put("_sync_account_type", "com.google"); //fake google
+		values.put("_sync_account_type", account.type);
+//values.put("_sync_account_type", "com.google"); //fake google
 		
 		//values.put("eventTimezone", "UTC"); //TODO: put eventTimezone here: UTC from kolab?
 		
@@ -218,7 +223,7 @@ public class CalendarProvider
 			cr.update(uri, values, null, null);
 		}
 		
-if(false && e.getHasAlarm() == 1) //TODO: fix calendar alerts
+		if(e.getHasAlarm() == 1)
 		{
 			//delete existing alerts to replace them with the ones from the synchronisation		
 			cr.delete(CALENDAR_ALERT_URI, "event_id=?", new String[]{Integer.toString(e.getId())});
@@ -242,23 +247,25 @@ if(false && e.getHasAlarm() == 1) //TODO: fix calendar alerts
 			alertValues.put("end", end);
 			alertValues.put("alarmTime", (start - e.getReminderTime()*60000));
 			
-			//alertValues.put("state", 0);
+			alertValues.put("state", 0);
+			//SCHEDULED = 0;
+	        //FIRED = 1;
+	        //DISMISSED = 2;
 			
-			//alertValues.put("creationTime", value);
 			alertValues.put("minutes", e.getReminderTime());
+			
+			//we need those values to prevent the exception mentioned below from occuring
+			Calendar cal = Calendar.getInstance();
+			long now = cal.getTimeInMillis();
+			alertValues.put("creationTime", now);
+			alertValues.put("receivedTime", now);
+			alertValues.put("notifyTime", now);
 
-			try
-			{
-				cr.insert(CALENDAR_ALERT_URI, alertValues);
-			}
-			catch (Exception ex)
-			{
-				Log.e("CalProvider:", "Exception while inserting alert");
-				
-				Log.e("CalProvider:", ex.getMessage());
-				
-				Log.e("CalProvider:", ex.toString());
-			}
+			//TODO: sometimes throws an SQLiteConstraintException error code 19; constraint failed
+			//this happens although the query seems correct (tested in sqliteman against calendar.db)
+			//if it happens it seems half of the data are inserted into calendarAlerts, strange
+			cr.insert(CALENDAR_ALERT_URI, alertValues);
+			
 		}
 	}
 	
@@ -299,13 +306,15 @@ if(false && e.getHasAlarm() == 1) //TODO: fix calendar alerts
 			ContentValues cvs = new ContentValues();
 			cvs.put("_sync_account", accountName);
 			cvs.put("_sync_account_type", accountType);
+			cvs.put("url", "http://www.test.de"); //TODO what to put here?
 			cvs.put("name", accountName);
 			cvs.put("displayName", accountName);
 			cvs.put("color", 1); //TODO: how are colors represented? 
 			cvs.put("selected", 1);
 			cvs.put("access_level", 700);
 			cvs.put("timezone", "Europe/Berlin"); //TODO: where to get timezone for calendar from?
-			cvs.put("ownerAccount", "kolab-android@dasz.at"); //TODO: which owner? use same as for contacts
+			//cvs.put("ownerAccount", "kolab-android@dasz.at"); //TODO: which owner? use same as for contacts
+			cvs.put("ownerAccount", "striller23@googlemail.com"); //TODO: which owner? use same as for contacts
 			
 			Uri newUri = cr.insert(CALENDAR_CALENDARS_URI, cvs);
 			if(newUri == null)
@@ -331,6 +340,8 @@ if(false && e.getHasAlarm() == 1) //TODO: fix calendar alerts
 	
 	public long getCalendarID()
 	{
-		return calendarID;
+		//TODO: DEBUGGING return ONLY FIRST calendar !!!
+		return 1;
+		//return calendarID;
 	}
 }
