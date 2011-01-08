@@ -41,8 +41,14 @@ public class CalendarEntry
 	private Time				dtstart;
 	private Time				dtend;
 	private String				description;
-	private String				eventLocation;
-	private int					visibility;
+	private String				eventLocation;	
+	
+	private int					visibility = 2;
+	//VISIBILITY_DEFAULT = 0;
+    //VISIBILITY_CONFIDENTIAL = 1;
+    //VISIBILITY_PRIVATE = 2;
+    //VISIBILITY_PUBLIC = 3;
+	
 	private int					hasAlarm;
 	private String				rRule;
 	private String				exDate;
