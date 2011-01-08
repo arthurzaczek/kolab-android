@@ -50,9 +50,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.sun.mail.imap.IMAPBodyPart;
-import com.sun.mail.imap.protocol.BODYSTRUCTURE;
-
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
@@ -323,8 +320,15 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		}
 
 		byte[] photo = getPhotoFromMessage(sync.getMessage(), xml);
-		contact.setPhoto(photo);
-		Log.d("ConH", "Set Photo to: " + contact.getPhoto());
+		if(photo != null)
+		{
+			contact.setPhoto(photo);
+			Log.d("ConH", "Set Photo to: " + contact.getPhoto());
+		}
+		else
+		{
+			Log.i("ConH", "No Photo on server for " + contact.getFullName());
+		}
 
 		contact.setNote(Utils.getXmlElementString(root, "body"));
 		Log.d("ConH", "Set Notes to: " + contact.getNotes());
