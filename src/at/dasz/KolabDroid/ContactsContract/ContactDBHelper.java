@@ -281,6 +281,23 @@ public class ContactDBHelper
 							.withValue(CommonDataKinds.Phone.TYPE, cm.getType())
 							.build());
 				}
+				
+				if (cm instanceof AddressContact)
+				{
+					AddressContact acm = (AddressContact)cm;
+					
+					ops.add(ContentProviderOperation
+							.newInsert(ContactsContract.Data.CONTENT_URI)
+							.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+							.withValue(ContactsContract.Data.MIMETYPE, CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE)
+							.withValue(CommonDataKinds.StructuredPostal.CITY, acm.getCity())
+							.withValue(CommonDataKinds.StructuredPostal.REGION, acm.getRegion())
+							.withValue(CommonDataKinds.StructuredPostal.POSTCODE, acm.getPostalCode())
+							.withValue(CommonDataKinds.StructuredPostal.STREET, acm.getStreet())
+							.withValue(CommonDataKinds.StructuredPostal.COUNTRY, acm.getCountry())
+							.withValue(CommonDataKinds.StructuredPostal.TYPE, cm.getType())
+							.build());
+				}
 			}
 		}
 		else
@@ -685,6 +702,8 @@ public class ContactDBHelper
 					}
 				}
 			}
+			
+			//TODO: implement updating of address values
 			
 			if(contact.getId() == 0) //if contact is new, use all its contact methods
 				newCMs = contact.getContactMethods();

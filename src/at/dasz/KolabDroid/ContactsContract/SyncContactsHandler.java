@@ -302,6 +302,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		Log.d("ConH", "Set Birthday to: " + contact.getBirthday());
 
 		contact.getContactMethods().clear();
+		
 		NodeList nl = Utils.getXmlElements(root, "phone");
 		for (int i = 0; i < nl.getLength(); i++)
 		{
@@ -317,6 +318,14 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			cm.fromXml((Element) nl.item(i));
 			contact.getContactMethods().add(cm);
 			Log.d("ConH", "Add email with: " + cm);
+		}
+		
+		nl = Utils.getXmlElements(root, "address");
+		for (int i = 0; i < nl.getLength(); i++)
+		{
+			ContactMethod cm = new AddressContact();
+			cm.fromXml((Element) nl.item(i));
+			contact.getContactMethods().add(cm);
 		}
 
 		byte[] photo = getPhotoFromMessage(sync.getMessage(), xml);
