@@ -729,8 +729,8 @@ public class SyncContactsHandler extends AbstractSyncHandler
 					if ((part.getFileName() != null)
 							&& (part.getFileName().equals(photoFileName))
 							&& (disposition != null)
-							&& ((disposition.equals(Part.ATTACHMENT) || (disposition
-									.equals(Part.INLINE))))) {
+							&& ((disposition.equalsIgnoreCase(Part.ATTACHMENT) || (disposition
+									.equalsIgnoreCase(Part.INLINE))))) {
 	
 					return inputStreamToBytes(part.getInputStream()); }
 				}
