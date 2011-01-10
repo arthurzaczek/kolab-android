@@ -43,6 +43,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 
+import android.text.TextUtils;
 import android.text.format.Time;
 import android.util.Log;
 import android.util.TimeFormatException;
@@ -98,7 +99,9 @@ public final class Utils
 				e.removeChild(nl.item(i));
 			}
 			// add new text node
-			Text t = xml.createTextNode(value);
+			//Text t = xml.createTextNode(value);
+			// Fixes issue #29 special characters in calendar subjects and elsewhere
+			Text t = xml.createTextNode(TextUtils.htmlEncode(value));
 			e.appendChild(t);
 		}
 	}
@@ -109,7 +112,9 @@ public final class Utils
 		Element e = xml.createElement(name);
 		parent.appendChild(e);
 		// add new text node
-		Text t = xml.createTextNode(value);
+		//Text t = xml.createTextNode(value);
+		// Fixes issue #29 special characters in calendar subjects and elsewhere
+		Text t = xml.createTextNode(TextUtils.htmlEncode(value));
 		e.appendChild(t);
 	}
 
