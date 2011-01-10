@@ -173,7 +173,19 @@ public final class Utils
 	{
 		if (e == null) return null;
 		NodeList nl = e.getChildNodes();
-		if (nl.getLength() > 0) { return nl.item(0).getNodeValue(); }
+		// Fix from issue #27 special characters in text elements
+		//if (nl.getLength() > 0) { return nl.item(0).getNodeValue(); }
+		if (nl.getLength() > 0) 
+		{
+			StringBuilder elementText = new StringBuilder();
+			for (int i=0; i<nl.getLength(); i++)
+			{
+				if(nl.item(i).getNodeType() == Node.TEXT_NODE)
+					elementText.append(nl.item(i).getNodeValue());
+			}
+			return elementText.toString();
+		}
+
 		return null;
 	}
 
