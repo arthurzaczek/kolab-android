@@ -72,7 +72,8 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		cr = context.getContentResolver();
 		status.setTask("Calendar");
 		
-		calendarProvider.setOrCreateKolabCalendar();
+		//TODO stick to google calendar for now
+		//calendarProvider.setOrCreateKolabCalendar();
 	}
 	
 	public void removeOurCalendar()
@@ -362,12 +363,9 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 	private CacheEntry saveCalender(CalendarEntry cal) throws SyncException
 	{
-		//TODO: put our calendar id here if calendar app doesnt delete our calendar
-		
-		cal.setCalendar_id(1);
-		//int tmpID = (int)calendarProvider.getCalendarID();		
+		int tmpID = (int)calendarProvider.getCalendarID();		
 		//Log.i("WAAA:", "CALENDAR ID: " + tmpID);
-		//cal.setCalendar_id(tmpID);
+		cal.setCalendar_id(tmpID);
 		//cal.setCalendar_id((int)calendarProvider.getCalendarID());
 		calendarProvider.save(cal);
 		CacheEntry result = new CacheEntry();

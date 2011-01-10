@@ -27,9 +27,7 @@ import at.dasz.KolabDroid.Main;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.StatusHandler;
 import at.dasz.KolabDroid.Calendar.SyncCalendarHandler;
-//import at.dasz.KolabDroid.Contacts.SyncContactsHandler;
 import at.dasz.KolabDroid.ContactsContract.SyncContactsHandler;
-import at.dasz.KolabDroid.Provider.LocalCacheProvider;
 
 public class ResetWorker extends BaseWorker
 {
@@ -109,8 +107,8 @@ public class ResetWorker extends BaseWorker
 			}
 		}
 		
-		//remove complete calendar
-		calendar.removeOurCalendar();
+		//TODO: remove complete calendar again if we have one
+		//calendar.removeOurCalendar();
 		
 		return currentItemNo;
 	}
