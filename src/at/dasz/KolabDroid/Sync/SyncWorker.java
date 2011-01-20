@@ -23,6 +23,7 @@ package at.dasz.KolabDroid.Sync;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.UnknownHostException;
 import java.security.cert.CertificateException;
 import java.util.HashSet;
 import java.util.Set;
@@ -93,6 +94,7 @@ public class SyncWorker
 			sync(settings, handler);
 			StatusHandler.writeStatus(R.string.syncfinished);
 		}
+		//Fixes issue #36
 		catch (MessagingException mex)
 		{
 			final String errorFormat = this.context.getResources().getString(
@@ -102,6 +104,11 @@ public class SyncWorker
 			if(e != null && e instanceof ConnectException)
 			{
 				status.setFatalErrorMsg("Connection to server rejected");
+			}
+			//Fixes issue #36 and prints a "nice" error message in status
+			else if(e != null && e instanceof UnknownHostException)
+			{
+				status.setFatalErrorMsg("Could not resolve hostname of server");
 			}
 			else
 			{
