@@ -308,7 +308,7 @@ public class CalendarProvider
 			cvs.put("selected", 1);
 			cvs.put("access_level", 700);
 			cvs.put("timezone", "Europe/Berlin"); //TODO: where to get timezone for calendar from?
-			//cvs.put("ownerAccount", "kolab-android@dasz.at"); //TODO: which owner? use same as for contacts
+			cvs.put("ownerAccount", "kolab-android@google.com"); //TODO: which owner? use same as for contacts
 			
 			Uri newUri = cr.insert(CALENDAR_CALENDARS_URI, cvs);
 			if(newUri == null)

@@ -107,8 +107,8 @@ public class ResetWorker extends BaseWorker
 			}
 		}
 		
-		//TODO: remove complete calendar again if we have one
-		//calendar.removeOurCalendar();
+		//remove complete calendar again if we have one
+		calendar.removeOurCalendar();
 		
 		return currentItemNo;
 	}
