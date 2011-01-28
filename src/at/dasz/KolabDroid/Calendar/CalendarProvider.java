@@ -194,7 +194,6 @@ public class CalendarProvider
 
 		values.put("_sync_account", account.name);
 		values.put("_sync_account_type", account.type);
-//values.put("_sync_account_type", "com.google"); //fake google
 		
 		//values.put("eventTimezone", "UTC"); //TODO: put eventTimezone here: UTC from kolab?
 		
@@ -285,8 +284,6 @@ public class CalendarProvider
 			accountType = account.type;
 		}
 		
-		//accountType = "com.google"; //fake google => doesnt work, calender still gets deleted
-		
 		String selection = "_sync_account=? and _sync_account_type=?";
 		
 		Cursor cur = cr.query(CalendarProvider.CALENDAR_CALENDARS_URI,
@@ -298,23 +295,20 @@ public class CalendarProvider
 			return;
 		}
 		
-		//TODO: something still missing: calendar appears and disappaers on device...
-		
 		if(cur.getCount() == 0)
 		{
 			//create one			
 			ContentValues cvs = new ContentValues();
 			cvs.put("_sync_account", accountName);
 			cvs.put("_sync_account_type", accountType);
-			cvs.put("url", "http://www.test.de"); //TODO what to put here?
+			//cvs.put("url", "http://www.test.de"); //TODO what to put here?
 			cvs.put("name", accountName);
 			cvs.put("displayName", accountName);
-			cvs.put("color", 1); //TODO: how are colors represented? 
+			//cvs.put("color", 1); //TODO: how are colors represented? 
 			cvs.put("selected", 1);
 			cvs.put("access_level", 700);
 			cvs.put("timezone", "Europe/Berlin"); //TODO: where to get timezone for calendar from?
 			//cvs.put("ownerAccount", "kolab-android@dasz.at"); //TODO: which owner? use same as for contacts
-			cvs.put("ownerAccount", "striller23@googlemail.com"); //TODO: which owner? use same as for contacts
 			
 			Uri newUri = cr.insert(CALENDAR_CALENDARS_URI, cvs);
 			if(newUri == null)
@@ -339,9 +333,8 @@ public class CalendarProvider
 	}
 	
 	public long getCalendarID()
-	{
-		//TODO: DEBUGGING return ONLY FIRST calendar !!!
-		return 1;
-		//return calendarID;
+	{		
+		//return 1; //DEBUGGING return ONLY FIRST calendar !!!
+		return calendarID;
 	}
 }

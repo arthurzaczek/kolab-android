@@ -20,8 +20,10 @@
 <!-- The attributes in this XML file provide configuration information -->
 <!-- for the SyncAdapter. -->
 
+<!--  use com.android.calendar as android:contentAuthority for android 2.2 -->
+
 <sync-adapter xmlns:android="http://schemas.android.com/apk/res/android"
-    android:contentAuthority="at.dasz.KolabDroid.Calendar"
+    android:contentAuthority="calendar"
     android:accountType="at.dasz.kolabdroid"
     android:supportsUploading="true"
 />

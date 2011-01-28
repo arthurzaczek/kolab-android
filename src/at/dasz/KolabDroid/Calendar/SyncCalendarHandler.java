@@ -72,8 +72,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		cr = context.getContentResolver();
 		status.setTask("Calendar");
 		
-		//TODO stick to google calendar for now
-		//calendarProvider.setOrCreateKolabCalendar();
+		calendarProvider.setOrCreateKolabCalendar();
 	}
 	
 	public void removeOurCalendar()
