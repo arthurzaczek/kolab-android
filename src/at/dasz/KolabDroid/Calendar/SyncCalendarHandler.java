@@ -43,6 +43,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.text.format.Time;
 import android.util.Log;
+import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.Utils;
 import at.dasz.KolabDroid.Provider.LocalCacheProvider;
 import at.dasz.KolabDroid.Settings.Settings;
@@ -82,6 +83,25 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			Uri delUri = ContentUris.withAppendedId(CalendarProvider.CALENDAR_CALENDARS_URI, calendarProvider.getCalendarID());			
 			cr.delete(delUri, null, null);
 		}
+		
+		//make sure we clean up ALL of our calendars
+		String accountName;
+		String accountType;
+		if(account == null) //called by reset button
+		{
+			accountName = context.getString(R.string.SYNC_ACCOUNT_NAME);
+			accountType = context.getString(R.string.SYNC_ACCOUNT_TYPE);
+		}
+		else
+		{
+			accountName = account.name;
+			accountType = account.type;
+		}
+		
+		String selection = "_sync_account=? and _sync_account_type=?";
+		
+		cr.delete(CalendarProvider.CALENDAR_CALENDARS_URI, selection, new String[]{accountName, accountType});
+		
 	}
 
 	public String getDefaultFolderName()
