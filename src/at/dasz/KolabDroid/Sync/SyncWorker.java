@@ -264,6 +264,7 @@ public class SyncWorker
 								else
 								{
 									Log.i("sync", "7.a NO local changes found => doing nothing");
+									handler.markAsSynced(sync);
 								}
 							}
 							else
@@ -357,6 +358,7 @@ public class SyncWorker
 		}
 		finally
 		{
+			Log.e("sync", "** sync finished");
 			if (sourceFolder != null) sourceFolder.close(true);
 			if (server != null) server.close();
 		}

@@ -695,4 +695,10 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			return sync.getMessage().getSubject();
 		}
 	}
+
+	public void markAsSynced(SyncContext sync)
+	{
+		CalendarEntry item = (CalendarEntry) sync.getLocalItem();
+		calendarProvider.markAsSynced(item.getId());		
+	}
 }

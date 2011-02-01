@@ -844,4 +844,9 @@ public class SyncContactsHandler extends AbstractSyncHandler
         return uri.buildUpon().appendQueryParameter(
             ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
     }
+
+	public void markAsSynced(SyncContext sync)
+	{
+		// do nothing - mark as sync was already done 		
+	}
 }

@@ -218,4 +218,9 @@ public interface SyncHandler
 	 * @throws MessagingException
 	 */
 	public boolean isSame(CacheEntry cacheEntry, Message message) throws MessagingException;
+
+	/**
+	 * Optional mark the current item as synced
+	 */
+	public void markAsSynced(SyncContext sync);
 }

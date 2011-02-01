@@ -194,6 +194,7 @@ public class CalendarProvider
 
 		values.put("_sync_account", account.name);
 		values.put("_sync_account_type", account.type);
+		values.put("_sync_dirty", 0);
 		
 		//values.put("eventTimezone", "UTC"); //TODO: put eventTimezone here: UTC from kolab?
 		
@@ -307,20 +308,13 @@ public class CalendarProvider
 			return;
 		}
 		
-		if(cur.getCount() == 0)
+		ContentValues cvs = new ContentValues();
+		if(!cur.moveToFirst())
 		{
 			//create one			
-			ContentValues cvs = new ContentValues();
 			cvs.put("_sync_account", accountName);
 			cvs.put("_sync_account_type", accountType);
-			//cvs.put("url", "http://www.test.de"); //TODO what to put here?
-			cvs.put("name", accountName);
-			cvs.put("displayName", accountName);
-			//cvs.put("color", 1); //TODO: how are colors represented? 
-			cvs.put("selected", 1);
-			cvs.put("access_level", 700);
-			cvs.put("timezone", "Europe/Berlin"); //TODO: where to get timezone for calendar from?
-			cvs.put("ownerAccount", "kolab-android@google.com"); //TODO: which owner? use same as for contacts
+			updateCalendar(accountName, cvs);
 			
 			Uri newUri = cr.insert(CALENDAR_CALENDARS_URI, cvs);
 			if(newUri == null)
@@ -332,21 +326,43 @@ public class CalendarProvider
 		}
 		else //TODO: we only support one calendar for now
 		{
-			//pick first
-			if (!cur.moveToFirst())
-				return;
-		
 			int idx = cur.getColumnIndex("_id");			
 			calendarID = cur.getLong(idx);		
+			updateCalendar(accountName, cvs);
+
+			Uri uri = ContentUris.withAppendedId(CALENDAR_CALENDARS_URI, calendarID);
+			cr.update(uri, cvs, null, null);
 		}
 		
 		cur.close();
 		
+	}
+
+	private void updateCalendar(String accountName, ContentValues cvs)
+	{
+		cvs.put("url", "http://www.test.de"); //TODO what to put here?
+		cvs.put("name", accountName);
+		cvs.put("displayName", accountName);
+		cvs.put("color", -14069085); //TODO: how are colors represented? 
+		cvs.put("selected", 1);
+		cvs.put("sync_events", 1);
+		cvs.put("access_level", 700);
+		cvs.put("timezone", "Europe/Berlin"); //TODO: where to get timezone for calendar from?
+		cvs.put("ownerAccount", "kolab-android@dasz.at"); //TODO: which owner? use same as for contacts
 	}
 	
 	public long getCalendarID()
 	{		
 		//return 1; //DEBUGGING return ONLY FIRST calendar !!!
 		return calendarID;
+	}
+
+	public void markAsSynced(int id)
+	{
+		ContentValues values = new ContentValues();
+		values.put("_sync_dirty", 0);
+
+		Uri uri = ContentUris.withAppendedId(CALENDAR_URI, id);
+		cr.update(uri, values, null, null);
 	}
 }
