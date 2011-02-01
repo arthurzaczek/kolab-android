@@ -71,7 +71,7 @@ public class CalendarProvider
 			
 			CALENDAR_CALENDARS_URI = Uri.parse("content://calendar/calendars");
 		}
-		else if(Build.VERSION.SDK_INT == 8) //android 2.2
+		else if(Build.VERSION.SDK_INT >= 8) //android 2.2
 		{
 			CALENDAR_URI	= Uri.parse("content://com.android.calendar/events");
 			CALENDAR_ALERT_URI = Uri.parse("content://com.android.calendar/calendar_alerts");
@@ -268,8 +268,20 @@ public class CalendarProvider
 		}
 	}
 	
+	private void dumpAllCalendars(){
+		Log.d("CalProvider", "name - displayName - _sync_account - _sync_account_type");
+		Cursor cur = cr.query(CalendarProvider.CALENDAR_CALENDARS_URI,
+				new String[] {"name", "displayName", "_sync_account", "_sync_account_type"}, null, null, null);
+		while (cur.moveToNext())
+		{
+			Log.d("CalProvider", cur.getString(0) + " - " + cur.getString(1) + " - " + cur.getString(2) + " - " + cur.getString(3));
+		}
+	}
+	
 	public void setOrCreateKolabCalendar()
 	{
+		dumpAllCalendars();
+		
 		String accountName = "";
 		String accountType = "";
 		
