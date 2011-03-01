@@ -83,7 +83,8 @@ public class PhoneContact extends ContactMethod
 		
 		//strip "-" out of phone numbers
 		String tmp = getData();
-		String stripped = tmp.replaceAll("-", "");
+		String stripped = "";
+		if(null != tmp) tmp.replaceAll("-", "");
 		
 		Utils.setXmlElementValue(xml, phone, "number", stripped);
 	}
