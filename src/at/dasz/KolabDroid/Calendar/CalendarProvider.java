@@ -336,6 +336,7 @@ public class CalendarProvider
 		}
 	}
 
+	// TODO: we only support one calendar for now
 	public void setOrCreateKolabCalendar()
 	{
 		dumpAllCalendars();
@@ -371,7 +372,18 @@ public class CalendarProvider
 			// create one
 			cvs.put("_sync_account", accountName);
 			cvs.put("_sync_account_type", accountType);
-			updateCalendar(accountName, cvs);
+			cvs.put("url", "http://www.test.de"); // TODO what to put here?
+			cvs.put("name", accountName);
+			cvs.put("displayName", accountName);
+			cvs.put("color", -14069085); // TODO: how are colors represented?
+			cvs.put("selected", 1);
+			cvs.put("sync_events", 1);
+			cvs.put("access_level", 700);
+			cvs.put("timezone", "Europe/Berlin"); // TODO: where to get timezone for
+													// calendar from?
+			cvs.put("ownerAccount", "kolab-android@dasz.at"); // TODO: which owner?
+																// use same as for
+																// contacts
 
 			Uri newUri = cr.insert(CALENDAR_CALENDARS_URI, cvs);
 			if (newUri == null)
@@ -383,60 +395,19 @@ public class CalendarProvider
 			calendarID = ContentUris.parseId(newUri);
 		}
 		else
-		// TODO: we only support one calendar for now
 		{
 			int idx = cur.getColumnIndex("_id");
 			calendarID = cur.getLong(idx);
-			updateCalendar(accountName, cvs);
 
-			Uri uri = ContentUris.withAppendedId(CALENDAR_CALENDARS_URI,
-					calendarID);
-			cr.update(uri, cvs, null, null);
+			// Do not update the calendar
+			// This ends in a sync loop
 		}
 
 		cur.close();
-
-	}
-
-	private void updateCalendar(String accountName, ContentValues cvs)
-	{
-		cvs.put("url", "http://www.test.de"); // TODO what to put here?
-		cvs.put("name", accountName);
-		cvs.put("displayName", accountName);
-		cvs.put("color", -14069085); // TODO: how are colors represented?
-		cvs.put("selected", 1);
-		cvs.put("sync_events", 1);
-		cvs.put("access_level", 700);
-		cvs.put("timezone", "Europe/Berlin"); // TODO: where to get timezone for
-												// calendar from?
-		cvs.put("ownerAccount", "kolab-android@dasz.at"); // TODO: which owner?
-															// use same as for
-															// contacts
 	}
 
 	public long getCalendarID()
 	{
-		// return 1; //DEBUGGING return ONLY FIRST calendar !!!
 		return calendarID;
-	}
-
-	public void markAsSynced(int id)
-	{
-		ContentValues values = new ContentValues();
-		values.put("_sync_time", System.currentTimeMillis());
-		values.put("_sync_dirty", 0);
-
-		Uri uri = ContentUris.withAppendedId(CALENDAR_EVENTS_URI, id);
-		cr.update(uri, values, null, null);
-	}
-
-	public void setSyncTime(long currentTimeMillis)
-	{
-		ContentValues values = new ContentValues();
-		values.put("_sync_time", currentTimeMillis);
-		values.put("_sync_dirty", 0);
-
-		Uri uri = ContentUris.withAppendedId(CALENDAR_CALENDARS_URI, calendarID);
-		cr.update(uri, values, null, null);
 	}
 }

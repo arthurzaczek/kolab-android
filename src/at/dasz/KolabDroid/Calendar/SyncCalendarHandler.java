@@ -698,12 +698,11 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 	public void markAsSynced(SyncContext sync)
 	{
-		CalendarEntry item = (CalendarEntry) sync.getLocalItem();
-		calendarProvider.markAsSynced(item.getId());		
+		// nothing to do
 	}
 
 	public void finalizeSync()
 	{
-		calendarProvider.setSyncTime(System.currentTimeMillis());		
+		// nothing to do
 	}
 }

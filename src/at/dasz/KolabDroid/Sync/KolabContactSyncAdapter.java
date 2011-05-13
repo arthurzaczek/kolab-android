@@ -44,7 +44,7 @@ public class KolabContactSyncAdapter extends AbstractThreadedSyncAdapter {
 
 	@Override
 	public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-		Log.i("SYNC", "performSync called!");
+		Log.i(TAG, ">>>>>>>>>>>>>>>>>>>>>>> performSync called!");
 		
 		Settings s = new Settings(this.context);
 		Time supposedSyncTime = s.getLastContactSyncTime();
@@ -65,8 +65,8 @@ public class KolabContactSyncAdapter extends AbstractThreadedSyncAdapter {
 		} else {
 			Log.i(TAG, "Sync skipped, next sync: " + supposedSyncTime.format3339(false));
 		}
-	}
-	
-	
 
+		provider.release();
+		Log.i(TAG, "<<<<<<<<<<<<<<<<<<<<<<< performSync finished!");
+	}
 }
