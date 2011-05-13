@@ -49,11 +49,9 @@ public class EditContactActivity extends Activity
 			{
 				long contactID = ContentUris.parseId(uri);
 				mContact = ContactDBHelper.getContactByRawID(contactID, getContentResolver());			
-				//Log.i("ECA:", "Got contact");
 			}
 			catch (SyncException ex)
 			{
-				// TODO Auto-generated catch block
 				ex.printStackTrace();
 			}
 		}		
@@ -145,8 +143,6 @@ public class EditContactActivity extends Activity
 	@Override
 	public void onBackPressed()
 	{
-		//Log.i("ECA:", "on back");
-		
 		EditText firstName = (EditText) findViewById(R.id.EditFirstName);
 		mContact.setGivenName(firstName.getText().toString());
 		
