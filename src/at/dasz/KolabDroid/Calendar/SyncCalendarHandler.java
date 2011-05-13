@@ -132,7 +132,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		
 		String where = "calendar_id=?";
 		
-		Cursor cur = cr.query(CalendarProvider.CALENDAR_URI,
+		Cursor cur = cr.query(CalendarProvider.CALENDAR_EVENTS_URI,
 				CalendarProvider.projection, where, new String[]{String.valueOf(calendarProvider.getCalendarID())}, null);
 		try
 		{
@@ -157,7 +157,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	{
 		String where = "calendar_id=?";
 		
-		return cr.query(CalendarProvider.CALENDAR_URI,
+		return cr.query(CalendarProvider.CALENDAR_EVENTS_URI,
 				new String[] { CalendarProvider._ID }, where, new String[]{String.valueOf(calendarProvider.getCalendarID())}, null);
 	}
 
@@ -700,5 +700,10 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	{
 		CalendarEntry item = (CalendarEntry) sync.getLocalItem();
 		calendarProvider.markAsSynced(item.getId());		
+	}
+
+	public void finalizeSync()
+	{
+		calendarProvider.setSyncTime(System.currentTimeMillis());		
 	}
 }

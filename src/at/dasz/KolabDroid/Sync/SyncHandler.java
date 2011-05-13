@@ -223,4 +223,10 @@ public interface SyncHandler
 	 * Optional mark the current item as synced
 	 */
 	public void markAsSynced(SyncContext sync);
+
+	/**
+	 * Called at the end of a Sync
+	 * Provider can implement finalizing stuff like putting the last sync time into the underlying content provider 
+	 */
+	public void finalizeSync();
 }

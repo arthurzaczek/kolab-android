@@ -849,4 +849,10 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	{
 		// do nothing - mark as sync was already done 		
 	}
+
+	public void finalizeSync()
+	{
+		// nothing to do
+		
+	}
 }

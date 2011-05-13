@@ -358,6 +358,7 @@ public class SyncWorker
 		}
 		finally
 		{
+			handler.finalizeSync();
 			Log.e("sync", "** sync finished");
 			if (sourceFolder != null) sourceFolder.close(true);
 			if (server != null) server.close();

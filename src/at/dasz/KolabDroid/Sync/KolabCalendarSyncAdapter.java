@@ -21,12 +21,16 @@ package at.dasz.KolabDroid.Sync;
 
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
+import android.content.ContentProvider;
 import android.content.ContentProviderClient;
 import android.content.Context;
 import android.content.SyncResult;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.text.format.Time;
 import android.util.Log;
+import at.dasz.KolabDroid.Calendar.CalendarProvider;
 import at.dasz.KolabDroid.Calendar.SyncCalendarHandler;
 import at.dasz.KolabDroid.Settings.Settings;
 
@@ -42,7 +46,7 @@ public class KolabCalendarSyncAdapter extends AbstractThreadedSyncAdapter {
 
 	@Override
 	public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-		Log.i("SYNC", "performSync called!");
+		Log.i(TAG, "performSync called!");
 		
 		Settings s = new Settings(this.context);
 		Time supposedSyncTime = s.getLastCalendarSyncTime();
@@ -63,6 +67,8 @@ public class KolabCalendarSyncAdapter extends AbstractThreadedSyncAdapter {
 		} else {
 			Log.i(TAG, "Sync skipped, next sync: " + supposedSyncTime.format3339(false));
 		}
+		
+		provider.release();
 	}
 
 }
