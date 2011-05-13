@@ -168,10 +168,7 @@ public class CalendarProvider
 
 	public void delete(CalendarEntry e)
 	{
-		// if (e.getId() == 0) return;
 		delete(e.getId());
-		// Uri uri = ContentUris.withAppendedId(CALENDAR_URI, e.getId());
-		// cr.delete(uri, null, null);
 	}
 
 	public void delete(int id)
@@ -179,10 +176,7 @@ public class CalendarProvider
 		if (id == 0) return;
 		Uri uri = ContentUris.withAppendedId(CALENDAR_EVENTS_URI, id);
 		cr.delete(uri, null, null);
-
-		// delete matching alerts; trigger will do this for us
-		// cr.delete(CALENDAR_ALERT_URI, "event_id=?", new
-		// String[]{Integer.toString(id)});
+		// don't delete matching alerts; trigger will do this for us
 	}
 
 	public void save(CalendarEntry e) throws SyncException
@@ -233,7 +227,7 @@ public class CalendarProvider
 		values.put("_sync_time", System.currentTimeMillis());
 
 		// values.put("eventTimezone", "UTC"); //TODO: put eventTimezone here:
-		// UTC from kolab?
+		// UTC from kolab? Arthur: yes? KolabOutlook is storing UTC.
 
 		values.put("calendar_id", e.getCalendar_id());
 		values.put("title", e.getTitle());
@@ -372,13 +366,15 @@ public class CalendarProvider
 			// create one
 			cvs.put("_sync_account", accountName);
 			cvs.put("_sync_account_type", accountType);
-			cvs.put("url", "http://www.test.de"); // TODO what to put here?
 			cvs.put("name", accountName);
 			cvs.put("displayName", accountName);
-			cvs.put("color", -14069085); // TODO: how are colors represented?
 			cvs.put("selected", 1);
 			cvs.put("sync_events", 1);
 			cvs.put("access_level", 700);
+
+			// TODO: Arthur: Do we need that? I don't think so 
+			cvs.put("url", "http://www.test.de"); // TODO what to put here?
+			cvs.put("color", -14069085); // TODO: how are colors represented?
 			cvs.put("timezone", "Europe/Berlin"); // TODO: where to get timezone for
 													// calendar from?
 			cvs.put("ownerAccount", "kolab-android@dasz.at"); // TODO: which owner?

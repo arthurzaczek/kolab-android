@@ -221,8 +221,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			cal.setDtstart(start);
 
 			// allday events of length n days have dtend == dtstart + (n-1) in
-			// kolab,
-			// android calendar has dtend == dtstart + n.
+			// kolab, android calendar has dtend == dtstart + n.
 			if (cal.getAllDay())
 			{
 				end.monthDay += 1;
@@ -383,9 +382,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	private CacheEntry saveCalender(CalendarEntry cal) throws SyncException
 	{
 		int tmpID = (int)calendarProvider.getCalendarID();		
-		//Log.i("WAAA:", "CALENDAR ID: " + tmpID);
 		cal.setCalendar_id(tmpID);
-		//cal.setCalendar_id((int)calendarProvider.getCalendarID());
 		calendarProvider.save(cal);
 		CacheEntry result = new CacheEntry();
 		result.setLocalId(cal.getId());
