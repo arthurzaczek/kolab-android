@@ -7,7 +7,6 @@ import android.accounts.AccountManager;
 import android.accounts.NetworkErrorException;
 import android.app.Service;
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;

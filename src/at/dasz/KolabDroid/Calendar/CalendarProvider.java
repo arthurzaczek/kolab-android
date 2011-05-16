@@ -31,7 +31,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
-import android.provider.ContactsContract;
 import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.util.Log;
@@ -40,26 +39,27 @@ import at.dasz.KolabDroid.Sync.SyncException;
 
 public class CalendarProvider
 {
-	public static Uri				CALENDAR_EVENTS_URI;
-	public static Uri				CALENDAR_ALERT_URI;
-	public static Uri				CALENDAR_REMINDER_URI;
+	// don't make them public - it's better to do all database access jobs here
+	private static Uri				CALENDAR_EVENTS_URI;
+	private static Uri				CALENDAR_ALERT_URI;
+	private static Uri				CALENDAR_REMINDER_URI;
 
-	public static Uri				CALENDAR_CALENDARS_URI;
-	
-	public static final String CALLER_IS_SYNCADAPTER = "caller_is_syncadapter";
+	private static Uri				CALENDAR_CALENDARS_URI;
 
-	public static final String		_ID			= "_id";
+	private static final String		CALLER_IS_SYNCADAPTER	= "caller_is_syncadapter";
 
-	public static final String[]	projection	= new String[] { "_id",
-			"calendar_id", "title", "allDay", "dtstart", "dtend",
+	public static final String		_ID						= "_id";
+
+	public static final String[]	projection				= new String[] {
+			_ID, "calendar_id", "title", "allDay", "dtstart", "dtend",
 			"description", "eventLocation", "visibility", "hasAlarm", "rrule",
-			"exdate"							};
+			"exdate"										};
 	private ContentResolver			cr;
 
-	private long					calendarID	= -1;
+	private long					calendarID				= -1;
 
-	private Context					ctx			= null;
-	private Account					account		= null;
+	private Context					ctx						= null;
+	private Account					account					= null;
 
 	public CalendarProvider(Context ctx, Account account)
 	{
@@ -78,7 +78,8 @@ public class CalendarProvider
 		}
 		else if (Build.VERSION.SDK_INT >= 8) // android 2.2
 		{
-			CALENDAR_EVENTS_URI = Uri.parse("content://com.android.calendar/events");
+			CALENDAR_EVENTS_URI = Uri
+					.parse("content://com.android.calendar/events");
 			CALENDAR_ALERT_URI = Uri
 					.parse("content://com.android.calendar/calendar_alerts");
 			CALENDAR_REMINDER_URI = Uri
@@ -87,17 +88,32 @@ public class CalendarProvider
 			CALENDAR_CALENDARS_URI = Uri
 					.parse("content://com.android.calendar/calendars");
 		}
-		
+
 		CALENDAR_EVENTS_URI = addCallerIsSyncAdapterParameter(CALENDAR_EVENTS_URI);
 		CALENDAR_ALERT_URI = addCallerIsSyncAdapterParameter(CALENDAR_ALERT_URI);
 		CALENDAR_REMINDER_URI = addCallerIsSyncAdapterParameter(CALENDAR_REMINDER_URI);
 		CALENDAR_CALENDARS_URI = addCallerIsSyncAdapterParameter(CALENDAR_CALENDARS_URI);
 	}
-	
-	private static Uri addCallerIsSyncAdapterParameter(Uri uri) {
-        return uri.buildUpon().appendQueryParameter(
-            ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
-    }
+
+	private static Uri addCallerIsSyncAdapterParameter(Uri uri)
+	{
+		return uri.buildUpon()
+				.appendQueryParameter(CALLER_IS_SYNCADAPTER, "true").build();
+	}
+
+	public Cursor fetchAllLocalItems()
+	{
+		return cr.query(CalendarProvider.CALENDAR_EVENTS_URI,
+				CalendarProvider.projection, "calendar_id=?",
+				new String[] { String.valueOf(getCalendarID()) }, null);
+	}
+
+	public Cursor getAllLocalItemsCursor()
+	{
+		return cr.query(CalendarProvider.CALENDAR_EVENTS_URI,
+				new String[] { CalendarProvider._ID }, "calendar_id=?",
+				new String[] { String.valueOf(getCalendarID()) }, null);
+	}
 
 	public CalendarEntry loadCalendarEntry(int id, String uid)
 			throws SyncException
@@ -251,7 +267,8 @@ public class CalendarProvider
 		}
 		else
 		{
-			Uri uri = ContentUris.withAppendedId(CALENDAR_EVENTS_URI, e.getId());
+			Uri uri = ContentUris
+					.withAppendedId(CALENDAR_EVENTS_URI, e.getId());
 			cr.update(uri, values, null, null);
 		}
 
@@ -330,6 +347,20 @@ public class CalendarProvider
 		}
 	}
 
+	public void deleteOurCalendar(String accountName, String accountType)
+	{
+		if (getCalendarID() > 0)
+		{
+			Uri delUri = ContentUris.withAppendedId(
+					CalendarProvider.CALENDAR_CALENDARS_URI, getCalendarID());
+			cr.delete(delUri, null, null);
+		}
+		// make sure we clean up ALL of our calendars
+		cr.delete(CalendarProvider.CALENDAR_CALENDARS_URI,
+				"_sync_account=? and _sync_account_type=?", new String[] {
+						accountName, accountType });
+	}
+
 	// TODO: we only support one calendar for now
 	public void setOrCreateKolabCalendar()
 	{
@@ -372,13 +403,16 @@ public class CalendarProvider
 			cvs.put("sync_events", 1);
 			cvs.put("access_level", 700);
 
-			// TODO: Arthur: Do we need that? I don't think so 
+			// TODO: Arthur: Do we need that? I don't think so
 			cvs.put("url", "http://www.test.de"); // TODO what to put here?
 			cvs.put("color", -14069085); // TODO: how are colors represented?
-			cvs.put("timezone", "Europe/Berlin"); // TODO: where to get timezone for
+			cvs.put("timezone", "Europe/Berlin"); // TODO: where to get timezone
+													// for
 													// calendar from?
-			cvs.put("ownerAccount", "kolab-android@dasz.at"); // TODO: which owner?
-																// use same as for
+			cvs.put("ownerAccount", "kolab-android@dasz.at"); // TODO: which
+																// owner?
+																// use same as
+																// for
 																// contacts
 
 			Uri newUri = cr.insert(CALENDAR_CALENDARS_URI, cvs);

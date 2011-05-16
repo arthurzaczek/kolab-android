@@ -36,11 +36,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import android.accounts.Account;
-import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
-import android.net.Uri;
 import android.text.format.Time;
 import android.util.Log;
 import at.dasz.KolabDroid.R;
@@ -58,7 +55,6 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	private final LocalCacheProvider		cacheProvider;
 
 	private final CalendarProvider			calendarProvider;
-	private final ContentResolver			cr;
 
 	private HashMap<Integer, CalendarEntry>	localItemsCache;
 
@@ -70,38 +66,23 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		defaultFolderName = s.getCalendarFolder();
 		cacheProvider = new LocalCacheProvider.CalendarCacheProvider(context);
 		calendarProvider = new CalendarProvider(context, account);
-		cr = context.getContentResolver();
 		status.setTask("Calendar");
-		
+
 		calendarProvider.setOrCreateKolabCalendar();
 	}
-	
+
 	public void removeOurCalendar()
 	{
-		if(calendarProvider.getCalendarID() > 0)
+		if (account == null) // called by reset button
 		{
-			Uri delUri = ContentUris.withAppendedId(CalendarProvider.CALENDAR_CALENDARS_URI, calendarProvider.getCalendarID());			
-			cr.delete(delUri, null, null);
-		}
-		
-		//make sure we clean up ALL of our calendars
-		String accountName;
-		String accountType;
-		if(account == null) //called by reset button
-		{
-			accountName = context.getString(R.string.SYNC_ACCOUNT_NAME);
-			accountType = context.getString(R.string.SYNC_ACCOUNT_TYPE);
+			calendarProvider.deleteOurCalendar(
+					context.getString(R.string.SYNC_ACCOUNT_NAME),
+					context.getString(R.string.SYNC_ACCOUNT_TYPE));
 		}
 		else
 		{
-			accountName = account.name;
-			accountType = account.type;
+			calendarProvider.deleteOurCalendar(account.name, account.type);
 		}
-		
-		String selection = "_sync_account=? and _sync_account_type=?";
-		
-		cr.delete(CalendarProvider.CALENDAR_CALENDARS_URI, selection, new String[]{accountName, accountType});
-		
 	}
 
 	public String getDefaultFolderName()
@@ -129,16 +110,14 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	public void fetchAllLocalItems()
 	{
 		localItemsCache = new HashMap<Integer, CalendarEntry>();
-		
-		String where = "calendar_id=?";
-		
-		Cursor cur = cr.query(CalendarProvider.CALENDAR_EVENTS_URI,
-				CalendarProvider.projection, where, new String[]{String.valueOf(calendarProvider.getCalendarID())}, null);
+
+		Cursor cur = calendarProvider.fetchAllLocalItems();
 		try
 		{
 			while (cur.moveToNext())
 			{
-				CalendarEntry e = calendarProvider.loadCalendarEntry(cur, "empty");
+				CalendarEntry e = calendarProvider.loadCalendarEntry(cur,
+						"empty");
 				localItemsCache.put(e.getId(), e);
 			}
 		}
@@ -155,10 +134,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 	public Cursor getAllLocalItemsCursor()
 	{
-		String where = "calendar_id=?";
-		
-		return cr.query(CalendarProvider.CALENDAR_EVENTS_URI,
-				new String[] { CalendarProvider._ID }, where, new String[]{String.valueOf(calendarProvider.getCalendarID())}, null);
+		return calendarProvider.getAllLocalItemsCursor();
 	}
 
 	@Override
@@ -381,7 +357,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 	private CacheEntry saveCalender(CalendarEntry cal) throws SyncException
 	{
-		int tmpID = (int)calendarProvider.getCalendarID();		
+		int tmpID = (int) calendarProvider.getCalendarID();
 		cal.setCalendar_id(tmpID);
 		calendarProvider.save(cal);
 		CacheEntry result = new CacheEntry();
