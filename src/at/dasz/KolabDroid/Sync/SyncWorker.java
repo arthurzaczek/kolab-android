@@ -144,7 +144,6 @@ public class SyncWorker
 				// don't fail here
 				ex.printStackTrace();
 			}
-			status = null;
 		}
 	}
 

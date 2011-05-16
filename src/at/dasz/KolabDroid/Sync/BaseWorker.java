@@ -29,7 +29,7 @@ import at.dasz.KolabDroid.R;
  */
 public abstract class BaseWorker
 {
-	private final static String	SYNC_ROOT	= "SYNC_BaseWorker";
+	private final static Object	SYNC_ROOT	= new Object();
 
 	private static boolean		isRunning	= false;
 	private static boolean		isStopping	= false;

@@ -59,6 +59,14 @@ public class KolabContactSyncAdapter extends AbstractThreadedSyncAdapter {
 			SyncWorker syncWorker = new SyncWorker(this.context, account, handler);
 			syncWorker.runWorker();
 			
+			StatusEntry status = syncWorker.getStatus();
+			
+			syncResult.stats.numEntries = status.getItems();
+
+			syncResult.stats.numDeletes = status.getLocalDeleted() + status.getRemoteDeleted();
+			syncResult.stats.numInserts = status.getLocalNew() + status.getRemoteNew();
+			syncResult.stats.numUpdates = status.getLocalChanged() + status.getRemoteChanged();
+			
 			s.edit();
 			s.setLastContactSyncTime(currentTime);
 			s.save();

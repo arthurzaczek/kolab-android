@@ -28,6 +28,7 @@ import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.StatusHandler;
 import at.dasz.KolabDroid.Calendar.SyncCalendarHandler;
 import at.dasz.KolabDroid.ContactsContract.SyncContactsHandler;
+import at.dasz.KolabDroid.Provider.LocalCacheProvider;
 
 public class ResetWorker extends BaseWorker
 {
@@ -51,16 +52,16 @@ public class ResetWorker extends BaseWorker
 					.getString(R.string.delete_message_format);
 			int currentItemNo = 0;
 
-			//LocalCacheProvider.resetDatabase(context);
-
 			switch (reset_what)
 			{
 				case Main.MENU_RESET_CALENDAR:
 					currentItemNo = resetCalendar(deleteMessageFormat, currentItemNo);
+					LocalCacheProvider.resetCalendar(context);
 					break;
 					
 				case Main.MENU_RESET_CONTACTS:
 					currentItemNo = resetContacts(deleteMessageFormat, currentItemNo);
+					LocalCacheProvider.resetContacts(context);
 					break;
 
 				default:
@@ -85,31 +86,8 @@ public class ResetWorker extends BaseWorker
 			int currentItemNo)
 	{
 		SyncCalendarHandler calendar = new SyncCalendarHandler(context, null);
-		Cursor c = calendar.getAllLocalItemsCursor();
-		if (c != null)
-		{
-			try
-			{
-				final int idIdx = calendar.getIdColumnIndex(c);
-				while (c.moveToNext())
-				{
-					calendar.deleteLocalItem(c.getInt(idIdx));
-					if (++currentItemNo % 10 == 0)
-					{
-						StatusHandler.writeStatus(String.format(
-								deleteMessageFormat, currentItemNo));
-					}
-				}
-			}
-			finally
-			{
-				if (c != null) c.close();
-			}
-		}
-		
-		//remove complete calendar again if we have one
+		//remove complete calendar if we have one
 		calendar.removeOurCalendar();
-		
 		return currentItemNo;
 	}
 

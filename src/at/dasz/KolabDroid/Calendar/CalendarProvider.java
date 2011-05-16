@@ -21,8 +21,6 @@
 
 package at.dasz.KolabDroid.Calendar;
 
-import java.util.Calendar;
-
 import android.accounts.Account;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -39,6 +37,8 @@ import at.dasz.KolabDroid.Sync.SyncException;
 
 public class CalendarProvider
 {
+	public static final String TAG = "KolabCalendarProvider";
+	
 	// don't make them public - it's better to do all database access jobs here
 	private static Uri				CALENDAR_EVENTS_URI;
 	private static Uri				CALENDAR_ALERT_URI;
@@ -84,7 +84,6 @@ public class CalendarProvider
 					.parse("content://com.android.calendar/calendar_alerts");
 			CALENDAR_REMINDER_URI = Uri
 					.parse("content://com.android.calendar/reminders");
-
 			CALENDAR_CALENDARS_URI = Uri
 					.parse("content://com.android.calendar/calendars");
 		}
@@ -203,20 +202,20 @@ public class CalendarProvider
 		ContentValues values = new ContentValues();
 		if (e == null)
 		{
-			Log.e("CalendarProvider.save()",
+			Log.e(TAG,
 					"e == null ; cannot save calendar entry");
 			return;
 		}
 		if (e.getDtstart() == null)
 		{
-			Log.e("CalendarProvider.save()",
+			Log.e(TAG,
 					"e.getDtstart() == null ; cannot save calendar entry with id="
 							+ e.getCalendar_id());
 			return;
 		}
 		if (e.getDtend() == null)
 		{
-			Log.e("CalendarProvider.save()",
+			Log.e(TAG,
 					"e.getDtend() == null ; cannot save calendar entry with id="
 							+ e.getCalendar_id());
 			return;
@@ -327,7 +326,7 @@ public class CalendarProvider
 
 	private void dumpAllCalendars()
 	{
-		Log.d("CalProvider",
+		Log.d(TAG,
 				"name - displayName - _sync_account - _sync_account_type");
 		Cursor cur = cr.query(CalendarProvider.CALENDAR_CALENDARS_URI,
 				new String[] { "name", "displayName", "_sync_account",
@@ -349,6 +348,8 @@ public class CalendarProvider
 
 	public void deleteOurCalendar(String accountName, String accountType)
 	{
+		Log.i(TAG, "Deleting our KolabDroid calendar(s)");
+		dumpAllCalendars();
 		if (getCalendarID() > 0)
 		{
 			Uri delUri = ContentUris.withAppendedId(
@@ -387,13 +388,14 @@ public class CalendarProvider
 
 		if (cur == null)
 		{
-			Log.e("CalProvider", "Cannot query calendars");
+			Log.e(TAG, "Cannot query calendars");
 			return;
 		}
 
 		ContentValues cvs = new ContentValues();
 		if (!cur.moveToFirst())
 		{
+			Log.i(TAG, "Creating new KolabDroid calendar");
 			// create one
 			cvs.put("_sync_account", accountName);
 			cvs.put("_sync_account_type", accountType);
@@ -428,6 +430,7 @@ public class CalendarProvider
 		{
 			int idx = cur.getColumnIndex("_id");
 			calendarID = cur.getLong(idx);
+			Log.i(TAG, "Using KolabDroid calendar = " + calendarID);
 
 			// Do not update the calendar
 			// This ends in a sync loop
