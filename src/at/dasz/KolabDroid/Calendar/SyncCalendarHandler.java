@@ -203,6 +203,16 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 				end.monthDay += 1;
 				end.toMillis(true);
 			}
+			if(Time.compare(start, end) > 0 ) {
+				// end before start, can't be
+				Log.w("sync", "End is before Start, can't be.");
+				end = start; 
+				if(!cal.getAllDay()) {
+					// add one hour
+					end.hour += 1;
+				}
+				end.toMillis(true);
+			}
 			cal.setDtend(end);
 
 			Element recurrence = Utils.getXmlElement(root, "recurrence");

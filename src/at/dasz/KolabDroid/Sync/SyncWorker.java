@@ -193,6 +193,7 @@ public class SyncWorker
 					.getString(R.string.processing_message_format);
 			final StatusEntry status = handler.getStatus();
 
+			Log.i("sync", "Syncing IMAP Messages");
 			for (Message m : msgs)
 			{
 				if (m.getFlags().contains(Flag.DELETED))
@@ -210,7 +211,7 @@ public class SyncWorker
 
 					// 2. check message headers for changes
 					String subject = sync.getMessage().getSubject();
-					Log.d("sync", "2. Checking message " + subject);
+					Log.i("sync", "2. Checking message " + subject);
 					
 					if(subject == null || "".equals(subject))
 					{
@@ -262,7 +263,7 @@ public class SyncWorker
 								}
 								else
 								{
-									Log.i("sync", "7.a NO local changes found => doing nothing");
+									Log.d("sync", "7.a NO local changes found => doing nothing");
 									handler.markAsSynced(sync);
 								}
 							}
@@ -304,7 +305,7 @@ public class SyncWorker
 
 			// 9. for all unprocessed local items
 			// 9.a upload/delete
-			Log.d("sync", "9. process unprocessed local items");
+			Log.i("sync", "9. process unprocessed local items");
 
 			Set<Integer> localIDs = handler.getAllLocalItemsIDs();
 			if (localIDs == null) throw new SyncException("getAllLocalItems", "cr.query returned null");
@@ -317,7 +318,7 @@ public class SyncWorker
 
 				for (int localId : localIDs)
 				{
-					Log.d("sync", "9. processing local#" + localId);
+					Log.i("sync", "9. processing local#" + localId);
 
 					StatusHandler.writeStatus(String.format(processItemFormat,
 							currentLocalItemNo++, itemsCount));

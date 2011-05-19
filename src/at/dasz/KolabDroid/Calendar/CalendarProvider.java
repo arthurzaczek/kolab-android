@@ -21,6 +21,8 @@
 
 package at.dasz.KolabDroid.Calendar;
 
+import java.util.Calendar;
+
 import android.accounts.Account;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -335,7 +337,7 @@ public class CalendarProvider
 		{
 			while (cur.moveToNext())
 			{
-				Log.d("CalProvider",
+				Log.d(TAG,
 						cur.getString(0) + " - " + cur.getString(1) + " - "
 								+ cur.getString(2) + " - " + cur.getString(3));
 			}

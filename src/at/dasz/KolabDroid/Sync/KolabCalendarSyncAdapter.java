@@ -50,16 +50,24 @@ public class KolabCalendarSyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		Settings s = new Settings(this.context);
 		Time supposedSyncTime = s.getLastCalendarSyncTime();
-		supposedSyncTime.hour += 6;
+		supposedSyncTime.minute += 15; // Avoid sync loops
 		supposedSyncTime.normalize(false);
 		
 		Time currentTime = new Time();
 		currentTime.set(System.currentTimeMillis());
-		
-		if (true || Time.compare(supposedSyncTime, currentTime) < 0) {
+	
+		if (Time.compare(supposedSyncTime, currentTime) < 0) {
 			SyncCalendarHandler handler = new SyncCalendarHandler(context, account);
 			SyncWorker syncWorker = new SyncWorker(this.context, account, handler);
 			syncWorker.runWorker();
+			
+			StatusEntry status = SyncWorker.getStatus();
+			
+			syncResult.stats.numEntries = status.getItems();
+
+			syncResult.stats.numDeletes = status.getLocalDeleted() + status.getRemoteDeleted();
+			syncResult.stats.numInserts = status.getLocalNew() + status.getRemoteNew();
+			syncResult.stats.numUpdates = status.getLocalChanged() + status.getRemoteChanged();
 			
 			s.edit();
 			s.setLastCalendarSyncTime(currentTime);
@@ -68,7 +76,7 @@ public class KolabCalendarSyncAdapter extends AbstractThreadedSyncAdapter {
 			Log.i(TAG, "Sync skipped, next sync: " + supposedSyncTime.format3339(false));
 		}
 		
-		provider.release();
+		Log.i(TAG, "syncResult.hasError() = " + syncResult.hasError());
 		Log.i(TAG, "<<<<<<<<<<<<<<<<<<<<<<< performSync finished!");
 	}
 

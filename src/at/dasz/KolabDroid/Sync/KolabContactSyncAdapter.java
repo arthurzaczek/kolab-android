@@ -48,18 +48,18 @@ public class KolabContactSyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		Settings s = new Settings(this.context);
 		Time supposedSyncTime = s.getLastContactSyncTime();
-		supposedSyncTime.monthDay += 1;
+		supposedSyncTime.minute += 15; // Avoid sync loops
 		supposedSyncTime.normalize(false);
 		
 		Time currentTime = new Time();
 		currentTime.set(System.currentTimeMillis());
 		
-		if (true || Time.compare(supposedSyncTime, currentTime) < 0) {
+		if (Time.compare(supposedSyncTime, currentTime) < 0) {
 			SyncContactsHandler handler = new SyncContactsHandler(context, account);
 			SyncWorker syncWorker = new SyncWorker(this.context, account, handler);
 			syncWorker.runWorker();
 			
-			StatusEntry status = syncWorker.getStatus();
+			StatusEntry status = SyncWorker.getStatus();
 			
 			syncResult.stats.numEntries = status.getItems();
 
@@ -73,8 +73,9 @@ public class KolabContactSyncAdapter extends AbstractThreadedSyncAdapter {
 		} else {
 			Log.i(TAG, "Sync skipped, next sync: " + supposedSyncTime.format3339(false));
 		}
+		
+		Log.i(TAG, "syncResult.hasError() = " + syncResult.hasError());
 
-		provider.release();
 		Log.i(TAG, "<<<<<<<<<<<<<<<<<<<<<<< performSync finished!");
 	}
 }
