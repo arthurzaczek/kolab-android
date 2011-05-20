@@ -41,6 +41,7 @@ import android.accounts.Account;
 import org.acra.ErrorReporter;
 
 import android.content.Context;
+import android.os.Messenger;
 import android.util.Log;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.StatusHandler;
@@ -294,6 +295,11 @@ public class SyncWorker
 					Log.e("sync", ex.toString());
 					status.incrementErrors();
 				}
+				catch(MessagingException mex) 
+				{
+					Log.e("sync", mex.toString());
+					status.incrementErrors();					
+				}
 				if (sync.getCacheEntry() != null)
 				{
 					Log.d("sync", "8. remember message as processed (item id=" + sync.getCacheEntry().getLocalId() + ")");
@@ -352,6 +358,11 @@ public class SyncWorker
 			{
 				Log.e("sync", ex.toString());
 				status.incrementErrors();
+			}
+			catch(MessagingException mex) 
+			{
+				Log.e("sync", mex.toString());
+				status.incrementErrors();					
 			}
 		}
 		finally

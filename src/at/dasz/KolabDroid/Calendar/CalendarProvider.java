@@ -244,7 +244,7 @@ public class CalendarProvider
 		values.put("_sync_time", System.currentTimeMillis());
 
 		// values.put("eventTimezone", "UTC"); //TODO: put eventTimezone here:
-		// UTC from kolab? Arthur: yes? KolabOutlook is storing UTC.
+		// UTC from kolab? Arthur: yes, see comment in writeXml
 
 		values.put("calendar_id", e.getCalendar_id());
 		values.put("title", e.getTitle());
