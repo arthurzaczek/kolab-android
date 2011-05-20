@@ -78,7 +78,7 @@ public class CalendarProvider
 
 			CALENDAR_CALENDARS_URI = Uri.parse("content://calendar/calendars");
 		}
-		else if (Build.VERSION.SDK_INT >= 8) // android 2.2
+		else // >= android 2.2
 		{
 			CALENDAR_EVENTS_URI = Uri
 					.parse("content://com.android.calendar/events");

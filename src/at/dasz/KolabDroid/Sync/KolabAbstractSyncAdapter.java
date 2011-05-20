@@ -3,6 +3,7 @@ package at.dasz.KolabDroid.Sync;
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SyncResult;
 import android.os.Bundle;
@@ -30,8 +31,8 @@ public abstract class KolabAbstractSyncAdapter extends
 		Log.i(TAG, ">>>>>>>>>>>>>>>>>>>>>>> performSync called!");
 
 		Settings s = new Settings(this.context);
-		Time supposedSyncTime = getLastSyncTime(s);
-		boolean force = extras.getBoolean("force", false);
+		Time supposedSyncTime = getLastSyncTime(s);		
+		boolean force = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false);
 		int interval;
 		if (force)
 		{
@@ -79,7 +80,7 @@ public abstract class KolabAbstractSyncAdapter extends
 		Log.i(TAG, "syncResult.hasError() = " + syncResult.hasError());
 		Log.i(TAG, "<<<<<<<<<<<<<<<<<<<<<<< performSync finished!");
 	}
-
+	
 	protected abstract SyncHandler getHandler(Context context, Account account);
 
 	protected abstract Time getLastSyncTime(Settings s);
