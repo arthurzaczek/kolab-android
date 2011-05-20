@@ -16,7 +16,6 @@ import android.os.IBinder;
 import android.provider.ContactsContract;
 import android.util.Log;
 import android.widget.Toast;
-import at.dasz.KolabDroid.Main;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.Provider.LocalCacheProvider;
 
