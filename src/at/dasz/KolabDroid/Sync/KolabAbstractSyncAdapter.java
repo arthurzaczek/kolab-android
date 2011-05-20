@@ -15,8 +15,7 @@ public abstract class KolabAbstractSyncAdapter extends
 {
 	protected Context				context;
 
-	protected static final String		TAG					= "KolabSyncAdapter";
-	protected final static boolean	DBG_IGNORE_DELAY	= false;
+	protected static final String	TAG	= "KolabSyncAdapter";
 
 	public KolabAbstractSyncAdapter(Context context, boolean autoInitialize)
 	{
@@ -34,7 +33,7 @@ public abstract class KolabAbstractSyncAdapter extends
 		Time supposedSyncTime = getLastSyncTime(s);
 		boolean force = extras.getBoolean("force", false);
 		int interval;
-		if (DBG_IGNORE_DELAY || force)
+		if (force)
 		{
 			interval = 0;
 		}
@@ -76,7 +75,7 @@ public abstract class KolabAbstractSyncAdapter extends
 					"Sync skipped, next sync: "
 							+ supposedSyncTime.format3339(false));
 		}
-		
+
 		Log.i(TAG, "syncResult.hasError() = " + syncResult.hasError());
 		Log.i(TAG, "<<<<<<<<<<<<<<<<<<<<<<< performSync finished!");
 	}
