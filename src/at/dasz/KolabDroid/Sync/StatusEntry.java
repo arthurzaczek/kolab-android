@@ -278,4 +278,9 @@ public class StatusEntry
 	{
 		this.fatalErrorMsg = fatalErrorMsg;
 	}
+
+	public boolean hasFatalError()
+	{
+		return fatalErrorMsg != null && !"".equals(fatalErrorMsg);
+	}
 }

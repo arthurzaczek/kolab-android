@@ -27,18 +27,23 @@ import android.accounts.Account;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.SyncAdapterType;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ExpandableListView;
+import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.TextView;
+import android.widget.Toast;
 import at.dasz.KolabDroid.Imap.DchFactory;
 import at.dasz.KolabDroid.Provider.StatusProvider;
 import at.dasz.KolabDroid.Sync.BaseWorker;
 import at.dasz.KolabDroid.Sync.ResetService;
 import at.dasz.KolabDroid.Sync.ResetSoftService;
+import at.dasz.KolabDroid.Sync.StatusEntry;
 
 public class Main extends Activity implements MainActivity {
 	
@@ -67,6 +72,14 @@ public class Main extends Activity implements MainActivity {
 		
 		ExpandableListView statusListView = (ExpandableListView)findViewById(R.id.statusList);
 		statusListView.setAdapter(statusAdapter);
+		statusListView.setClickable(true);
+		statusListView.setOnChildClickListener(new OnChildClickListener() {
+			public boolean onChildClick(ExpandableListView parent, View v,
+					int groupPosition, int childPosition, long id)
+			{
+				return onChildClickStatusList(parent, v, groupPosition, childPosition, id);
+			}
+		});
 		
 		bindStatus();		
 		account = (Account) getIntent().getParcelableExtra("account");
@@ -83,6 +96,28 @@ public class Main extends Activity implements MainActivity {
 		}
 	}
 	
+	public boolean onChildClickStatusList(ExpandableListView parent, View v,
+			int groupPosition, int childPosition, long id)
+	{
+		final StatusEntry e = (StatusEntry)statusAdapter.getGroup(groupPosition);
+		if(e.hasFatalError()) {
+			StringBuilder msg = new StringBuilder();
+			msg.append("Should the error be reported?\n\n");
+			msg.append(e.getFatalErrorMsg());
+			NotificationDialog.showYesNo(this, msg.toString(), new OnClickListener() {
+				public void onClick(DialogInterface dialog, int which)
+				{
+					org.acra.ErrorReporter.getInstance().addCustomData("Status.FatalError", e.getFatalErrorMsg());
+					org.acra.ErrorReporter.getInstance().handleSilentException(null);
+					Toast.makeText(getApplicationContext(), R.string.crash_dialog_ok_toast, Toast.LENGTH_SHORT).show();
+				}
+			}, NotificationDialog.closeDlg);
+		} else {
+			Toast.makeText(this, "No errors to report", Toast.LENGTH_SHORT).show();
+		}
+		return true;
+	}
+
     @Override
     protected void onResume()
     {
@@ -98,13 +133,10 @@ public class Main extends Activity implements MainActivity {
     	super.onPause();
     }
     
-    //private final static int MENU_SETTINGS = 1;
     public final static int MENU_RESET_CALENDAR = 1;
     public final static int MENU_RESET_CONTACTS = 2;
-    //private final static int MENU_RESET = 2;
     public final static int MENU_REFRESH = 3;
     public final static int MENU_CLEAR_LOG = 6;
-    //public final static int MENU_RESET_SOFT = 7;
     public final static int MENU_RESET_CALENDAR_SOFT = 7;
     public final static int MENU_RESET_CONTACTS_SOFT = 8;
     
@@ -130,13 +162,6 @@ public class Main extends Activity implements MainActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-//        case MENU_SETTINGS:
-//    		showSettings();
-//            return true;
-//        case MENU_RESET:
-//    		resetData();
-//    		bindStatus();
-//            return true;
         case MENU_RESET_CALENDAR:
         	resetData(MENU_RESET_CALENDAR);
         	return true;
@@ -213,18 +238,6 @@ public class Main extends Activity implements MainActivity {
 		}
 	}
 
-//	private void showSettings()
-//	{
-//		startActivity(new Intent(at.dasz.KolabDroid.Settings.SettingsView.EDIT_SETTINGS_ACTION));
-//	}
-    
-//    private final DialogInterface.OnClickListener dlgResetListener = new DialogInterface.OnClickListener() {
-//		public void onClick(DialogInterface dialog, int which) {
-//			ResetService.startReset(Main.this);
-//			dialog.cancel();
-//		}
-//    };
-    
     private final DialogInterface.OnClickListener dlgResetCalendarListener = new DialogInterface.OnClickListener() {
 		public void onClick(DialogInterface dialog, int which) {
 			ResetService.startReset(Main.this, MENU_RESET_CALENDAR);
@@ -238,13 +251,6 @@ public class Main extends Activity implements MainActivity {
 			dialog.cancel();
 		}
     };
-    
-//    private final DialogInterface.OnClickListener dlgResetSoftListener = new DialogInterface.OnClickListener() {
-//		public void onClick(DialogInterface dialog, int which) {
-//			ResetSoftService.startReset(Main.this);
-//			dialog.cancel();
-//		}
-//    };
     
     private final DialogInterface.OnClickListener dlgResetCalendarSoftListener = new DialogInterface.OnClickListener() {
 		public void onClick(DialogInterface dialog, int which) {
