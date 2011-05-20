@@ -221,9 +221,10 @@ public class SettingsView extends Activity implements Runnable
 		if(i == 0) sp.setSelection(0);
 		else if(i <= 15) sp.setSelection(1);
 		else if(i <= 30) sp.setSelection(2);
-		else if(i <= 120) sp.setSelection(3);
-		else if(i <= 180) sp.setSelection(4);
-		else sp.setSelection(5);
+		else if(i <= 60) sp.setSelection(3);
+		else if(i <= 120) sp.setSelection(4);
+		else if(i <= 180) sp.setSelection(5);
+		else sp.setSelection(6);
 	}
 
 	/*
