@@ -97,25 +97,23 @@ public class SyncWorker
 		//Fixes issue #36
 		catch (MessagingException mex)
 		{
-			final String errorFormat = this.context.getResources().getString(
-					R.string.sync_error_format);
-			
 			Exception e = mex.getNextException();
 			if(e != null && e instanceof ConnectException)
 			{
+				StatusHandler.writeStatus("Connection to server rejected");
 				status.setFatalErrorMsg("Connection to server rejected");
 			}
 			//Fixes issue #36 and prints a "nice" error message in status
 			else if(e != null && e instanceof UnknownHostException)
 			{
+				StatusHandler.writeStatus("Could not resolve hostname of server");
 				status.setFatalErrorMsg("Could not resolve hostname of server");
 			}
 			else
 			{
+				StatusHandler.writeStatus("Error: " + mex.getMessage());
 				status.setFatalErrorMsg(mex.toString());
 			}
-			
-			//StatusHandler.writeStatus(String.format(errorFormat, mex.toString()));
 		}
 		catch (Exception ex)
 		{
@@ -127,7 +125,7 @@ public class SyncWorker
 			
 			status.setFatalErrorMsg(ex.toString());
 			StatusHandler
-					.writeStatus(String.format(errorFormat, ex.toString()));
+					.writeStatus(String.format(errorFormat, ex.getMessage()));
 
 			ex.printStackTrace();
 		}

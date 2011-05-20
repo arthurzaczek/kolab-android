@@ -24,7 +24,6 @@ package at.dasz.KolabDroid.Sync;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import at.dasz.KolabDroid.Main;
 
 import com.commonsware.cwac.wakeful.WakefulIntentService;
 

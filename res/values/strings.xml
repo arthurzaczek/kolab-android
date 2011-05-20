@@ -111,4 +111,6 @@
 <string name="really_reset_contacts">Do you really want do delete all your Kolab Contact items?</string>
 <string name="really_reset_contacts_soft">Do you really want to delete KolabDroid contact SYNC info?</string>
 <string name="really_reset_calendar_soft">Do you really want to delete KolabDroid calendar SYNC info?</string>
+<string name="settingsHeadlineMisc">Misc</string>
+<string name="syncinterval">Min. sync interval</string>
 </resources>

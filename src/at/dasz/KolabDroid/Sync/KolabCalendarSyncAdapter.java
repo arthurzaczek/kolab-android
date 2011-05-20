@@ -20,64 +20,34 @@
 package at.dasz.KolabDroid.Sync;
 
 import android.accounts.Account;
-import android.content.AbstractThreadedSyncAdapter;
-import android.content.ContentProvider;
-import android.content.ContentProviderClient;
 import android.content.Context;
-import android.content.SyncResult;
-import android.database.Cursor;
-import android.os.Bundle;
-import android.os.RemoteException;
 import android.text.format.Time;
 import android.util.Log;
-import at.dasz.KolabDroid.Calendar.CalendarProvider;
 import at.dasz.KolabDroid.Calendar.SyncCalendarHandler;
 import at.dasz.KolabDroid.Settings.Settings;
 
-public class KolabCalendarSyncAdapter extends AbstractThreadedSyncAdapter {
-	private Context context;
+public class KolabCalendarSyncAdapter extends KolabAbstractSyncAdapter {
 	
 	public KolabCalendarSyncAdapter(Context context, boolean autoInitialize) {
 		super(context, autoInitialize);
-		this.context = context;
 	}
-
-	private static final String TAG = "CalendarSyncAdapter";	
 
 	@Override
-	public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-		Log.i(TAG, ">>>>>>>>>>>>>>>>>>>>>>> performSync called!");
-		
-		Settings s = new Settings(this.context);
-		Time supposedSyncTime = s.getLastCalendarSyncTime();
-		supposedSyncTime.minute += 15; // Avoid sync loops
-		supposedSyncTime.normalize(false);
-		
-		Time currentTime = new Time();
-		currentTime.set(System.currentTimeMillis());
-	
-		if (Time.compare(supposedSyncTime, currentTime) < 0) {
-			SyncCalendarHandler handler = new SyncCalendarHandler(context, account);
-			SyncWorker syncWorker = new SyncWorker(this.context, account, handler);
-			syncWorker.runWorker();
-			
-			StatusEntry status = SyncWorker.getStatus();
-			
-			syncResult.stats.numEntries = status.getItems();
-
-			syncResult.stats.numDeletes = status.getLocalDeleted() + status.getRemoteDeleted();
-			syncResult.stats.numInserts = status.getLocalNew() + status.getRemoteNew();
-			syncResult.stats.numUpdates = status.getLocalChanged() + status.getRemoteChanged();
-			
-			s.edit();
-			s.setLastCalendarSyncTime(currentTime);
-			s.save();
-		} else {
-			Log.i(TAG, "Sync skipped, next sync: " + supposedSyncTime.format3339(false));
-		}
-		
-		Log.i(TAG, "syncResult.hasError() = " + syncResult.hasError());
-		Log.i(TAG, "<<<<<<<<<<<<<<<<<<<<<<< performSync finished!");
+	protected SyncHandler getHandler(Context context, Account account)
+	{
+		Log.i(TAG, "Creating Calendar Sync Handler");
+		return new SyncCalendarHandler(context, account);
 	}
-
+	
+	@Override
+	protected Time getLastSyncTime(Settings s)
+	{
+		return s.getLastCalendarSyncTime();
+	}
+	
+	@Override
+	protected void setLastSyncTime(Settings s, Time t)
+	{
+		s.setLastCalendarSyncTime(t);		
+	}
 }

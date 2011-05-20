@@ -140,10 +140,10 @@ public class Settings {
 	public String getAccountName() {
 		return pref.getString("ACCOUNT_NAME", "");
 	}
-	
 	public void setAccountName(String name) {
 		edit.putString("ACCOUNT_NAME", name);
 	}
+
 	public Time getLastContactSyncTime() {
 		Time time = new Time();
 		time.set(pref.getLong("LAST_CONTACT_SYNC_TIME", 0));
@@ -152,6 +152,7 @@ public class Settings {
 	public void setLastContactSyncTime(Time lastSyncTime) {
 		edit.putLong("LAST_CONTACT_SYNC_TIME", lastSyncTime.toMillis(true));
 	}
+	
 	public Time getLastCalendarSyncTime() {
 		Time time = new Time();
 		time.set(pref.getLong("LAST_CALENDAR_SYNC_TIME", 0));
@@ -159,5 +160,12 @@ public class Settings {
 	}
 	public void setLastCalendarSyncTime(Time lastSyncTime) {
 		edit.putLong("LAST_CALENDAR_SYNC_TIME", lastSyncTime.toMillis(true));
+	}
+	
+	public int getMinSynIntervalMinutes() {
+		return pref.getInt("MIN_SYNC_INTERVAL_MINUTES", 15);
+	}
+	public void setMinSynIntervalMinutes(int minutes) {
+		edit.putInt("MIN_SYNC_INTERVAL_MINUTES", minutes);
 	}
 }

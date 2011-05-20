@@ -21,7 +21,6 @@
 
 package at.dasz.KolabDroid.Sync;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -470,10 +469,10 @@ public abstract class AbstractSyncHandler implements SyncHandler
 				//Log.v("DocDebug isSame:", docText);
 				
 				byte[] remoteHash = Utils.sha1Hash(docText);			
+				byte[] localHash = entry.getRemoteHash();
 				
-				Log.d("ASH", "Compare Remotehashes: entry: " + Utils.getBytesAsHexString(entry.getRemoteHash())  + " message: " + Utils.getBytesAsHexString(remoteHash));
-				
-				if (Arrays.equals(remoteHash, entry.getRemoteHash()))
+				Log.d("ASH", "Compare Remotehashes: entry: " + Utils.getBytesAsHexString(localHash)  + " message: " + Utils.getBytesAsHexString(remoteHash));
+				if (Arrays.equals(remoteHash, localHash))
 				{
 					remoteHashIsSame = true;
 				}

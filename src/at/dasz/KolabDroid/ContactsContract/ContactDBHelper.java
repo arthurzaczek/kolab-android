@@ -24,7 +24,6 @@ import android.provider.ContactsContract.CommonDataKinds.Photo;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.util.Log;
 import at.dasz.KolabDroid.R;
-import at.dasz.KolabDroid.Utils;
 import at.dasz.KolabDroid.Sync.SyncException;
 
 public class ContactDBHelper

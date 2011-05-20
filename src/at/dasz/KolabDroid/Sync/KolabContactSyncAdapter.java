@@ -20,62 +20,34 @@
 package at.dasz.KolabDroid.Sync;
 
 import android.accounts.Account;
-import android.content.AbstractThreadedSyncAdapter;
-import android.content.ContentProviderClient;
 import android.content.Context;
-import android.content.SyncResult;
-import android.os.Bundle;
 import android.text.format.Time;
 import android.util.Log;
 import at.dasz.KolabDroid.ContactsContract.SyncContactsHandler;
 import at.dasz.KolabDroid.Settings.Settings;
 
-public class KolabContactSyncAdapter extends AbstractThreadedSyncAdapter {
-	private Context context;
-	
+public class KolabContactSyncAdapter extends KolabAbstractSyncAdapter {
+
 	public KolabContactSyncAdapter(Context context, boolean autoInitialize) {
 		super(context, autoInitialize);
-		this.context = context;
 	}
 
-	private static final String TAG = "ContactsSyncAdapterService";
-	
-	
-
 	@Override
-	public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-		Log.i(TAG, ">>>>>>>>>>>>>>>>>>>>>>> performSync called!");
-		
-		Settings s = new Settings(this.context);
-		Time supposedSyncTime = s.getLastContactSyncTime();
-		supposedSyncTime.minute += 15; // Avoid sync loops
-		supposedSyncTime.normalize(false);
-		
-		Time currentTime = new Time();
-		currentTime.set(System.currentTimeMillis());
-		
-		if (Time.compare(supposedSyncTime, currentTime) < 0) {
-			SyncContactsHandler handler = new SyncContactsHandler(context, account);
-			SyncWorker syncWorker = new SyncWorker(this.context, account, handler);
-			syncWorker.runWorker();
-			
-			StatusEntry status = SyncWorker.getStatus();
-			
-			syncResult.stats.numEntries = status.getItems();
-
-			syncResult.stats.numDeletes = status.getLocalDeleted() + status.getRemoteDeleted();
-			syncResult.stats.numInserts = status.getLocalNew() + status.getRemoteNew();
-			syncResult.stats.numUpdates = status.getLocalChanged() + status.getRemoteChanged();
-			
-			s.edit();
-			s.setLastContactSyncTime(currentTime);
-			s.save();
-		} else {
-			Log.i(TAG, "Sync skipped, next sync: " + supposedSyncTime.format3339(false));
-		}
-		
-		Log.i(TAG, "syncResult.hasError() = " + syncResult.hasError());
-
-		Log.i(TAG, "<<<<<<<<<<<<<<<<<<<<<<< performSync finished!");
+	protected SyncHandler getHandler(Context context, Account account)
+	{
+		Log.i(TAG, "Creating Contact Sync Handler");
+		return new SyncContactsHandler(context, account);
+	}
+	
+	@Override
+	protected Time getLastSyncTime(Settings s)
+	{
+		return s.getLastContactSyncTime();
+	}
+	
+	@Override
+	protected void setLastSyncTime(Settings s, Time t)
+	{
+		s.setLastContactSyncTime(t);		
 	}
 }
