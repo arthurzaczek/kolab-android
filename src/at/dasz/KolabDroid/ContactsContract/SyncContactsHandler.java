@@ -186,47 +186,14 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		try
 		{
 			InputStream xmlinput = extractXml(sync.getMessage());
+			if(xmlinput == null) throw new SyncException(getItemText(sync), "Unable to find XML Document");
 			Document doc = Utils.getDocument(xmlinput);
 			updateLocalItemFromServer(sync, doc);
 			updateCacheEntryFromMessage(sync, doc);
-
-			/* TODO: We will ignore Merge by name for now
-			if (this.settings.getMergeContactsByName())
-			{
-				Log.d("ConH", "Preparing upload of Contact after merge");
-				sync.setLocalItem(null);
-				getLocalItem(sync); // fetch updates which were just done
-
-				Log.d("ConH",
-						"Fetched data after merge for "
-								+ ((Contact) sync.getLocalItem()).getFullName());
-
-				updateServerItemFromLocal(sync, doc);
-
-				Log.d("ConH", "Server item updated after merge");
-
-				// Create & Upload new Message
-				// IMAP needs a new Message uploaded
-				String xml = Utils.getXml(doc);
-				Message newMessage = wrapXmlInMessage(session, sync, xml);
-				targetFolder.appendMessages(new Message[] { newMessage });
-				newMessage.saveChanges();
-
-				// Delete old message
-				sync.getMessage().setFlag(Flag.DELETED, true);
-				// Replace sync context with new message
-				sync.setMessage(newMessage);
-
-				Log.d("ConH", "IMAP Message replaced after merge");
-
-				updateCacheEntryFromMessage(sync, doc);
-			}
-			*/
-
 		}
 		catch (SAXException ex)
 		{
-			throw new SyncException(getItemText(sync), "Unable to extract XML Document", ex);
+			throw new SyncException(getItemText(sync), "Unable to parse XML Document", ex);
 		}
 	}
 

@@ -171,7 +171,7 @@ public class CalendarProvider
 					"event_id=?", new String[] { Integer.toString(e.getId()) },
 					"minutes DESC");
 
-			if (alertCur.moveToFirst())
+			if (alertCur != null && alertCur.moveToFirst())
 			{
 				int colIdx = alertCur.getColumnIndex("minutes");
 				e.setReminderTime(alertCur.getInt(colIdx));
@@ -333,6 +333,7 @@ public class CalendarProvider
 		Cursor cur = cr.query(CalendarProvider.CALENDAR_CALENDARS_URI,
 				new String[] { "name", "displayName", "_sync_account",
 						"_sync_account_type" }, null, null, null);
+		if(cur == null) return;
 		try
 		{
 			while (cur.moveToNext())

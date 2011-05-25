@@ -159,11 +159,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		try
 		{
 			InputStream xmlinput = extractXml(sync.getMessage());
-			if (null == xmlinput)
-			{
-				// skip non kolab message instead of crashing
-				return;
-			}
+			if(xmlinput == null) throw new SyncException(getItemText(sync), "Unable to find XML Document");
 			Document doc = Utils.getDocument(xmlinput);
 			updateLocalItemFromServer(sync, doc);
 			updateCacheEntryFromMessage(sync, doc);
@@ -186,6 +182,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 			try
 			{
 				InputStream xmlinput = extractXml(sync.getMessage());
+				if(xmlinput == null) throw new SyncException(getItemText(sync), "Unable to find XML Document");
 				Document doc = Utils.getDocument(xmlinput);
 				updateLocalItemFromServer(sync, doc);
 				updateCacheEntryFromMessage(sync, doc);
@@ -202,7 +199,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 			throws MessagingException
 	{
 		Log.d("ConH", "This is updateCacheEntryFromMessage");
-		
+
 		CacheEntry c = sync.getCacheEntry();
 		Message m = sync.getMessage();
 		Date dt = Utils.getMailDate(m);
@@ -224,9 +221,9 @@ public abstract class AbstractSyncHandler implements SyncHandler
 			if (doc != null)
 			{
 				String docText = Utils.getXml(doc.getDocumentElement());
-				
-				//Log.v("ASH DocDebug:", docText);
-				
+
+				// Log.v("ASH DocDebug:", docText);
+
 				byte[] remoteHash = Utils.sha1Hash(docText);
 				c.setRemoteHash(remoteHash);
 			}
@@ -235,9 +232,9 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		{
 			Log.e("EE", ex.toString());
 		}
-		
+
 		Log.d("ASH", "Updated Cacheentry to: " + c);
-		
+
 		getLocalCacheProvider().saveEntry(c);
 	}
 
@@ -252,9 +249,9 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		CacheEntry entry = new CacheEntry();
 		entry.setLocalId(localId);
 		sync.setCacheEntry(entry);
-		
+
 		Log.d("ASH", "Created new Cacheentry with localID: " + localId);
-		
+
 		Log.d("ASH", "Writing XML and uploading IMAP message");
 
 		String xml = writeXml(sync);
@@ -274,6 +271,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 				+ sync.getCacheEntry().getLocalId());
 
 		InputStream xmlinput = extractXml(sync.getMessage());
+		if(xmlinput == null) throw new SyncException(getItemText(sync), "Unable to find XML Document");
 		try
 		{
 			// Parse XML
@@ -320,53 +318,34 @@ public abstract class AbstractSyncHandler implements SyncHandler
 	{
 		Log.d("sync", "Deleting from server: " + sync.getMessage().getSubject());
 		sync.getMessage().setFlag(Flag.DELETED, true);
-		// remove contents too, to avoid confusing the butchered JAF
-		// message.setContent("", "text/plain");
-		// message.saveChanges();
 		getLocalCacheProvider().deleteEntry(sync.getCacheEntry());
 	}
 
-	// private InputStream extractXml(Message message)
 	protected InputStream extractXml(Message message)
+			throws MessagingException, IOException
 	{
-		try
+		DataSource mainDataSource = message.getDataHandler().getDataSource();
+		if ((mainDataSource instanceof MultipartDataSource))
 		{
-			DataSource mainDataSource = message.getDataHandler()
-					.getDataSource();
-			if ((mainDataSource instanceof MultipartDataSource))
+			MultipartDataSource multipart = (MultipartDataSource) mainDataSource;
+			for (int idx = 0; idx < multipart.getCount(); idx++)
 			{
-				MultipartDataSource multipart = (MultipartDataSource) mainDataSource;
-				for (int idx = 0; idx < multipart.getCount(); idx++)
-				{
-					BodyPart p = multipart.getBodyPart(idx);
+				BodyPart p = multipart.getBodyPart(idx);
 
-					if (p.isMimeType(getMimeType())) { return p
-							.getInputStream(); }
-				}
+				if (p.isMimeType(getMimeType())) { return p.getInputStream(); }
 			}
-			else
+		}
+		else
+		{
+			// What's the difference?
+			MimeMultipart multipart = (MimeMultipart) message.getContent();
+
+			for (int idx = 0; idx < multipart.getCount(); idx++)
 			{
-				// What's the difference?
-				MimeMultipart multipart = (MimeMultipart) message.getContent();
+				BodyPart p = multipart.getBodyPart(idx);
 
-				for (int idx = 0; idx < multipart.getCount(); idx++)
-				{
-					BodyPart p = multipart.getBodyPart(idx);
-
-					if (p.isMimeType(getMimeType())) { return p
-							.getInputStream(); }
-				}
+				if (p.isMimeType(getMimeType())) { return p.getInputStream(); }
 			}
-
-			return null;
-		}
-		catch (MessagingException ex)
-		{
-			ex.printStackTrace();
-		}
-		catch (IOException ex)
-		{
-			ex.printStackTrace();
 		}
 		return null;
 	}
@@ -401,16 +380,16 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		}
 		messageBodyPart.setDataHandler(new DataHandler(source));
 		messageBodyPart.setFileName("kolab.xml");
-		mp.addBodyPart(messageBodyPart);		
-		
-		//append picture attachment		
-		if(sync.getNewMessageContent() != null)
+		mp.addBodyPart(messageBodyPart);
+
+		// append picture attachment
+		if (sync.getNewMessageContent() != null)
 		{
 			Multipart smp = sync.getNewMessageContent();
-			
-			//find picture attachment and add it to new message
+
+			// find picture attachment and add it to new message
 			BodyPart photoPart = null;
-			for(int i=0; i < smp.getCount(); i++)
+			for (int i = 0; i < smp.getCount(); i++)
 			{
 				BodyPart p = smp.getBodyPart(i);
 				String disposition = p.getDisposition();
@@ -422,12 +401,12 @@ public abstract class AbstractSyncHandler implements SyncHandler
 					photoPart = p;
 				}
 			}
-			if(photoPart != null)
+			if (photoPart != null)
 			{
 				mp.addBodyPart(photoPart);
 			}
 		}
-		
+
 		result.setContent(mp);
 
 		// avoid later change in timestamp when the SEEN flag would be updated
@@ -447,7 +426,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 	}
 
 	public boolean isSameRemoteHash(CacheEntry entry, Message message)
-			throws MessagingException
+			throws MessagingException, IOException
 	{
 		Date dt = null;
 		if (message != null)
@@ -465,13 +444,17 @@ public abstract class AbstractSyncHandler implements SyncHandler
 			{
 				doc = Utils.getDocument(is);
 				String docText = Utils.getXml(doc.getDocumentElement());
-				
-				//Log.v("DocDebug isSame:", docText);
-				
-				byte[] remoteHash = Utils.sha1Hash(docText);			
+
+				// Log.v("DocDebug isSame:", docText);
+
+				byte[] remoteHash = Utils.sha1Hash(docText);
 				byte[] localHash = entry.getRemoteHash();
-				
-				Log.d("ASH", "Compare Remotehashes: entry: " + Utils.getBytesAsHexString(localHash)  + " message: " + Utils.getBytesAsHexString(remoteHash));
+
+				Log.d("ASH",
+						"Compare Remotehashes: entry: "
+								+ Utils.getBytesAsHexString(localHash)
+								+ " message: "
+								+ Utils.getBytesAsHexString(remoteHash));
 				if (Arrays.equals(remoteHash, localHash))
 				{
 					remoteHashIsSame = true;

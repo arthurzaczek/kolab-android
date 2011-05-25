@@ -207,8 +207,9 @@ public interface SyncHandler
 	 * @param message
 	 * @return
 	 * @throws MessagingException
+	 * @throws IOException 
 	 */
-	public boolean isSameRemoteHash(CacheEntry cacheEntry, Message message) throws MessagingException;
+	public boolean isSameRemoteHash(CacheEntry cacheEntry, Message message) throws MessagingException, IOException;
 	/**
 	 * Checks whether the specified CacheEntry and the Message are in sync.
 	 * 

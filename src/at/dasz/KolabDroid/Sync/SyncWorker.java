@@ -41,7 +41,6 @@ import android.accounts.Account;
 import org.acra.ErrorReporter;
 
 import android.content.Context;
-import android.os.Messenger;
 import android.util.Log;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.StatusHandler;
@@ -127,8 +126,7 @@ public class SyncWorker
 			status.setFatalErrorMsg(ex.toString());
 			StatusHandler
 					.writeStatus(String.format(errorFormat, ex.getMessage()));
-
-			ex.printStackTrace();
+			Log.e("sync", ex.toString());
 		}
 		finally
 		{
@@ -141,7 +139,7 @@ public class SyncWorker
 			catch (Exception ex)
 			{
 				// don't fail here
-				ex.printStackTrace();
+				Log.e("sync", ex.toString());
 			}
 		}
 	}
@@ -300,6 +298,11 @@ public class SyncWorker
 					Log.e("sync", mex.toString());
 					status.incrementErrors();					
 				}
+				catch(IOException ioex)
+				{
+					Log.e("sync", ioex.toString());
+					status.incrementErrors();					
+				}
 				if (sync.getCacheEntry() != null)
 				{
 					Log.d("sync", "8. remember message as processed (item id=" + sync.getCacheEntry().getLocalId() + ")");
@@ -369,7 +372,14 @@ public class SyncWorker
 		{
 			handler.finalizeSync();
 			Log.e("sync", "** sync finished");
-			if (sourceFolder != null) sourceFolder.close(true);
+			if (sourceFolder != null) {
+				try {
+					sourceFolder.close(true);
+				}
+				catch(IllegalStateException ex) {
+					// don't care if folder is already closed
+				}
+			}
 			if (server != null) server.close();
 		}
 	}
