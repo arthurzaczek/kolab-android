@@ -1,24 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="fill_parent"
-  android:layout_height="fill_parent" android:orientation="vertical">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent" android:layout_height="fill_parent"
+	android:orientation="vertical">
+	<LinearLayout android:orientation="vertical"
+		android:layout_width="fill_parent" android:layout_height="fill_parent">
 
-<LinearLayout android:layout_height="wrap_content" android:id="@+id/LinearLayout01" android:orientation="horizontal" android:layout_width="fill_parent"><TextView android:id="@+id/TextView01" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Filter:"></TextView>
-<Spinner android:layout_height="wrap_content" android:id="@+id/AccManagerAccSpinner" android:layout_width="250px"></Spinner>
-<CheckBox android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ALL" android:id="@+id/AccManagerCheckBoxAll"></CheckBox>
-</LinearLayout>
+		<TextView android:id="@+id/TextView11" android:layout_height="wrap_content"
+			android:text="Source/Destination" android:textStyle="bold"
+			android:layout_width="fill_parent" android:background="#C0C0C0"
+			android:textColor="#000000" android:textSize="16sp" android:padding="10dp" />
+		<TextView android:id="@+id/TextView01" android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:text="Source Account"></TextView>
+		<Spinner android:layout_height="wrap_content" android:id="@+id/AccManagerAccSpinner"
+			android:layout_width="fill_parent"></Spinner>
 
+		<TextView android:id="@+id/TextView02" android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:text="Destination Account:"></TextView>
+		<Spinner android:layout_height="wrap_content"
+			android:layout_width="fill_parent" android:id="@+id/AccManagerSpinnerNewAccount"></Spinner>
 
+		<Button android:layout_width="fill_parent"
+			android:layout_height="wrap_content" android:text="Copy"
+			android:id="@+id/AccmanagerButtonDoit"></Button>
 
-<LinearLayout android:id="@+id/LinearLayout02" android:layout_height="wrap_content" android:layout_width="fill_parent"><TextView android:id="@+id/TextView02" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="New Account:"></TextView><Spinner android:layout_height="wrap_content" android:layout_width="250px" android:id="@+id/AccManagerSpinnerNewAccount"></Spinner>
-
-
-<Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Do it" android:id="@+id/AccmanagerButtonDoit"></Button>
-</LinearLayout><ListView android:layout_height="wrap_content" android:id="@+id/AccManagerContactList" android:layout_width="fill_parent"></ListView>
-
-
-
-
-
-</LinearLayout>
+		<TextView android:id="@+id/TextView10" android:layout_height="wrap_content"
+			android:text="Select contacts" android:textStyle="bold"
+			android:layout_width="fill_parent" android:background="#C0C0C0"
+			android:textColor="#000000" android:textSize="16sp" android:padding="10dp"
+			android:layout_marginTop="20dp"></TextView>
+		<CheckBox android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:text="Select all"
+			android:id="@+id/AccManagerCheckBoxAll"></CheckBox>
+		<ListView android:layout_height="wrap_content" android:id="@+id/AccManagerContactList"
+			android:layout_width="fill_parent"></ListView>
+	</LinearLayout>
+</ScrollView>
