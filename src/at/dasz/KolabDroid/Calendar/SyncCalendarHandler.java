@@ -600,7 +600,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	}
 
 	@Override
-	protected String writeXml(SyncContext sync)
+	protected String createNewXml(SyncContext sync)
 			throws ParserConfigurationException, SyncException
 	{
 		CalendarEntry source = getLocalItem(sync);

@@ -90,7 +90,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 	 * @throws SyncException
 	 * @throws MessagingException
 	 */
-	protected abstract String writeXml(SyncContext sync)
+	protected abstract String createNewXml(SyncContext sync)
 			throws ParserConfigurationException, SyncException,
 			MessagingException;
 
@@ -254,7 +254,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 
 		Log.d("ASH", "Writing XML and uploading IMAP message");
 
-		String xml = writeXml(sync);
+		String xml = createNewXml(sync);
 		Message m = wrapXmlInMessage(session, sync, xml);
 		targetFolder.appendMessages(new Message[] { m });
 		m.saveChanges();

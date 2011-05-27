@@ -378,7 +378,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	}
 
 	@Override
-	protected String writeXml(SyncContext sync)
+	protected String createNewXml(SyncContext sync)
 			throws ParserConfigurationException, SyncException,
 			MessagingException
 	{
