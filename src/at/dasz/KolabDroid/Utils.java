@@ -66,6 +66,11 @@ public final class Utils
 
 		return buffer.toString();
 	}
+	
+	public static boolean isNullOrEmpty(final String s)
+	{
+		return s == null || "".equals(s);
+	}
 
 	/**
 	 * date format mask for Kolab's Datetime
