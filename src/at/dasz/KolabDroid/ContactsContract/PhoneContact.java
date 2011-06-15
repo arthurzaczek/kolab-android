@@ -34,31 +34,8 @@ public class PhoneContact extends ContactMethod
 
 	public PhoneContact()
 	{
-		//setKind(Contacts.KIND_PHONE);
-		//setKind(ContactsContract.CommonDataKinds.Phone.TYPE)
-		
-		//setType(Contacts.Phones.TYPE_OTHER);
 		setType(ContactsContract.CommonDataKinds.Phone.TYPE_HOME);
 	}
-
-	/*
-	@Override
-	public ContentValues toContentValues()
-	{
-		ContentValues result = new ContentValues();
-		result.put(Contacts.Phones.TYPE, this.getType());
-		result.put(Contacts.Phones.NUMBER, this.getData());
-		return result;
-	}
-	*/
-
-	/*
-	@Override
-	public String getContentDirectory()
-	{
-		return Contacts.People.Phones.CONTENT_DIRECTORY;
-	}
-	*/
 
 	@Override
 	public void toXml(Document xml, Element parent, String fullName)

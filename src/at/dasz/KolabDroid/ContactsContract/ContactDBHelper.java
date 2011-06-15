@@ -1,54 +1,35 @@
 package at.dasz.KolabDroid.ContactsContract;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.content.ContentProviderOperation;
-import android.content.ContentProviderResult;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.provider.BaseColumns;
 import android.provider.ContactsContract;
-import android.provider.ContactsContract.CommonDataKinds;
-import android.provider.ContactsContract.Contacts;
+import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Event;
 import android.provider.ContactsContract.CommonDataKinds.Note;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.Photo;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
-import android.util.Log;
+import android.provider.ContactsContract.Data;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.Sync.SyncException;
 
 public class ContactDBHelper
 {
-	public static Contact getContactByRawID(long contactID, ContentResolver cr) throws SyncException
+	public static Contact getContactByRawID(long contactID, ContentResolver cr)
+			throws SyncException
 	{
 		Cursor queryCursor = null;
 		try
 		{
-			String where = ContactsContract.Data.RAW_CONTACT_ID + "=?";
-			
-			String[] projection = new String[] {
-					Contacts.Data.MIMETYPE,
-					StructuredName.GIVEN_NAME,
-					StructuredName.FAMILY_NAME,
-					Phone.NUMBER,
-					Phone.TYPE,
-					Email.DATA,
-					Event.START_DATE,
-					Photo.PHOTO,
-					Note.NOTE
-			};
-			
-			queryCursor = cr.query(ContactsContract.Data.CONTENT_URI, projection,
-					where, new String[] { Long.toString(contactID) }, null);
+			queryCursor = cr.query(ContactsContract.Data.CONTENT_URI,
+					DataQuery.PROJECTION, DataQuery.SELECTION,
+					new String[] { Long.toString(contactID) }, null);
 
 			if (queryCursor == null) throw new SyncException("",
 					"cr.query returned null");
@@ -56,63 +37,45 @@ public class ContactDBHelper
 
 			Contact result = new Contact();
 			result.setId((int) contactID);
-
-			int idxMimeType = queryCursor.getColumnIndex(ContactsContract.Contacts.Data.MIMETYPE);
 			String mimeType;
-			
+
 			do
 			{
-				mimeType = queryCursor.getString(idxMimeType);
-				if (mimeType
-						.equals(StructuredName.CONTENT_ITEM_TYPE))
+				mimeType = queryCursor.getString(DataQuery.COLUMN_MIMETYPE);
+				if (mimeType.equals(StructuredName.CONTENT_ITEM_TYPE))
 				{
-					int idxFirst = queryCursor
-							.getColumnIndex(StructuredName.GIVEN_NAME);
-					int idxLast = queryCursor
-							.getColumnIndex(StructuredName.FAMILY_NAME);
-
-					result.setGivenName(queryCursor.getString(idxFirst));
-					result.setFamilyName(queryCursor.getString(idxLast));
+					result.setGivenName(queryCursor.getString(DataQuery.COLUMN_GIVEN_NAME));
+					result.setFamilyName(queryCursor.getString(DataQuery.COLUMN_FAMILY_NAME));
 				}
 				else if (mimeType.equals(Phone.CONTENT_ITEM_TYPE))
 				{
-					int numberIdx = queryCursor.getColumnIndex(Phone.NUMBER);
-					int typeIdx = queryCursor.getColumnIndex(Phone.TYPE);
 					PhoneContact pc = new PhoneContact();
-					pc.setData(queryCursor.getString(numberIdx));
-					pc.setType(queryCursor.getInt(typeIdx));
+					pc.setData(queryCursor.getString(DataQuery.COLUMN_PHONE_NUMBER));
+					pc.setType(queryCursor.getInt(DataQuery.COLUMN_PHONE_TYPE));
 					result.getContactMethods().add(pc);
 
 				}
 				else if (mimeType.equals(Email.CONTENT_ITEM_TYPE))
 				{
-					int dataIdx = queryCursor.getColumnIndex(Email.DATA);
-					// int typeIdx =
-					// emailCursor.getColumnIndex(CommonDataKinds.Email.TYPE);
 					EmailContact pc = new EmailContact();
-					pc.setData(queryCursor.getString(dataIdx));
-					// pc.setType(emailCursor.getInt(typeIdx));
+					pc.setData(queryCursor.getString(DataQuery.COLUMN_EMAIL_ADDRESS));
+					pc.setType(queryCursor.getInt(DataQuery.COLUMN_EMAIL_TYPE));
 					result.getContactMethods().add(pc);
 
 				}
 				else if (mimeType.equals(Event.CONTENT_ITEM_TYPE))
 				{
-					int dateIdx = queryCursor.getColumnIndex(Event.START_DATE);
-					String bday = queryCursor.getString(dateIdx);
+					String bday = queryCursor.getString(DataQuery.COLUMN_EVENT_START_DATE);
 					result.setBirthday(bday);
-
 				}
 				else if (mimeType.equals(Photo.CONTENT_ITEM_TYPE))
 				{
-					int colIdx = queryCursor.getColumnIndex(Photo.PHOTO);
-					byte[] photo = queryCursor.getBlob(colIdx);
+					byte[] photo = queryCursor.getBlob(DataQuery.COLUMN_PHOTO);
 					result.setPhoto(photo);
-
 				}
 				else if (mimeType.equals(Note.CONTENT_ITEM_TYPE))
 				{
-					int colIdx = queryCursor.getColumnIndex(Note.NOTE);
-					String note = queryCursor.getString(colIdx);
+					String note = queryCursor.getString(DataQuery.COLUMN_NOTE);
 					result.setNote(note);
 				}
 			} while (queryCursor.moveToNext());
@@ -124,666 +87,159 @@ public class ContactDBHelper
 			if (queryCursor != null) queryCursor.close();
 		}
 	}
-	
-	//public static void saveContact(Contact contact, ContentResolver cr) throws SyncException
-	public static void saveContact(Contact contact, Context ctx) throws SyncException
+
+	public static void saveContact(Contact contact, Context ctx)
+			throws SyncException
 	{
-		Uri uri = null;
-		ContentResolver cr = ctx.getContentResolver();
+		final BatchOperation batchOperation = new BatchOperation(ctx,
+				ctx.getContentResolver());
+		final String accountName = ctx.getString(R.string.SYNC_ACCOUNT_NAME);
 
-		String name = contact.getFullName();
-		String firstName = contact.getGivenName();
-		String lastName = contact.getFamilyName();
+		ContactOperations contactOp;
 
-		String email = "";
-		String phone = "";
-
-		Log.d("ConH", "Saving Contact: \"" + name + "\"");
-
-		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
-
-		boolean doMerge = false;
-
-		//Dangerous to merge without checking account type + name !!!
-		
-		/*
-		if (contact.getId() == 0 && this.settings.getMergeContactsByName())
-		{
-			// find raw_contact by name
-			String w = CommonDataKinds.StructuredName.DISPLAY_NAME + "='"
-					+ name + "'";
-
-			// Cursor c = cr.query(ContactsContract.RawContacts.CONTENT_URI,
-			// null, w, null, null);
-			Cursor c = cr.query(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI), null, w,
-					null, null);
-
-			if (c == null)
-			{
-				Log.d("ConH", "SC: faild to query for merge with contact: "
-						+ name);
-			}
-
-			if (c.getCount() > 0)
-			{
-				c.moveToFirst();
-				int rawIdIdx = c
-						.getColumnIndex(ContactsContract.Data.RAW_CONTACT_ID);
-				int rawID = c.getInt(rawIdIdx);
-				contact.setId(rawID);
-				doMerge = true;
-
-				Log.d("ConH", "SC: Found Entry ID: " + rawID + " for contact: "
-						+ name + " -> will merge now");
-			}
-
-			if (c != null) c.close();
-		}
-		*/
+		final int rawContactId = contact.getId();
 
 		if (contact.getId() == 0)
 		{
-			Log.d("ConH", "SC: Contact " + name + " is NEW -> insert");
-			
-			//Account[] accounts = AccountManager.get(this).getAccounts();
-			Account[] accounts = AccountManager.get(ctx).getAccounts();
-			Log.i("CDBH", "Amount of accounts: " + accounts.length);
-			
-			if(accounts.length == 0)
-			{
-				Log.e("CDBH:", "No SyncAccounts found, cant store new contact");
-				return;
-			}
-			
-			Account account = null;
-			
-			//TODO: we use the first KolabDroid account, could there be more than one?
-			for(Account acc : accounts)
-			{
-				String accType = ctx.getString(R.string.SYNC_ACCOUNT_TYPE);				
-				if (accType.equals(acc.type))
-				{
-					account = acc;
-					break;
-				}
-			}
-			
-			ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.RawContacts.CONTENT_URI))
-	                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, account.type)
-	                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, account.name)
-	                .build());
-
-			ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-	                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
-	                .withValue(ContactsContract.Data.MIMETYPE, CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-	                .withValue(CommonDataKinds.StructuredName.DISPLAY_NAME, name)
-	                .withValue(CommonDataKinds.StructuredName.GIVEN_NAME, firstName)
-	                .withValue(CommonDataKinds.StructuredName.FAMILY_NAME, lastName)
-	                .build());
-			
-			if (contact.getBirthday() != null && !"".equals(contact.getBirthday()))
-				ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-						.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
-		                .withValue(ContactsContract.Data.MIMETYPE,
-		                        CommonDataKinds.Event.CONTENT_ITEM_TYPE)
-		                .withValue(CommonDataKinds.Event.START_DATE, contact.getBirthday())
-		                .withValue(CommonDataKinds.Event.TYPE, CommonDataKinds.Event.TYPE_BIRTHDAY)
-		                .build());
-			
-			if (contact.getPhoto() != null)
-			{
-				ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-						.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
-						.withValue(ContactsContract.Data.MIMETYPE, CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
-						.withValue(Photo.PHOTO, contact.getPhoto())
-						.build());
-				
-				//Log.d("ConH", "NEW contat Photo Hash: " + Utils.getBytesAsHexString(Utils.sha1Hash(contact.getPhoto())));
-				
-			}
-			
-			if (contact.getNotes() != null && !"".equals(contact.getNotes()))
-				ops.add(ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-						.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
-						.withValue(ContactsContract.Data.MIMETYPE, Note.CONTENT_ITEM_TYPE)
-						.withValue(Note.NOTE, contact.getNotes())
-						.build());
-			
-			for (ContactMethod cm : contact.getContactMethods())
-			{
-				if (cm instanceof EmailContact)
-				{
-					email = cm.getData();
-
-					ops.add(ContentProviderOperation
-							.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-							.withValueBackReference(
-									ContactsContract.Data.RAW_CONTACT_ID, 0)
-							.withValue(ContactsContract.Data.MIMETYPE,
-									CommonDataKinds.Email.CONTENT_ITEM_TYPE)
-							.withValue(CommonDataKinds.Email.DATA, email)
-							.withValue(CommonDataKinds.Email.TYPE, cm.getType())
-							.build());
-				}
-
-				if (cm instanceof PhoneContact)
-				{
-					phone = cm.getData();
-
-					ops.add(ContentProviderOperation
-							.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-							.withValueBackReference(
-									ContactsContract.Data.RAW_CONTACT_ID, 0)
-							.withValue(ContactsContract.Data.MIMETYPE,
-									CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-							.withValue(CommonDataKinds.Phone.NUMBER, phone)
-							.withValue(CommonDataKinds.Phone.TYPE, cm.getType())
-							.build());
-				}
-				
-				if (cm instanceof AddressContact)
-				{
-					AddressContact acm = (AddressContact)cm;
-					
-					ops.add(ContentProviderOperation
-							.newInsert(ContactsContract.Data.CONTENT_URI)
-							.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
-							.withValue(ContactsContract.Data.MIMETYPE, CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE)
-							.withValue(CommonDataKinds.StructuredPostal.CITY, acm.getCity())
-							.withValue(CommonDataKinds.StructuredPostal.REGION, acm.getRegion())
-							.withValue(CommonDataKinds.StructuredPostal.POSTCODE, acm.getPostalCode())
-							.withValue(CommonDataKinds.StructuredPostal.STREET, acm.getStreet())
-							.withValue(CommonDataKinds.StructuredPostal.COUNTRY, acm.getCountry())
-							.withValue(CommonDataKinds.StructuredPostal.TYPE, cm.getType())
-							.build());
-				}
-			}
+			contactOp = ContactOperations.createNewContact(ctx, 0, accountName,
+					batchOperation);
+			// Put the data in the contacts provider
+			contactOp.addName(contact.getGivenName(), contact.getFamilyName());
 		}
 		else
 		{
-			Log.d("ConH", "SC. Contact " + name
-					+ " already in Android book, MergeFlag: " + doMerge);
-
-			Uri updateUri = ContactsContract.Data.CONTENT_URI;
-
-			List<ContactMethod> newCMs = new ArrayList<ContactMethod>();
-
-			Cursor queryCursor;
-			
-			//name
-			String w = ContactsContract.Data.RAW_CONTACT_ID + "='"
-				+ contact.getId() + "' AND "
-				+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
-				+ CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE + "'";
-
-			queryCursor = cr.query(updateUri,
-					new String[] { BaseColumns._ID }, w, null, null);
-			
-			if(queryCursor != null && queryCursor.moveToFirst())
-			{
-				int idCol = queryCursor.getColumnIndex(BaseColumns._ID);
-				long id = queryCursor.getLong(idCol);
-				
-				ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.
-						 CONTENT_URI)
-						 .withValue(CommonDataKinds.StructuredName.DISPLAY_NAME, name)
-						 .withValue(CommonDataKinds.StructuredName.GIVEN_NAME, firstName)
-						 .withValue(CommonDataKinds.StructuredName.FAMILY_NAME, lastName)
-						 .withSelection(BaseColumns._ID + "= ?",
-										new String[] { String.valueOf(id) })
-						 .build());
-			}
-			else
-			{
-				throw new SyncException("EE", "ContactDBHelper cannot update contact, because name row is missing");
-			}
-
-			// birthday
-			w = ContactsContract.Data.RAW_CONTACT_ID + "='"
-				+ contact.getId() + "' AND "
-				+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
-				+ CommonDataKinds.Event.CONTENT_ITEM_TYPE + "' AND "
-				+ CommonDataKinds.Event.TYPE + " = '"
-				+ CommonDataKinds.Event.TYPE_BIRTHDAY + "'";
-	
-			queryCursor = cr.query(updateUri, new String[] { BaseColumns._ID }, w, null, null);
-	
-			if (queryCursor == null) throw new SyncException("EE", "cr.query returned null");
-			
-			if (contact.getBirthday() != null && !contact.getBirthday().equals(""))
-			{
-				if (queryCursor.moveToFirst()) // otherwise no events
-				{
-					int idCol = queryCursor.getColumnIndex(BaseColumns._ID);
-					long id = queryCursor.getLong(idCol);
-
-					ops.add(ContentProviderOperation
-							.newUpdate(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-							.withSelection(BaseColumns._ID + "= ?",
-									new String[] { String.valueOf(id) })
-							.withValue(CommonDataKinds.Event.START_DATE,
-									contact.getBirthday()).withExpectedCount(1)
-							.build());
-
-					Log.d("ConH", "Updating birthday: " + contact.getBirthday()
-							+ " for contact " + name);
-				}
-				else
-				{
-					ops.add(ContentProviderOperation
-							.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-							.withValue(ContactsContract.Data.RAW_CONTACT_ID,
-									contact.getId())
-							.withValue(ContactsContract.Data.MIMETYPE,
-									CommonDataKinds.Event.CONTENT_ITEM_TYPE)
-							.withValue(CommonDataKinds.Event.START_DATE,
-									contact.getBirthday())
-							.withValue(CommonDataKinds.Event.TYPE,
-									CommonDataKinds.Event.TYPE_BIRTHDAY)
-							.build());
-
-					Log.d("ConH", "Inserting birthday: " + contact.getBirthday() + " for contact " + name);
-				}
-			}
-			else //delete birthday
-			{
-				if (queryCursor.moveToFirst()) // otherwise no events
-				{
-					int idCol = queryCursor.getColumnIndex(BaseColumns._ID);
-					long id = queryCursor.getLong(idCol);
-
-					ops.add(ContentProviderOperation.newDelete(addCallerIsSyncAdapterParameter(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI,id))).build());
-
-					Log.d("ConH", "Deleting birthday: " + contact.getBirthday()	+ " for contact " + name);
-				}
-			}
-
-			// contact notes
-			w = ContactsContract.Data.RAW_CONTACT_ID + "='"
-			+ contact.getId() + "' AND "
-			+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
-			+ CommonDataKinds.Note.CONTENT_ITEM_TYPE + "'";
-
-			queryCursor = cr.query(updateUri,
-					new String[] { BaseColumns._ID }, w, null, null);			
-			
-			if (contact.getNotes() != null && !contact.getNotes().equals(""))
-			{
-				if (queryCursor.moveToFirst())
-				{
-					long id = queryCursor.getLong(queryCursor
-							.getColumnIndex(BaseColumns._ID));
-
-					ops.add(ContentProviderOperation
-							.newUpdate(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-							.withSelection(BaseColumns._ID + "= ?",
-									new String[] { String.valueOf(id) })
-							.withValue(CommonDataKinds.Note.NOTE,
-									contact.getNotes()).withExpectedCount(1)
-							.build());
-
-					Log.d("ConH", "Updating notes for contact " + name);
-				}
-				else
-				{
-					ops.add(ContentProviderOperation
-							.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-							.withValue(ContactsContract.Data.RAW_CONTACT_ID,
-									contact.getId())
-							.withValue(ContactsContract.Data.MIMETYPE,
-									Note.CONTENT_ITEM_TYPE)
-							.withValue(CommonDataKinds.Note.NOTE,
-									contact.getNotes()).build());
-
-					Log.d("ConH", "Inserting notes for contact " + name);
-				}
-			}
-			else
-			{
-				if (queryCursor.moveToFirst())
-				{
-					long id = queryCursor.getLong(queryCursor
-							.getColumnIndex(BaseColumns._ID));
-
-					ops.add(ContentProviderOperation.newDelete(addCallerIsSyncAdapterParameter(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI,id))).build());
-					
-					Log.d("ConH", "Deleting notes for contact " + name);
-				}
-			}
-
-			// contact photo
-			w = ContactsContract.Data.RAW_CONTACT_ID + "='"
-				+ contact.getId() + "' AND "
-				+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
-				+ CommonDataKinds.Photo.CONTENT_ITEM_TYPE + "'";
-
-			queryCursor = cr.query(updateUri,
-					new String[] { BaseColumns._ID }, w, null, null);
-			
-			if (queryCursor == null) throw new SyncException("EE",
-				"cr.query returned null");
-	
-			if (contact.getPhoto() != null)
-			{
-				if (queryCursor.moveToFirst()) // otherwise no photo
-				{
-					int colIdx = queryCursor.getColumnIndex(BaseColumns._ID);
-					long id = queryCursor.getLong(colIdx);
-
-					ops.add(ContentProviderOperation
-							.newUpdate(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-							.withSelection(BaseColumns._ID + "= ?",
-									new String[] { String.valueOf(id) })
-							.withValue(CommonDataKinds.Photo.PHOTO,
-									contact.getPhoto()).withExpectedCount(1)
-							.build());
-
-					Log.d("ConH", "Updating photo for contact " + name);
-				}
-				else
-				{
-					ops.add(ContentProviderOperation
-							.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-							.withValue(ContactsContract.Data.RAW_CONTACT_ID,
-									contact.getId())
-							.withValue(ContactsContract.Data.MIMETYPE,
-									CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
-							.withValue(CommonDataKinds.Photo.PHOTO,
-									contact.getPhoto()).build());
-				}
-
-				Log.d("ConH", "Inserting photo for contact " + name);
-				//Log.d("ConH", "update contact Photo Hash: " + Utils.getBytesAsHexString(Utils.sha1Hash(contact.getPhoto())));
-			}
-			else //remove photo
-			{		
-				if (queryCursor.moveToFirst()) // otherwise no photo
-				{
-					int colIdx = queryCursor.getColumnIndex(BaseColumns._ID);
-					long id = queryCursor.getLong(colIdx);
-		
-					ops.add(ContentProviderOperation.newDelete(addCallerIsSyncAdapterParameter(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI,id))).build());
-		
-					Log.d("ConH", "Deleting photo for contact " + name);
-				}
-			}
-
-			// phone
-			{
-				w = ContactsContract.Data.RAW_CONTACT_ID + "='"
-						+ contact.getId() + "' AND "
-						+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
-						+ CommonDataKinds.Phone.CONTENT_ITEM_TYPE + "'";
-
-				// Log.i("II", "w: " + w);
-
-				queryCursor = cr.query(updateUri, null, w, null, null);
-
-				if (queryCursor == null) throw new SyncException("EE",
-						"cr.query returned null");
-
-				if (queryCursor.getCount() > 0) // otherwise no phone numbers
-				{
-					if (!queryCursor.moveToFirst()) return;
-					int idCol = queryCursor
-							.getColumnIndex(ContactsContract.Data._ID);
-					int typeCol = queryCursor
-							.getColumnIndex(CommonDataKinds.Phone.TYPE);
-
-					for (ContactMethod cm : contact.getContactMethods())
-					{
-						if (!(cm instanceof PhoneContact)) continue;
-
-						boolean found = false;
-						String newNumber = cm.getData();
-						int newType = cm.getType();
-
-						queryCursor.moveToFirst();							
-						do
-						{
-							int typeIn = queryCursor.getInt(typeCol);
-							int idIn = queryCursor.getInt(idCol);
-
-							if (typeIn == newType)
-							{
-								found = true;
-								
-								ops.add(ContentProviderOperation
-										.newUpdate(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-										.withSelection(BaseColumns._ID + "= ?",
-												new String[] { String.valueOf(idIn) })
-										.withValue(CommonDataKinds.Phone.NUMBER,
-												newNumber).withExpectedCount(1)
-										.build());
-								
-								break;
-							}
-
-						} while (queryCursor.moveToNext());
-
-						if (!found)
-						{
-							//add new number
-							newCMs.add(cm);
-						}						
-					}
-					
-					//remove from db if not in contact object
-					queryCursor.moveToFirst();							
-					do
-					{
-						int typeIn = queryCursor.getInt(typeCol);
-						int idIn = queryCursor.getInt(idCol);
-
-						boolean found = false;
-						for(ContactMethod cm : contact.getContactMethods())
-						{							
-							if(! (cm instanceof PhoneContact)) continue;
-						
-							if (typeIn == cm.getType())
-							{
-								found = true;								
-								break;
-							}
-						}
-						
-						if(!found) //remove this cm from contact in db
-							ops.add(ContentProviderOperation.newDelete(addCallerIsSyncAdapterParameter(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI,idIn))).build());
-
-					} while (queryCursor.moveToNext());
-					
-				}
-				else
-				{
-					Log.d("ConH", "SC: No numbers in android for contact "+ name + " => adding all");
-					// we can add all new Numbers
-					for (ContactMethod cm : contact.getContactMethods())
-					{
-						if (!(cm instanceof PhoneContact)) continue;						
-						newCMs.add(cm);
-					}
-				}
-			}
-
-			// mail
-			{
-				w = ContactsContract.Data.RAW_CONTACT_ID + "='"
-						+ contact.getId() + "' AND "
-						+ ContactsContract.Contacts.Data.MIMETYPE + " = '"
-						+ CommonDataKinds.Email.CONTENT_ITEM_TYPE + "'";
-
-				queryCursor = cr.query(updateUri, null, w, null, null);
-
-				if (queryCursor == null) throw new SyncException("EE",
-						"cr.query returned null");
-
-				if (queryCursor.getCount() > 0) // otherwise no email addresses
-				{
-					if (!queryCursor.moveToFirst()) return;
-					int idCol = queryCursor
-							.getColumnIndex(ContactsContract.Data._ID);
-					int typeCol = queryCursor
-							.getColumnIndex(CommonDataKinds.Email.TYPE);
-
-					for (ContactMethod cm : contact.getContactMethods())
-					{
-						if (!(cm instanceof EmailContact)) continue;
-
-						boolean found = false;
-						String newMail = cm.getData();
-						int newType = cm.getType();
-
-						queryCursor.moveToFirst();
-						do
-						{
-							int typeIn = queryCursor.getInt(typeCol);
-							int idIn = queryCursor.getInt(idCol);
-
-							if (typeIn == newType)
-							{
-								found = true;
-								
-								ops.add(ContentProviderOperation
-										.newUpdate(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-										.withSelection(BaseColumns._ID + "= ?",
-												new String[] { String.valueOf(idIn) })
-										.withValue(CommonDataKinds.Email.DATA,
-												newMail).withExpectedCount(1)
-										.build());
-								
-								break;
-							}
-
-						} while (queryCursor.moveToNext());
-
-						if (!found)
-						{
-							newCMs.add(cm);
-						}
-					}
-					
-					//remove from db if not in contact object
-					queryCursor.moveToFirst();							
-					do
-					{
-						int typeIn = queryCursor.getInt(typeCol);
-						int idIn = queryCursor.getInt(idCol);
-
-						boolean found = false;
-						for(ContactMethod cm : contact.getContactMethods())
-						{							
-							if(! (cm instanceof EmailContact)) continue;
-						
-							if (typeIn == cm.getType())
-							{
-								found = true;								
-								break;
-							}
-						}
-						
-						if(!found) //remove this cm from contact in db
-							ops.add(ContentProviderOperation.newDelete(addCallerIsSyncAdapterParameter(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI,idIn))).build());
-
-					} while (queryCursor.moveToNext());
-
-					
-				}
-				else
-				{
-
-					Log.d("ConH", "SC: No email in android for contact "
-							+ name + " -> adding all");
-					// we can add all new email addresses
-					for (ContactMethod cm : contact.getContactMethods())
-					{
-						if (!(cm instanceof EmailContact)) continue;
-						newCMs.add(cm);
-					}
-				}
-			}
-			
-			//TODO: implement updating of address values
-			
-			if(contact.getId() == 0) //if contact is new, use all its contact methods
-				newCMs = contact.getContactMethods();
-
-			//do inserts of new ContactMethods
-			for (ContactMethod cm : newCMs)
-			{
-				if (cm instanceof EmailContact)
-				{
-					email = cm.getData();
-					Log.d("ConH", "SC: Writing mail: " + email
-							+ " for contact " + name);
-
-					ops.add(ContentProviderOperation
-							.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-							.withValue(ContactsContract.Data.RAW_CONTACT_ID,
-									contact.getId())
-							.withValue(ContactsContract.Data.MIMETYPE,
-									CommonDataKinds.Email.CONTENT_ITEM_TYPE)
-							.withValue(CommonDataKinds.Email.DATA, email)
-							.withValue(CommonDataKinds.Email.TYPE, cm.getType())
-							.build());
-				}
-
-				if (cm instanceof PhoneContact)
-				{
-					phone = cm.getData();
-					Log.d("ConH", "Writing phone: " + phone + " for contact "
-							+ name);
-
-					ops.add(ContentProviderOperation
-							.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-							.withValue(ContactsContract.Data.RAW_CONTACT_ID,
-									contact.getId())
-							.withValue(ContactsContract.Data.MIMETYPE,
-									CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-							.withValue(CommonDataKinds.Phone.NUMBER, phone)
-							.withValue(CommonDataKinds.Phone.TYPE, cm.getType())
-							.build());
-				}
-			}
-
-			if (queryCursor != null) queryCursor.close();
+			contactOp = ContactOperations.updateExistingContact(ctx,
+					rawContactId, batchOperation);
 		}
 
-		// Log.i("II", "Creating contact: " + firstName + " " + lastName);
-		try
-		{
-			ContentProviderResult[] results = cr.applyBatch(
-					ContactsContract.AUTHORITY, ops);
-			// store the first result: it contains the uri of the raw contact
-			// with its ID
-			
-			if (contact.getId() == 0)
-			{
-				uri = results[0].uri;
-				long newID = ContentUris.parseId(uri);
-				Log.d("CDBH:", "new contact id: " + newID);
-				
-				contact.setId((int)newID);
-			}
-			else
-			{
-				uri = ContentUris.withAppendedId(
-						ContactsContract.RawContacts.CONTENT_URI,
-						contact.getId());
-			}
-			Log.d("ConH", "SC: Affected Uri was: " + uri);
+		saveContactDetails(ctx, ctx.getContentResolver(), accountName, contact,
+				rawContactId, contactOp);
 
-		}
-		catch (Exception e)
+		batchOperation.execute();
+	}
+
+	private static void saveContactDetails(Context context,
+			ContentResolver resolver, String accountName, Contact contact,
+			int rawContactId, ContactOperations contactOp)
+	{
+		boolean photoUpdated = false;
+		boolean notesUpdated = false;
+		boolean birthdayUpdated = false;
+		HashSet<PhoneContact> updatedPhoneContacts = new HashSet<PhoneContact>();
+		HashSet<EmailContact> updatedEmailContacts = new HashSet<EmailContact>();
+
+		// Update existing contact fields
+		if (rawContactId != 0)
 		{
-			// Log exception
-			Log.e("EE",
-					"Exception encountered while inserting contact: "
-							+ e.getMessage() + e.getStackTrace());
+			Uri uri;
+			final Cursor c = resolver.query(Data.CONTENT_URI,
+					DataQuery.PROJECTION, DataQuery.SELECTION,
+					new String[] { String.valueOf(rawContactId) }, null);
+			try
+			{
+				while (c.moveToNext())
+				{
+					final long id = c.getLong(DataQuery.COLUMN_ID);
+					final String mimeType = c
+							.getString(DataQuery.COLUMN_MIMETYPE);
+					uri = ContentUris.withAppendedId(Data.CONTENT_URI, id);
+					if (mimeType.equals(StructuredName.CONTENT_ITEM_TYPE))
+					{
+						contactOp.updateName(uri, contact.getGivenName(),
+								contact.getFamilyName());
+					}
+					else if (mimeType.equals(Photo.CONTENT_ITEM_TYPE))
+					{
+						photoUpdated = true;
+						contactOp.updatePhoto(uri, contact.getPhoto());
+					}
+					else if (mimeType.equals(Note.CONTENT_ITEM_TYPE))
+					{
+						notesUpdated = true;
+						contactOp.updateNotes(uri, contact.getNotes());
+					}
+					else if (mimeType.equals(Event.CONTENT_ITEM_TYPE))
+					{
+						birthdayUpdated = true;
+						contactOp.updateBirthday(uri, contact.getBirthday());
+					}
+					else if (mimeType.equals(Phone.CONTENT_ITEM_TYPE))
+					{
+						final String phone = c
+								.getString(DataQuery.COLUMN_PHONE_NUMBER);
+						PhoneContact pc = contact.findPhone(phone);
+						if (pc != null)
+						{
+							contactOp.updatePhone(uri, pc.getData(),
+									pc.getType());
+							updatedPhoneContacts.add(pc);
+						}
+						else
+						{
+							contactOp.delete(uri);
+						}
+					}
+					else if (mimeType.equals(Email.CONTENT_ITEM_TYPE))
+					{
+						final String mail = c
+								.getString(DataQuery.COLUMN_EMAIL_ADDRESS);
+						EmailContact ec = contact.findEmail(mail);
+						if (ec != null)
+						{
+							contactOp.updateEmail(uri, ec.getData(),
+									ec.getType());
+							updatedEmailContacts.add(ec);
+						}
+						else
+						{
+							contactOp.delete(uri);
+						}
+					}
+					else if (mimeType
+							.equals(StructuredPostal.CONTENT_ITEM_TYPE))
+					{
+					}
+				} // while
+			}
+			finally
+			{
+				c.close();
+			}
+		}
+
+		// Insert all Fields if they where not updated
+		if (!photoUpdated)
+		{
+			contactOp.addPhoto(contact.getPhoto());
+		}
+		if (!notesUpdated)
+		{
+			contactOp.addNotes(contact.getNotes());
+		}
+		if (!birthdayUpdated)
+		{
+			contactOp.addBirthday(contact.getBirthday());
+		}
+
+		for (ContactMethod cm : contact.getContactMethods())
+		{
+			if (cm instanceof EmailContact
+					&& !updatedEmailContacts.contains(cm))
+			{
+				contactOp.addEmail(cm.getData(), cm.getType());
+			}
+
+			if (cm instanceof PhoneContact
+					&& !updatedPhoneContacts.contains(cm))
+			{
+				contactOp.addPhone(cm.getData(), cm.getType());
+			}
+
+			// if (cm instanceof AddressContact)
+			// {
+			// AddressContact acm = (AddressContact)cm;
+			// contactOp.
+			// }
 		}
 	}
-	
-	private static Uri addCallerIsSyncAdapterParameter(Uri uri) {
-        return uri.buildUpon().appendQueryParameter(
-            ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
-    }
 }

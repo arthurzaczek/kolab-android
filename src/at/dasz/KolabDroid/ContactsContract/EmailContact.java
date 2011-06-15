@@ -33,28 +33,9 @@ import at.dasz.KolabDroid.Utils;
 public class EmailContact extends ContactMethod {
 	
 	public EmailContact() {		
-		//setType(People.ContactMethods.TYPE_OTHER);
 		setType(ContactsContract.CommonDataKinds.Email.TYPE_HOME);
 	}
 	
-	/*
-	@Override
-	public ContentValues toContentValues() {
-		ContentValues result = new ContentValues();
-		result.put(Contacts.ContactMethods.KIND, this.getKind());
-		result.put(Contacts.ContactMethods.TYPE, this.getType());
-		result.put(Contacts.ContactMethods.DATA, this.getData());
-		return result;
-	}
-	*/
-
-	/*
-	@Override
-	public String getContentDirectory() {
-		return Contacts.People.ContactMethods.CONTENT_DIRECTORY;
-	}
-	*/
-
 	@Override
 	public void toXml(Document xml, Element parent, String fullName)
 	{

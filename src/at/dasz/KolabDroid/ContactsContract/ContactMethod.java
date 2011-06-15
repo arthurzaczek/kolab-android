@@ -24,10 +24,9 @@ package at.dasz.KolabDroid.ContactsContract;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-//import android.content.ContentValues;
 
 public abstract class ContactMethod {
-	private int kind, type;
+	private int type;
 
 	private String data;
 
@@ -37,14 +36,6 @@ public abstract class ContactMethod {
 
 	public final String getData() {
 		return data;
-	}
-
-	protected final void setKind(int kind) {
-		this.kind = kind;
-	}
-
-	public final int getKind() {
-		return kind;
 	}
 
 	public final void setType(int type) {
@@ -60,10 +51,6 @@ public abstract class ContactMethod {
 	{
 		return "CM: Type: " + getType() + " Data: " +getData();
 	}
-
-	//public abstract ContentValues toContentValues();
-	
-	//public abstract String getContentDirectory();
 
 	public abstract void toXml(Document xml, Element parent, String fullName);
 	public abstract void fromXml(Element parent);

@@ -67,6 +67,7 @@ public final class Utils
 		return buffer.toString();
 	}
 	
+	@Deprecated
 	public static boolean isNullOrEmpty(final String s)
 	{
 		return s == null || "".equals(s);

@@ -6,21 +6,19 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import android.content.ContentValues;
-import android.provider.ContactsContract;
+import android.text.TextUtils;
 import at.dasz.KolabDroid.Utils;
 
 public class Contact
 {
-	//TODO: Android raw contact IDs are long!
-	private int					id;
-	//private String				fullName, uid;
-	private String				uid;
-	private String				givenName, familyName;
-	private String				birthday = ""; //string as in android for now
-	private byte[]				photo;
-	private String				notes;
-	
+	// TODO: Android raw contact IDs are long!
+	private int		id;
+	private String	uid;
+	private String	givenName, familyName;
+	private String	birthday	= "";		// string as in android for now
+	private byte[]	photo;
+	private String	notes;
+
 	public String getBirthday()
 	{
 		return birthday;
@@ -52,53 +50,49 @@ public class Contact
 	}
 
 	private List<ContactMethod>	contactMethods	= new ArrayList<ContactMethod>();
-	
-	public int getId() {
+
+	public int getId()
+	{
 		return id;
 	}
-	
-	public void setId(int id) {
+
+	public void setId(int id)
+	{
 		this.id = id;
 	}
 
-	public String getUid() {
+	public String getUid()
+	{
 		return uid;
 	}
-	
-	public void setUid(String uid) {
+
+	public void setUid(String uid)
+	{
 		this.uid = uid;
 	}
 
-	//@Deprecated
-	/*
-	public void setFullName(String fullName)
-	{
-		//this.fullName = fullName;
-		Log.e("EEEE", "setFullname not suported anymore");
-	}
-	*/
-	
 	public String getFullName()
 	{
 		return givenName + " " + familyName;
-		//return fullName;
 	}
-	
+
 	public byte[] getPhoto()
 	{
 		return photo;
 	}
-	
+
 	public void setPhoto(byte[] photo)
 	{
 		this.photo = photo;
 	}
-	
-	public String getNotes() {
+
+	public String getNotes()
+	{
 		return notes;
 	}
-	
-	public void setNote(String notes) {
+
+	public void setNote(String notes)
+	{
 		this.notes = notes;
 	}
 
@@ -106,43 +100,27 @@ public class Contact
 	{
 		return contactMethods;
 	}
-	
+
 	public void clearContactMethods()
 	{
 		contactMethods.clear();
 	}
-	
+
 	public void addContactMethod(ContactMethod cm)
 	{
 		contactMethods.add(cm);
 	}
 
-	public ContentValues toContentValues()
-	{
-		ContentValues result = new ContentValues();
-		result.put(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, getFullName());
-		//result.put(People.NAME, this.fullName);
-		return result;
-	}
-
 	@Override
 	public String toString()
 	{
-		//I dont know if we need need this for any other reason than for debugging purposes
-		//thats why I set it to return only the full name to show in the Contact AccountManager to fix
-		//sync accounts
-		
-//		if(getContactMethods().size() > 0)
-//			return getFullName() + " with " + getContactMethods().size()
-//				+ " contact methods";
-//		else
-			return getFullName();
+		return getFullName();
 	}
 
 	public String getLocalHash()
 	{
-		ArrayList<String> contents = new ArrayList<String>(contactMethods
-				.size() + 1);
+		ArrayList<String> contents = new ArrayList<String>(
+				contactMethods.size() + 1);
 		contents.add(getFullName() == null ? "no name" : getFullName());
 
 		Collections.sort(contactMethods, new Comparator<ContactMethod>() {
@@ -156,8 +134,8 @@ public class Contact
 		{
 			contents.add(cm.getData());
 		}
-		
-		if(null != birthday && !"".equals(birthday))
+
+		if (null != birthday && !"".equals(birthday))
 		{
 			contents.add(birthday);
 		}
@@ -165,7 +143,7 @@ public class Contact
 		{
 			contents.add("noBday");
 		}
-		
+
 		if (null != photo && !"".equals(photo))
 		{
 			contents.add(String.valueOf(Arrays.hashCode(photo)));
@@ -174,13 +152,42 @@ public class Contact
 		{
 			contents.add("noPhoto");
 		}
-		
-		if (null != notes && !"".equals(notes)) {
+
+		if (null != notes && !"".equals(notes))
+		{
 			contents.add(notes);
-		} else {
+		}
+		else
+		{
 			contents.add("noNotes");
 		}
 
 		return Utils.join("|", contents.toArray());
+	}
+
+	public PhoneContact findPhone(String phone)
+	{
+		for (ContactMethod cm : contactMethods)
+		{
+			if(cm instanceof PhoneContact && TextUtils.equals(cm.getData(), phone))
+			{
+				return (PhoneContact)cm;
+			}
+		}
+		
+		return null;
+	}
+	
+	public EmailContact findEmail(String mail)
+	{
+		for (ContactMethod cm : contactMethods)
+		{
+			if(cm instanceof EmailContact && TextUtils.equals(cm.getData(), mail))
+			{
+				return (EmailContact)cm;
+			}
+		}
+		
+		return null;
 	}
 }
