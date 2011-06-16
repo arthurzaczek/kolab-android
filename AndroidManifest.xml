@@ -27,7 +27,7 @@
         	android:finishOnTaskLaunch="true" />
 
 		<activity android:name=".ContactsContract.EditContactActivity"
-			android:label="Edit Contact">
+			android:label="Edit Contact" android:theme="@android:style/Theme.Light">
 			<intent-filter android:label="Edit Kolab Contact">
                   <action android:name="android.intent.action.EDIT" />
                   <category android:name="android.intent.category.DEFAULT" />

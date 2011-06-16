@@ -115,6 +115,10 @@ public class Contact
 	{
 		contactMethods.add(cm);
 	}
+	public void removeContactMethod(ContactMethod cm)
+	{
+		contactMethods.remove(cm);
+	}
 
 	@Override
 	public String toString()

@@ -24,16 +24,13 @@ package at.dasz.KolabDroid.ContactsContract;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-//import android.content.ContentValues;
-//import android.provider.Contacts;
-import android.provider.ContactsContract;
-//import android.provider.Contacts.People;
+import android.provider.ContactsContract.CommonDataKinds.Email;
 import at.dasz.KolabDroid.Utils;
 
 public class EmailContact extends ContactMethod {
 	
 	public EmailContact() {		
-		setType(ContactsContract.CommonDataKinds.Email.TYPE_HOME);
+		setType(Email.TYPE_OTHER);
 	}
 	
 	@Override
