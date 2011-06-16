@@ -48,6 +48,8 @@ public class ContactDBHelper
 							.getString(DataQuery.COLUMN_GIVEN_NAME));
 					result.setFamilyName(queryCursor
 							.getString(DataQuery.COLUMN_FAMILY_NAME));
+					result.setFullName(queryCursor
+							.getString(DataQuery.COLUMN_FULL_NAME));
 				}
 				else if (mimeType.equals(Phone.CONTENT_ITEM_TYPE))
 				{

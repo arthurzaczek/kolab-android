@@ -13,7 +13,7 @@ public class Contact
 	// TODO: Android raw contact IDs are long!
 	private int		id;
 	private String	uid;
-	private String	givenName, familyName;
+	private String	givenName, familyName, fullName;
 	private String	birthday	= "";		// string as in android for now
 	private byte[]	photo;
 	private String	notes;
@@ -72,8 +72,14 @@ public class Contact
 
 	public String getFullName()
 	{
-		return givenName + " " + familyName;
+		return fullName;
 	}
+	
+	public void setFullName(String fullName)
+	{
+		this.fullName = fullName;
+	}
+
 
 	public byte[] getPhoto()
 	{

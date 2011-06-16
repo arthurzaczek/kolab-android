@@ -24,9 +24,7 @@ package at.dasz.KolabDroid.ContactsContract;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-//import android.content.ContentValues;
-//import android.provider.Contacts;
-import android.provider.ContactsContract;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
 import at.dasz.KolabDroid.Utils;
 
 public class PhoneContact extends ContactMethod
@@ -34,53 +32,43 @@ public class PhoneContact extends ContactMethod
 
 	public PhoneContact()
 	{
-		setType(ContactsContract.CommonDataKinds.Phone.TYPE_HOME);
+		setType(Phone.TYPE_OTHER);
 	}
 
 	@Override
 	public void toXml(Document xml, Element parent, String fullName)
 	{
-		//Element phone = Utils.getOrCreateXmlElement(xml, parent, "phone");
 		Element phone = Utils.createXmlElement(xml, parent, "phone");
 		switch (this.getType())
 		{
 		//TODO: we only support 1 home and 1 business number for now		
-		case ContactsContract.CommonDataKinds.Phone.TYPE_HOME:
+		case Phone.TYPE_HOME:
 			Utils.setXmlElementValue(xml, phone, "type", "home1");
 			break;
-		case ContactsContract.CommonDataKinds.Phone.TYPE_WORK:
+		case Phone.TYPE_WORK:
 			Utils.setXmlElementValue(xml, phone, "type", "business1");
 			break;
-		case ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE:
+		case Phone.TYPE_MOBILE:
 			Utils.setXmlElementValue(xml, phone, "type", "mobile");
 			break;
 		default:
+			Utils.setXmlElementValue(xml, phone, "type", "other");
 			break;
 		}
-		
-		//strip "-" out of phone numbers
-		String tmp = getData();
-		String stripped = "";
-		if(null != tmp) tmp.replaceAll("-", "");
-		
-		Utils.setXmlElementValue(xml, phone, "number", stripped);
+		Utils.setXmlElementValue(xml, phone, "number", getData());
 	}
 	
 	@Override
 	public void fromXml(Element parent)
 	{
 		this.setData(Utils.getXmlElementString(parent, "number"));
+		setType(Phone.TYPE_OTHER);
 		String type = Utils.getXmlElementString(parent, "type");
-		/*
-		if("home".equals(type)) setType(Contacts.Phones.TYPE_HOME);
-		if("business".equals(type)) setType(Contacts.Phones.TYPE_WORK);
-		if("mobile".equals(type)) setType(Contacts.Phones.TYPE_MOBILE);
-		*/
 		if(type != null)
 		{
-			if(type.startsWith("home")) setType(ContactsContract.CommonDataKinds.Phone.TYPE_HOME);
-			if(type.startsWith("business")) setType(ContactsContract.CommonDataKinds.Phone.TYPE_WORK);
-			if(type.startsWith("mobile")) setType(ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE);
+			if(type.startsWith("home")) setType(Phone.TYPE_HOME);
+			if(type.startsWith("business")) setType(Phone.TYPE_WORK);
+			if(type.startsWith("mobile")) setType(Phone.TYPE_MOBILE);
 		}
 	}
 }

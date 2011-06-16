@@ -286,6 +286,7 @@ public final class Utils
 
 		if (node instanceof Document)
 		{
+			node.normalize();
 			buffer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 			buffer.append(getXml(((Document) node).getDocumentElement()));
 		}
@@ -309,17 +310,36 @@ public final class Utils
 			}
 			buffer.append(">");
 			NodeList children = element.getChildNodes();
-			for (int i = 0; i < children.getLength(); i++)
+			final int length = children.getLength();
+			boolean isFirstElement = true;
+			for (int i = 0; i < length; i++)
 			{
-				buffer.append(getXml(children.item(i)));
+				final Node cn = children.item(i);
+				final boolean isElement = cn instanceof Element;
+				if (isElement && isFirstElement)
+				{
+					buffer.append("\n");
+					isFirstElement = false;
+				}
+				final String xml = getXml(cn);
+				if (!TextUtils.isEmpty(xml))
+				{
+					buffer.append(xml);
+				}
 			}
 			buffer.append("</");
 			buffer.append(element.getNodeName());
 			buffer.append(">\n");
 		}
-		else if (node != null && node.getNodeValue() != null)
+		else if (node != null && node instanceof org.w3c.dom.Text)
 		{
-			buffer.append(node.getNodeValue());
+			String text = node.getNodeValue();
+			if(text != null)
+			{
+				text = text.trim();
+				if(!TextUtils.isEmpty(text))
+					buffer.append(text);
+			}
 		}
 
 		return buffer.toString();

@@ -58,13 +58,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds;
-import android.provider.ContactsContract.Contacts;
-import android.provider.ContactsContract.CommonDataKinds.Email;
-import android.provider.ContactsContract.CommonDataKinds.Event;
-import android.provider.ContactsContract.CommonDataKinds.Note;
-import android.provider.ContactsContract.CommonDataKinds.Phone;
-import android.provider.ContactsContract.CommonDataKinds.Photo;
-import android.provider.ContactsContract.CommonDataKinds.StructuredName;
+import android.text.TextUtils;
 import android.util.Log;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.Utils;
@@ -141,8 +135,13 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		{
 			while (personCursor.moveToNext())
 			{
-				Contact result = loadItem(personCursor);
-				if(result != null) {
+				int idxID = personCursor
+						.getColumnIndex(CommonDataKinds.StructuredName._ID);
+				int id = personCursor.getInt(idxID);
+
+				Contact result = ContactDBHelper.getContactByRawID(id, cr);
+				if (result != null)
+				{
 					localItemsCache.put(result.getId(), result);
 				}
 			}
@@ -155,13 +154,15 @@ public class SyncContactsHandler extends AbstractSyncHandler
 
 	public Cursor getAllLocalItemsCursor()
 	{
-		//only return those from our account
-		String where = ContactsContract.RawContacts.ACCOUNT_NAME +"=? and " +
-						ContactsContract.RawContacts.ACCOUNT_TYPE + "=?";		
-		
-		//TODO: maybe we should use the account.name and account.type instead of string 
+		// only return those from our account
+		String where = ContactsContract.RawContacts.ACCOUNT_NAME + "=? and "
+				+ ContactsContract.RawContacts.ACCOUNT_TYPE + "=?";
+
+		// TODO: maybe we should use the account.name and account.type instead
+		// of string
 		return cr.query(ContactsContract.RawContacts.CONTENT_URI, null, where,
-				new String[]{ctx.getString(R.string.SYNC_ACCOUNT_NAME), Utils.SYNC_ACCOUNT_TYPE}, null);
+				new String[] { ctx.getString(R.string.SYNC_ACCOUNT_NAME),
+						Utils.SYNC_ACCOUNT_TYPE }, null);
 	}
 
 	public int getIdColumnIndex(Cursor c)
@@ -178,14 +179,16 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		try
 		{
 			InputStream xmlinput = extractXml(sync.getMessage());
-			if(xmlinput == null) throw new SyncException(getItemText(sync), "Unable to find XML Document");
+			if (xmlinput == null) throw new SyncException(getItemText(sync),
+					"Unable to find XML Document");
 			Document doc = Utils.getDocument(xmlinput);
 			updateLocalItemFromServer(sync, doc);
 			updateCacheEntryFromMessage(sync, doc);
 		}
 		catch (SAXException ex)
 		{
-			throw new SyncException(getItemText(sync), "Unable to parse XML Document", ex);
+			throw new SyncException(getItemText(sync),
+					"Unable to parse XML Document", ex);
 		}
 	}
 
@@ -194,74 +197,33 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			throws SyncException
 	{
 		Log.d("ConH", "this is updateLocalItemFromServer");
-		
+
 		Contact contact = (Contact) sync.getLocalItem();
 		if (contact == null)
 		{
 			Log.d("ConH", "NEW local contact");
 			contact = new Contact();
 		}
-		else
-			Log.d("ConH", "Existing local contact");
-		
+		else Log.d("ConH", "Existing local contact");
+
 		Element root = xml.getDocumentElement();
 
-		contact.setUid(Utils.getXmlElementString(root, "uid"));		
+		contact.setUid(Utils.getXmlElementString(root, "uid"));
 		Log.d("ConH", "Remote UID: " + contact.getUid());
 
 		Element name = Utils.getXmlElement(root, "name");
 		if (name != null)
 		{
-			// contact.setFullName(Utils.getXmlElementString(name,
-			// "full-name"));
-			String fullName = Utils.getXmlElementString(name, "full-name");
-			if (fullName != null)
-			{
-				Log.d("ConH", "Full-name element exists => split to given and family name");
-				String[] names = fullName.split(" ");
-				if (names.length == 2)
-				{
-					contact.setGivenName(names[0]);
-					contact.setFamilyName(names[1]);
-				}
-				else
-				{
-					Log.w("ConH", "Full-name element exists without space => set only given name");
-					contact.setGivenName(fullName);
-					contact.setFamilyName("");
-				}
-			}
-			else
-			{
-				Log.w("ConH", "Full-name element does NOT exist => use given and last name");
-				//use given and last name
-				String givenName = Utils.getXmlElementString(name, "given-name");
-				String lastName = Utils.getXmlElementString(name, "last-name");
-				if(givenName != null && lastName != null)
-				{
-					contact.setGivenName(givenName);
-					contact.setFamilyName(lastName);
-				}
-				else if(givenName != null && lastName == null)
-				{
-					Log.w("ConH", "Full-name element does NOT exist => ONLY given-name");
-					contact.setGivenName(givenName);
-					contact.setFamilyName("");
-				}
-				else
-				{
-					Log.w("ConH", "Full-name element does NOT exist => ONLY last-name");
-					contact.setGivenName("");
-					contact.setFamilyName(lastName);
-				}
-			}
+			contact.setFullName(Utils.getXmlElementString(name, "full-name"));
+			contact.setGivenName(Utils.getXmlElementString(name, "given-name"));
+			contact.setFamilyName(Utils.getXmlElementString(name, "last-name"));
 		}
 
 		contact.setBirthday(Utils.getXmlElementString(root, "birthday"));
 		Log.d("ConH", "Set Birthday to: " + contact.getBirthday());
 
 		contact.getContactMethods().clear();
-		
+
 		NodeList nl = Utils.getXmlElements(root, "phone");
 		for (int i = 0; i < nl.getLength(); i++)
 		{
@@ -278,7 +240,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			contact.getContactMethods().add(cm);
 			Log.d("ConH", "Add email with: " + cm);
 		}
-		
+
 		nl = Utils.getXmlElements(root, "address");
 		for (int i = 0; i < nl.getLength(); i++)
 		{
@@ -288,7 +250,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		}
 
 		byte[] photo = getPhotoFromMessage(sync.getMessage(), xml);
-		if(photo != null)
+		if (photo != null)
 		{
 			contact.setPhoto(photo);
 			Log.d("ConH", "Set Photo to: " + contact.getPhoto());
@@ -346,19 +308,17 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		Utils.setXmlElementValue(xml, name, "given-name", source.getGivenName());
 		Utils.setXmlElementValue(xml, name, "last-name", source.getFamilyName());
 
-		if(source.getBirthday() != null && !"".equals(source.getBirthday()))
-			Utils.setXmlElementValue(xml, root, "birthday", source.getBirthday());
+		if (!TextUtils.isEmpty(source.getBirthday())) Utils.setXmlElementValue(
+				xml, root, "birthday", source.getBirthday());
+		else Utils.deleteXmlElements(root, "birthday");
 
-		if(source.getNotes() != null && !"".equals(source.getNotes()))
-			Utils.setXmlElementValue(xml, root, "body", source.getNotes());
+		if (!TextUtils.isEmpty(source.getNotes())) Utils.setXmlElementValue(
+				xml, root, "body", source.getNotes());
+		else Utils.deleteXmlElements(root, "body");
 
-		if(source.getPhoto() != null && !"".equals(source.getPhoto()))
-		{
-			//Log.d("ConH", "writeXml Photo Hash: " + Utils.getBytesAsHexString(Utils.sha1Hash(source.getPhoto())));
-			storePhotoInMessage(sync, xml, source.getPhoto());	
-		}
-		else
-			Utils.deleteXmlElements(root, "picture"); //remove the picture
+		if (source.getPhoto() != null) storePhotoInMessage(sync, xml,
+				source.getPhoto());
+		else Utils.deleteXmlElements(root, "picture"); // remove the picture
 
 		Utils.deleteXmlElements(root, "phone");
 		Utils.deleteXmlElements(root, "email");
@@ -415,12 +375,14 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	@Override
 	public void deleteLocalItem(int localId)
 	{
-		Log.d("ConH", "Deleting local item from Db with raw_contact ID: " + localId);
-		
+		Log.d("ConH", "Deleting local item from Db with raw_contact ID: "
+				+ localId);
+
 		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 
-		//TODO: who put this syncadapter to the first call and why is it still working? O_o
-		
+		// TODO: who put this syncadapter to the first call and why is it still
+		// working? O_o
+
 		// normal delete first, then with syncadapter flag
 		Uri rawUri = addCallerIsSyncAdapterParameter(ContactsContract.RawContacts.CONTENT_URI);
 		ops.add(ContentProviderOperation
@@ -449,7 +411,8 @@ public class SyncContactsHandler extends AbstractSyncHandler
 
 	private void deleteLocalItemFinally(int localId)
 	{
-		Log.d("ConH", "Delete raw_contract from DB with raw_contact ID: " + localId);
+		Log.d("ConH", "Delete raw_contract from DB with raw_contact ID: "
+				+ localId);
 		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 
 		// remove contact from raw_contact table (with syncadapter flag set)
@@ -479,10 +442,11 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		// remove contents too, to avoid confusing the butchered JAF
 		// message.setContent("", "text/plain");
 		// message.saveChanges();
-		
-		//TODO: the local item doesn't exist here anyway, does it?
-		
-		Log.d("sync", "Deleting local cache entry with id: " + sync.getCacheEntry().getId());
+
+		// TODO: the local item doesn't exist here anyway, does it?
+
+		Log.d("sync", "Deleting local cache entry with id: "
+				+ sync.getCacheEntry().getId());
 		getLocalCacheProvider().deleteEntry(sync.getCacheEntry());
 
 		// make sure it gets flushed from the raw_contacts table on the phone as
@@ -491,20 +455,20 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	}
 
 	private CacheEntry saveContact(Contact contact) throws SyncException
-	{				
+	{
 		ContactDBHelper.saveContact(contact, this.ctx);
 
 		CacheEntry result = new CacheEntry();
-		//result.setLocalId((int) ContentUris.parseId(uri));
+		// result.setLocalId((int) ContentUris.parseId(uri));
 		result.setLocalId(contact.getId());
 		result.setLocalHash(contact.getLocalHash());
 		result.setRemoteId(contact.getUid());
 
-		//localItemsCache.put(contact.getId(), contact);
+		// localItemsCache.put(contact.getId(), contact);
 		localItemsCache.put(contact.getId(), contact);
-		
+
 		Log.d("ConH", "Contact saved with: " + result);
-		
+
 		return result;
 	}
 
@@ -512,125 +476,24 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			MessagingException
 	{
 		Log.d("ConH", "This is getLocalItem");
-		
+
 		if (sync.getLocalItem() != null)
 		{
 			Log.d("ConH", "return local item as contact");
 			return (Contact) sync.getLocalItem();
 		}
 
-		Log.d("ConH", "Fetch contact from localcache with localID: " + sync.getCacheEntry().getLocalId());
+		Log.d("ConH", "Fetch contact from localcache with localID: "
+				+ sync.getCacheEntry().getLocalId());
 		Contact c = localItemsCache.get(sync.getCacheEntry().getLocalId());
 		if (c != null)
 		{
-			Log.d("ConH", "Change Uid of contact to cacheentry.remoteId: " + sync.getCacheEntry().getRemoteId());
+			Log.d("ConH", "Change Uid of contact to cacheentry.remoteId: "
+					+ sync.getCacheEntry().getRemoteId());
 			c.setUid(sync.getCacheEntry().getRemoteId());
 		}
 		sync.setLocalItem(c);
 		return c;
-	}
-
-	private Contact loadItem(Cursor personCursor) throws SyncException
-	{
-		Cursor queryCursor = null;
-		try
-		{
-			int idxID = personCursor
-					.getColumnIndex(CommonDataKinds.StructuredName._ID);
-			int id = personCursor.getInt(idxID);
-
-			String where = ContactsContract.Data.RAW_CONTACT_ID + "=?";
-
-			// Log.i("II", "where: " + where);
-			
-			String[] projection = new String[] {
-					Contacts.Data.MIMETYPE,
-					StructuredName.GIVEN_NAME,
-					StructuredName.FAMILY_NAME,
-					Phone.NUMBER,
-					Phone.TYPE,
-					Email.DATA,
-					Event.START_DATE,
-					Photo.PHOTO,
-					Note.NOTE
-			};
-
-			queryCursor = cr.query(ContactsContract.Data.CONTENT_URI, projection,
-					where, new String[] { Integer.toString(id) }, null);
-
-			if (queryCursor == null) throw new SyncException("",
-					"cr.query returned null");
-			if (!queryCursor.moveToFirst()) return null;
-
-			Contact result = new Contact();
-			result.setId(id);
-
-			int idxMimeType = queryCursor.getColumnIndex(ContactsContract.Contacts.Data.MIMETYPE);
-			String mimeType;
-			
-			do
-			{
-				mimeType = queryCursor.getString(idxMimeType);
-				if (mimeType
-						.equals(StructuredName.CONTENT_ITEM_TYPE))
-				{
-					int idxFirst = queryCursor
-							.getColumnIndex(StructuredName.GIVEN_NAME);
-					int idxLast = queryCursor
-							.getColumnIndex(StructuredName.FAMILY_NAME);
-
-					result.setGivenName(queryCursor.getString(idxFirst));
-					result.setFamilyName(queryCursor.getString(idxLast));
-				}
-				else if (mimeType.equals(Phone.CONTENT_ITEM_TYPE))
-				{
-					int numberIdx = queryCursor.getColumnIndex(Phone.NUMBER);
-					int typeIdx = queryCursor.getColumnIndex(Phone.TYPE);
-					PhoneContact pc = new PhoneContact();
-					pc.setData(queryCursor.getString(numberIdx));
-					pc.setType(queryCursor.getInt(typeIdx));
-					result.getContactMethods().add(pc);
-
-				}
-				else if (mimeType.equals(Email.CONTENT_ITEM_TYPE))
-				{
-					int dataIdx = queryCursor.getColumnIndex(Email.DATA);
-					// int typeIdx =
-					// emailCursor.getColumnIndex(CommonDataKinds.Email.TYPE);
-					EmailContact pc = new EmailContact();
-					pc.setData(queryCursor.getString(dataIdx));
-					// pc.setType(emailCursor.getInt(typeIdx));
-					result.getContactMethods().add(pc);
-
-				}
-				else if (mimeType.equals(Event.CONTENT_ITEM_TYPE))
-				{
-					int dateIdx = queryCursor.getColumnIndex(Event.START_DATE);
-					String bday = queryCursor.getString(dateIdx);
-					result.setBirthday(bday);
-
-				}
-				else if (mimeType.equals(Photo.CONTENT_ITEM_TYPE))
-				{
-					int colIdx = queryCursor.getColumnIndex(Photo.PHOTO);
-					byte[] photo = queryCursor.getBlob(colIdx);
-					result.setPhoto(photo);
-
-				}
-				else if (mimeType.equals(Note.CONTENT_ITEM_TYPE))
-				{
-					int colIdx = queryCursor.getColumnIndex(Note.NOTE);
-					String note = queryCursor.getString(colIdx);
-					result.setNote(note);
-				}
-			} while (queryCursor.moveToNext());
-
-			return result;
-		}
-		finally
-		{
-			if (queryCursor != null) queryCursor.close();
-		}
 	}
 
 	private String getNewUid()
@@ -689,27 +552,35 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		String photoFileName = Utils.getXmlElementString(root, "picture");
 		try
 		{
-			if(message.getContent() instanceof Multipart) //hopefully prevents nullpointer (if my log message doesnt create a new one, that is :)
+			if (message.getContent() instanceof Multipart) // hopefully prevents
+															// nullpointer (if
+															// my log message
+															// doesnt create a
+															// new one, that is
+															// :)
 			{
 				Multipart multipart = (Multipart) message.getContent();
-	
+
 				for (int i = 0, n = multipart.getCount(); i < n; i++)
 				{
 					Part part = multipart.getBodyPart(i);
 					String disposition = part.getDisposition();
-	
+
 					if ((part.getFileName() != null)
 							&& (part.getFileName().equals(photoFileName))
 							&& (disposition != null)
 							&& ((disposition.equalsIgnoreCase(Part.ATTACHMENT) || (disposition
 									.equalsIgnoreCase(Part.INLINE))))) {
-	
+
 					return inputStreamToBytes(part.getInputStream()); }
 				}
 			}
 			else
 			{
-				Log.w("ConH", "getPhotoFromMessage: Strange message content of type: " + message.getContent().getClass().getCanonicalName());
+				Log.w("ConH",
+						"getPhotoFromMessage: Strange message content of type: "
+								+ message.getContent().getClass()
+										.getCanonicalName());
 			}
 		}
 		catch (IOException ex)
@@ -740,33 +611,37 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	private void storePhotoInMessage(SyncContext sync, Document messageXml,
 			byte[] photo)
 	{
-		//We store the photo in SyncContext.newMessageContent because the Message itself is readonly!
-		
+		// We store the photo in SyncContext.newMessageContent because the
+		// Message itself is readonly!
+
 		Element root = messageXml.getDocumentElement();
-		Utils.setXmlElementValue(messageXml, root, "picture", "kolab-picture.png");
-		
+		Utils.setXmlElementValue(messageXml, root, "picture",
+				"kolab-picture.png");
+
 		Utils.setXmlElementValue(messageXml, root, "picture",
 				"kolab-picture.png");
 
 		// create new attachment for new photo
-		// http://java.sun.com/developer/onlineTraining/JavaMail/contents.html#SendingAttachments explains how
+		// http://java.sun.com/developer/onlineTraining/JavaMail/contents.html#SendingAttachments
+		// explains how
 
-		MimeMultipart mp = new MimeMultipart();		
+		MimeMultipart mp = new MimeMultipart();
 		try
 		{
-			//add picture as kolab-picture.png
-			if(photo != null)
+			// add picture as kolab-picture.png
+			if (photo != null)
 			{
 				BodyPart part = new MimeBodyPart();
 				DataSource source = new ByteArrayDataSource(photo, "image/png");
 				part.setDataHandler(new DataHandler(source));
 				part.setFileName("kolab-picture.png");
-				
-				//Log.d("ConH", "storePhotoinMsg 1 Photo Hash: " + Utils.getBytesAsHexString(Utils.sha1Hash(photo)));
-				
+
+				// Log.d("ConH", "storePhotoinMsg 1 Photo Hash: " +
+				// Utils.getBytesAsHexString(Utils.sha1Hash(photo)));
+
 				mp.addBodyPart(part);
 			}
-			
+
 			sync.setNewMessageContent(mp);
 		}
 		catch (MessagingException ex)
@@ -798,20 +673,23 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		out.close();
 		return out.toByteArray();
 	}
-	
-	private static Uri addCallerIsSyncAdapterParameter(Uri uri) {
-        return uri.buildUpon().appendQueryParameter(
-            ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
-    }
+
+	private static Uri addCallerIsSyncAdapterParameter(Uri uri)
+	{
+		return uri
+				.buildUpon()
+				.appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER,
+						"true").build();
+	}
 
 	public void markAsSynced(SyncContext sync)
 	{
-		// do nothing - mark as sync was already done 		
+		// do nothing - mark as sync was already done
 	}
 
 	public void finalizeSync()
 	{
 		// nothing to do
-		
+
 	}
 }

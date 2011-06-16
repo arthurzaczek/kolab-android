@@ -27,6 +27,7 @@ public final class DataQuery
 	public static final int			COLUMN_DATA3			= 4;
 	public static final int			COLUMN_DATA15			= 5;
 	
+	public static final int			COLUMN_FULL_NAME		= COLUMN_DATA1;
 	public static final int			COLUMN_GIVEN_NAME		= COLUMN_DATA2;
 	public static final int			COLUMN_FAMILY_NAME		= COLUMN_DATA3;
 	
