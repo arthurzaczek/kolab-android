@@ -5,7 +5,7 @@ import android.provider.ContactsContract.Data;
 /**
  * Constants for a query to get contact data for a given rawContactId
  */
-final class DataQuery
+public final class DataQuery
 {
 
 	private DataQuery()

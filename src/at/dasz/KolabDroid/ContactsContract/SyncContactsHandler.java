@@ -155,19 +155,11 @@ public class SyncContactsHandler extends AbstractSyncHandler
 
 	public Cursor getAllLocalItemsCursor()
 	{
-		// return only those which are not deleted by other programs
-		// String where = ContactsContract.RawContacts.DELETED+"='0'";
-
-		// return all again
-		//return cr.query(ContactsContract.RawContacts.CONTENT_URI, null, null,
-		//		null, null);
-		
 		//only return those from our account
 		String where = ContactsContract.RawContacts.ACCOUNT_NAME +"=? and " +
 						ContactsContract.RawContacts.ACCOUNT_TYPE + "=?";		
 		
 		//TODO: maybe we should use the account.name and account.type instead of string 
-		
 		return cr.query(ContactsContract.RawContacts.CONTENT_URI, null, where,
 				new String[]{ctx.getString(R.string.SYNC_ACCOUNT_NAME), Utils.SYNC_ACCOUNT_TYPE}, null);
 	}

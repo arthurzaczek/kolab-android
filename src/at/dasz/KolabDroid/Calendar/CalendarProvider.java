@@ -43,11 +43,10 @@ public class CalendarProvider
 	public static final String TAG = "KolabCalendarProvider";
 	
 	// don't make them public - it's better to do all database access jobs here
-	private static Uri				CALENDAR_EVENTS_URI;
-	private static Uri				CALENDAR_ALERT_URI;
-	private static Uri				CALENDAR_REMINDER_URI;
-
-	private static Uri				CALENDAR_CALENDARS_URI;
+	public static Uri				CALENDAR_EVENTS_URI;
+	public static Uri				CALENDAR_ALERT_URI;
+	public static Uri				CALENDAR_REMINDER_URI;
+	public static Uri				CALENDAR_CALENDARS_URI;
 
 	private static final String		CALLER_IS_SYNCADAPTER	= "caller_is_syncadapter";
 

@@ -6,6 +6,9 @@
 		android:layout_height="wrap_content" android:text="@string/title"
 		android:textSize="30dp" android:textStyle="bold" />	
 	<TextView android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:id="@+id/version"
+		android:text="&lt;version&gt;"></TextView>
+	<TextView android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:id="@+id/status"
 		android:text="&lt;status&gt;"></TextView>
 	<ExpandableListView android:layout_width="wrap_content"

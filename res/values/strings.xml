@@ -113,4 +113,6 @@
 <string name="really_reset_calendar_soft">Do you really want to delete KolabDroid calendar SYNC info?</string>
 <string name="settingsHeadlineMisc">Misc</string>
 <string name="syncinterval">Min. sync interval</string>
+<string name="diag_dump">Diag. Dump</string>
+<string name="version_format">Version: %s</string>
 </resources>

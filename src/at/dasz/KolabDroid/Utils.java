@@ -43,6 +43,9 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.text.TextUtils;
 import android.text.format.Time;
 import android.util.Log;
@@ -50,13 +53,28 @@ import android.util.TimeFormatException;
 
 public final class Utils
 {
-	public static final String LOG_TAG_IMAPCLIENT 			= "KolabDroid-IMAPClient";
-	public static final String LOG_TAG_TRUSTMANAGERFACTORY	= "KolabDroid-TrustManagerFactory";
-	public static final String LOG_TAG_SETTINGSVIEW			= "KolabDroid-SettingsView";
-	public static final String LOG_TAG_SPECIAL_KEYSTORE_SSL_SOCKETFACTORY = "KolabDroid-SpecialKeystoreSSLSocketFactory";
-	
-	public static final String SYNC_ACCOUNT_TYPE = "at.dasz.kolabdroid";
-	
+	public static final String	LOG_TAG_IMAPCLIENT							= "KolabDroid-IMAPClient";
+	public static final String	LOG_TAG_TRUSTMANAGERFACTORY					= "KolabDroid-TrustManagerFactory";
+	public static final String	LOG_TAG_SETTINGSVIEW						= "KolabDroid-SettingsView";
+	public static final String	LOG_TAG_SPECIAL_KEYSTORE_SSL_SOCKETFACTORY	= "KolabDroid-SpecialKeystoreSSLSocketFactory";
+
+	public static final String	SYNC_ACCOUNT_TYPE							= "at.dasz.kolabdroid";
+
+	public static String getVersionNumber(Context ctx)
+	{
+		String version = "?";
+		try
+		{
+			PackageInfo pi = ctx.getPackageManager().getPackageInfo(
+					ctx.getPackageName(), 0);
+			version = pi.versionName;
+		}
+		catch (PackageManager.NameNotFoundException e)
+		{
+			Log.e("", "Package name not found", e);
+		};
+		return version;
+	}
 
 	/**
 	 * date format mask for Kolab's Datetime
@@ -90,8 +108,9 @@ public final class Utils
 				e.removeChild(nl.item(i));
 			}
 			// add new text node
-			//Text t = xml.createTextNode(value);
-			// Fixes issue #29 special characters in calendar subjects and elsewhere
+			// Text t = xml.createTextNode(value);
+			// Fixes issue #29 special characters in calendar subjects and
+			// elsewhere
 			Text t = xml.createTextNode(TextUtils.htmlEncode(value));
 			e.appendChild(t);
 		}
@@ -103,7 +122,7 @@ public final class Utils
 		Element e = xml.createElement(name);
 		parent.appendChild(e);
 		// add new text node
-		//Text t = xml.createTextNode(value);
+		// Text t = xml.createTextNode(value);
 		// Fixes issue #29 special characters in calendar subjects and elsewhere
 		Text t = xml.createTextNode(TextUtils.htmlEncode(value));
 		e.appendChild(t);
@@ -132,13 +151,13 @@ public final class Utils
 			return (Element) nl.item(0);
 		}
 	}
-	
-	public static final Element createXmlElement(Document xml,
-			Element parent, String name)
-	{		
-			Element e = xml.createElement(name);
-			parent.appendChild(e);
-			return e;	
+
+	public static final Element createXmlElement(Document xml, Element parent,
+			String name)
+	{
+		Element e = xml.createElement(name);
+		parent.appendChild(e);
+		return e;
 	}
 
 	public static final Element getXmlElement(Element parent, String name)
@@ -170,14 +189,14 @@ public final class Utils
 		if (e == null) return null;
 		NodeList nl = e.getChildNodes();
 		// Fix from issue #27 special characters in text elements
-		//if (nl.getLength() > 0) { return nl.item(0).getNodeValue(); }
-		if (nl.getLength() > 0) 
+		// if (nl.getLength() > 0) { return nl.item(0).getNodeValue(); }
+		if (nl.getLength() > 0)
 		{
 			StringBuilder elementText = new StringBuilder();
-			for (int i=0; i<nl.getLength(); i++)
+			for (int i = 0; i < nl.getLength(); i++)
 			{
-				if(nl.item(i).getNodeType() == Node.TEXT_NODE)
-					elementText.append(nl.item(i).getNodeValue());
+				if (nl.item(i).getNodeType() == Node.TEXT_NODE) elementText
+						.append(nl.item(i).getNodeValue());
 			}
 			return elementText.toString();
 		}
@@ -305,73 +324,72 @@ public final class Utils
 
 		return buffer.toString();
 	}
-	
+
 	public final static Date getMailDate(Message m) throws MessagingException
 	{
 		Date dt = m.getSentDate();
-		if(dt == null) dt = m.getReceivedDate();
+		if (dt == null) dt = m.getReceivedDate();
 		return dt;
 	}
-	
+
 	public final static byte[] sha1Hash(String text)
 	{
 		MessageDigest hash = null;
-		
+
 		try
 		{
 			hash = MessageDigest.getInstance("SHA1");
-			
+
 			byte[] input = text.getBytes();
-			
+
 			byte[] hashValue = hash.digest(input);
-			
-			//Log.i("II","out digest: " + hashValue);
+
+			// Log.i("II","out digest: " + hashValue);
 			return hashValue;
 		}
 		catch (Exception ex)
 		{
 			Log.e("EE", "Exception in sha1hash: " + ex.toString());
 		}
-		
-		return null;		
+
+		return null;
 	}
-	
+
 	public final static byte[] sha1Hash(byte[] input)
 	{
 		MessageDigest hash = null;
-		
+
 		try
 		{
 			hash = MessageDigest.getInstance("SHA1");
-			
+
 			byte[] hashValue = hash.digest(input);
-			
-			//Log.i("II","out digest: " + hashValue);
+
+			// Log.i("II","out digest: " + hashValue);
 			return hashValue;
 		}
 		catch (Exception ex)
 		{
 			Log.e("EE", "Exception in sha1hash: " + ex.toString());
 		}
-		
-		return null;		
+
+		return null;
 	}
-	
+
 	public final static String getBytesAsHexString(byte[] raw)
 	{
 		final String HEXES = "0123456789ABCDEF";
-		if ( raw == null )
-			return null;
-		    
-		StringBuilder hex = new StringBuilder( 2 * raw.length );
-		
-		for ( final byte b : raw )
+		if (raw == null) return null;
+
+		StringBuilder hex = new StringBuilder(2 * raw.length);
+
+		for (final byte b : raw)
 		{
-		      hex.append(HEXES.charAt((b & 0xF0) >> 4))
-		         .append(HEXES.charAt((b & 0x0F)));
-	    }
-		
-	    return hex.toString();		
+			hex.append(HEXES.charAt((b & 0xF0) >> 4)).append(
+					HEXES.charAt((b & 0x0F)));
+		}
+
+		return hex.toString();
 	}
-	
+
 }
