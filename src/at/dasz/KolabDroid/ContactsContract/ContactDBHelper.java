@@ -104,7 +104,7 @@ public class ContactDBHelper
 
 		ContactOperations contactOp;
 
-		final int rawContactId = contact.getId();
+		final long rawContactId = contact.getId();
 
 		if (contact.getId() == 0)
 		{
@@ -121,12 +121,18 @@ public class ContactDBHelper
 		saveContactDetails(ctx, ctx.getContentResolver(), accountName, contact,
 				rawContactId, contactOp);
 
-		batchOperation.execute();
+		long id = batchOperation.execute();
+		
+		if (contact.getId() == 0)
+		{
+			if(id == 0) throw new SyncException(contact.getFullName(), "Unable to get ID of newly created item");
+			contact.setId((int)id);
+		}
 	}
 
 	private static void saveContactDetails(Context context,
 			ContentResolver resolver, String accountName, Contact contact,
-			int rawContactId, ContactOperations contactOp)
+			long rawContactId, ContactOperations contactOp)
 	{
 		boolean photoUpdated = false;
 		boolean notesUpdated = false;

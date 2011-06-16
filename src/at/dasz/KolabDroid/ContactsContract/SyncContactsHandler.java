@@ -459,12 +459,10 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		ContactDBHelper.saveContact(contact, this.ctx);
 
 		CacheEntry result = new CacheEntry();
-		// result.setLocalId((int) ContentUris.parseId(uri));
 		result.setLocalId(contact.getId());
 		result.setLocalHash(contact.getLocalHash());
 		result.setRemoteId(contact.getUid());
 
-		// localItemsCache.put(contact.getId(), contact);
 		localItemsCache.put(contact.getId(), contact);
 
 		Log.d("ConH", "Contact saved with: " + result);

@@ -71,7 +71,7 @@ public class CacheEntry
 	}
 
 	public void setLocalId(int localId)
-	{
+	{		
 		this.localId = localId;
 	}
 

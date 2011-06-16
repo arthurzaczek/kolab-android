@@ -286,7 +286,6 @@ public final class Utils
 
 		if (node instanceof Document)
 		{
-			node.normalize();
 			buffer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 			buffer.append(getXml(((Document) node).getDocumentElement()));
 		}

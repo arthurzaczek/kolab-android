@@ -13,7 +13,6 @@ import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.MediaStore;
@@ -38,18 +37,28 @@ public class EditContactActivity extends Activity
 
 	private EditText		firstName;
 	private EditText		lastName;
-	private EditText		phoneHome;
+	private EditText		phoneMain;
+	private EditText		phoneHome1;
+	private EditText		phoneHome2;
 	private EditText		phoneMobile;
+	private EditText		phoneWorkMobile;
 	private EditText		phoneWork;
+	private EditText		phoneFaxWork;
+	private EditText		phoneOther;
 	private EditText		email1;
 	private EditText		email2;
 	private EditText		email3;
 	private TextView		birthday;
 	private EditText		notes;
 
-	private PhoneContact	pcHome;
-	private PhoneContact	pcMobile;
+	private PhoneContact	pcMain;
+	private PhoneContact	pcHome1;
+	private PhoneContact	pcHome2;
 	private PhoneContact	pcWork;
+	private PhoneContact	pcWorkMobile;
+	private PhoneContact	pcFaxWork;
+	private PhoneContact	pcMobile;
+	private PhoneContact	pcOther;
 
 	private EmailContact	ec1;
 	private EmailContact	ec2;
@@ -138,17 +147,37 @@ public class EditContactActivity extends Activity
 			{
 				switch (cm.getType())
 				{
-				case ContactsContract.CommonDataKinds.Phone.TYPE_HOME:
-					phoneHome.setText(cm.getData());
-					pcHome = (PhoneContact) cm;
+				case Phone.TYPE_MAIN:
+					phoneMain.setText(cm.getData());
+					pcMain = (PhoneContact) cm;
 					break;
-				case ContactsContract.CommonDataKinds.Phone.TYPE_WORK:
+				case Phone.TYPE_HOME:
+					phoneHome1.setText(cm.getData());
+					pcHome1 = (PhoneContact) cm;
+					break;
+				case Phone.TYPE_FAX_HOME:
+					phoneHome2.setText(cm.getData());
+					pcHome2 = (PhoneContact) cm;
+					break;
+				case Phone.TYPE_MOBILE:
+					phoneMobile.setText(cm.getData());
+					pcMobile = (PhoneContact) cm;
+					break;
+				case Phone.TYPE_WORK:
 					phoneWork.setText(cm.getData());
 					pcWork = (PhoneContact) cm;
 					break;
-				case ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE:
-					phoneMobile.setText(cm.getData());
-					pcMobile = (PhoneContact) cm;
+				case Phone.TYPE_WORK_MOBILE:
+					phoneWorkMobile.setText(cm.getData());
+					pcWorkMobile = (PhoneContact) cm;
+					break;
+				case Phone.TYPE_FAX_WORK:
+					phoneFaxWork.setText(cm.getData());
+					pcFaxWork = (PhoneContact) cm;
+					break;
+				case Phone.TYPE_OTHER:
+					phoneOther.setText(cm.getData());
+					pcOther = (PhoneContact) cm;
 					break;
 
 				default:
@@ -163,9 +192,14 @@ public class EditContactActivity extends Activity
 		firstName = (EditText) findViewById(R.id.EditFirstName);
 		lastName = (EditText) findViewById(R.id.EditLastName);
 
-		phoneHome = (EditText) findViewById(R.id.EditPhoneHome);
+		phoneMain = (EditText) findViewById(R.id.EditPhoneMain);
+		phoneHome1 = (EditText) findViewById(R.id.EditPhoneHome1);
+		phoneHome2 = (EditText) findViewById(R.id.EditPhoneHome2);
 		phoneMobile = (EditText) findViewById(R.id.EditPhoneMobile);
 		phoneWork = (EditText) findViewById(R.id.EditPhoneWork);
+		phoneFaxWork = (EditText) findViewById(R.id.EditPhoneFaxWork);
+		phoneWorkMobile = (EditText) findViewById(R.id.EditPhoneWorkMobile);
+		phoneOther = (EditText) findViewById(R.id.EditPhoneOther);
 
 		email1 = (EditText) findViewById(R.id.EditEmail1);
 		email2 = (EditText) findViewById(R.id.EditEmail2);
@@ -244,12 +278,22 @@ public class EditContactActivity extends Activity
 
 		mContact.setNote(notes.getText().toString());
 
-		pcHome = binFromPhone(pcHome, phoneHome.getText().toString(),
+		pcMain = binFromPhone(pcMain, phoneMain.getText().toString(),
+				Phone.TYPE_MAIN);
+		pcHome1 = binFromPhone(pcHome1, phoneHome1.getText().toString(),
 				Phone.TYPE_HOME);
-		pcMobile = binFromPhone(pcMobile, phoneMobile.getText().toString(),
-				Phone.TYPE_MOBILE);
+		pcHome2 = binFromPhone(pcHome2, phoneHome2.getText().toString(),
+				Phone.TYPE_HOME);
 		pcWork = binFromPhone(pcWork, phoneWork.getText().toString(),
 				Phone.TYPE_WORK);
+		pcWorkMobile = binFromPhone(pcWorkMobile, phoneWorkMobile.getText().toString(),
+				Phone.TYPE_WORK_MOBILE);
+		pcFaxWork = binFromPhone(pcFaxWork, phoneFaxWork.getText().toString(),
+				Phone.TYPE_FAX_WORK);
+		pcMobile = binFromPhone(pcMobile, phoneMobile.getText().toString(),
+				Phone.TYPE_MOBILE);
+		pcOther = binFromPhone(pcOther, phoneOther.getText().toString(),
+				Phone.TYPE_OTHER);
 
 		ec1 = binFromEmail(ec1, email1.getText().toString());
 		ec2 = binFromEmail(ec2, email1.getText().toString());

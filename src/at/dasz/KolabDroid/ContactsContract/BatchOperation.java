@@ -19,7 +19,9 @@ package at.dasz.KolabDroid.ContactsContract;
 import java.util.ArrayList;
 
 import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.OperationApplicationException;
 import android.os.RemoteException;
@@ -48,19 +50,23 @@ public class BatchOperation
         mOperations.add(cpo);
     }
 
-    public void execute() {
+    public long execute() {
+        long id = 0;
 
         if (mOperations.size() == 0) {
-            return;
+            return id;
         }
         // Apply the mOperations to the content provider
         try {
-            mResolver.applyBatch(ContactsContract.AUTHORITY, mOperations);
+            ContentProviderResult[] result = mResolver.applyBatch(ContactsContract.AUTHORITY, mOperations);
+            if(result.length == 0) return 0;
+            id = ContentUris.parseId(result[0].uri);
         } catch (final OperationApplicationException e1) {
             Log.e(TAG, "storing contact data failed", e1);
         } catch (final RemoteException e2) {
             Log.e(TAG, "storing contact data failed", e2);
         }
         mOperations.clear();
+        return id;
     }
 }

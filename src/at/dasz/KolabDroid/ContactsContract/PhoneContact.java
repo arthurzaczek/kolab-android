@@ -41,12 +41,24 @@ public class PhoneContact extends ContactMethod
 		Element phone = Utils.createXmlElement(xml, parent, "phone");
 		switch (this.getType())
 		{
-		//TODO: we only support 1 home and 1 business number for now		
+		//TODO: we support to less		
+		case Phone.TYPE_MAIN:
+			Utils.setXmlElementValue(xml, phone, "type", "primary");
+			break;
 		case Phone.TYPE_HOME:
 			Utils.setXmlElementValue(xml, phone, "type", "home1");
 			break;
+		case Phone.TYPE_FAX_HOME:
+			Utils.setXmlElementValue(xml, phone, "type", "home2");
+			break;
 		case Phone.TYPE_WORK:
 			Utils.setXmlElementValue(xml, phone, "type", "business1");
+			break;
+		case Phone.TYPE_WORK_MOBILE:
+			Utils.setXmlElementValue(xml, phone, "type", "business2");
+			break;
+		case Phone.TYPE_FAX_WORK:
+			Utils.setXmlElementValue(xml, phone, "type", "businessfax");
 			break;
 		case Phone.TYPE_MOBILE:
 			Utils.setXmlElementValue(xml, phone, "type", "mobile");
@@ -66,8 +78,12 @@ public class PhoneContact extends ContactMethod
 		String type = Utils.getXmlElementString(parent, "type");
 		if(type != null)
 		{
-			if(type.startsWith("home")) setType(Phone.TYPE_HOME);
-			if(type.startsWith("business")) setType(Phone.TYPE_WORK);
+			if(type.equals("primary")) setType(Phone.TYPE_MAIN);
+			if(type.equals("home1")) setType(Phone.TYPE_HOME);
+			if(type.equals("home2")) setType(Phone.TYPE_FAX_HOME);
+			if(type.equals("business1")) setType(Phone.TYPE_WORK);
+			if(type.equals("business2")) setType(Phone.TYPE_WORK_MOBILE);
+			if(type.equals("businessfax")) setType(Phone.TYPE_FAX_WORK);
 			if(type.startsWith("mobile")) setType(Phone.TYPE_MOBILE);
 		}
 	}
