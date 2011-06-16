@@ -77,7 +77,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		{
 			calendarProvider.deleteOurCalendar(
 					context.getString(R.string.SYNC_ACCOUNT_NAME),
-					context.getString(R.string.SYNC_ACCOUNT_TYPE));
+					Utils.SYNC_ACCOUNT_TYPE);
 		}
 		else
 		{

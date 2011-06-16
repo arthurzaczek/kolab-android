@@ -55,23 +55,8 @@ public final class Utils
 	public static final String LOG_TAG_SETTINGSVIEW			= "KolabDroid-SettingsView";
 	public static final String LOG_TAG_SPECIAL_KEYSTORE_SSL_SOCKETFACTORY = "KolabDroid-SpecialKeystoreSSLSocketFactory";
 	
-	public static String join(final String delimiter, final Object[] objects)
-	{
-		if (objects.length == 0) return "";
-
-		StringBuilder buffer = new StringBuilder(objects[0].toString());
-
-		for (int i = 1; i < objects.length; i++)
-			buffer.append(delimiter).append(objects[i]);
-
-		return buffer.toString();
-	}
+	public static final String SYNC_ACCOUNT_TYPE = "at.dasz.kolabdroid";
 	
-	@Deprecated
-	public static boolean isNullOrEmpty(final String s)
-	{
-		return s == null || "".equals(s);
-	}
 
 	/**
 	 * date format mask for Kolab's Datetime

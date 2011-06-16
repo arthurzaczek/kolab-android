@@ -169,7 +169,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		//TODO: maybe we should use the account.name and account.type instead of string 
 		
 		return cr.query(ContactsContract.RawContacts.CONTENT_URI, null, where,
-				new String[]{ctx.getString(R.string.SYNC_ACCOUNT_NAME), ctx.getString(R.string.SYNC_ACCOUNT_TYPE)}, null);
+				new String[]{ctx.getString(R.string.SYNC_ACCOUNT_NAME), Utils.SYNC_ACCOUNT_TYPE}, null);
 	}
 
 	public int getIdColumnIndex(Cursor c)

@@ -89,7 +89,7 @@
 	<string name="checkSettingsCertificateChainDeclined">Certificate chain has been declined. Encrypted IMAP
 		connection will not be possible.</string>
 	<string name="fetching_local_items">Fetching local items</string>
-<string name="SYNC_ACCOUNT_TYPE">at.dasz.kolabdroid</string>
+
 <string name="SYNC_ACCOUNT_NAME">KolabDroid SyncAccount</string>
 	<string name="crash_notif_ticker_text">Unexpected error, please send a report...</string>
 	<string name="crash_notif_title">KolabDroid has crashed...</string>

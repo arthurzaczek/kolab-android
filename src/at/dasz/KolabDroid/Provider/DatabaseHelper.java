@@ -25,8 +25,8 @@ import android.content.Context;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.text.TextUtils;
 import android.util.Log;
-import at.dasz.KolabDroid.Utils;
 
 /**
  * @author arthur
@@ -114,7 +114,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 	private void createDb(SQLiteDatabase db)
 	{
-		final String columns = Utils.join(", ", new String[] {
+		final String columns = TextUtils.join(", ", new String[] {
 				COL_ID + " INTEGER PRIMARY KEY",
 				LocalCacheProvider.COL_LOCAL_ID + " INTEGER UNIQUE", 
 				LocalCacheProvider.COL_LOCAL_HASH + " TEXT",
@@ -129,7 +129,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		db.execSQL("CREATE TABLE " + LocalCacheProvider.CALENDAR_TABLE_NAME + " (" + columns
 				+ ");");
 		
-		final String stat_columns = Utils.join(", ", new String[] {
+		final String stat_columns = TextUtils.join(", ", new String[] {
 				COL_ID + " INTEGER PRIMARY KEY",
 				StatusProvider.COL_time + " INTEGER", 
 				StatusProvider.COL_task + " TEXT",

@@ -17,6 +17,7 @@ import android.provider.ContactsContract;
 import android.util.Log;
 import android.widget.Toast;
 import at.dasz.KolabDroid.R;
+import at.dasz.KolabDroid.Utils;
 import at.dasz.KolabDroid.Provider.LocalCacheProvider;
 
 public class KolabAccountAuthenticatorService extends Service
@@ -97,8 +98,7 @@ public class KolabAccountAuthenticatorService extends Service
 			AccountManager am = AccountManager.get(context);
 			final String syncAccountName = context.getResources().getString(
 					R.string.SYNC_ACCOUNT_NAME);
-			final String syncAccountType = context.getResources().getString(
-					R.string.SYNC_ACCOUNT_TYPE);
+			final String syncAccountType = Utils.SYNC_ACCOUNT_TYPE;
 
 			Account kolabAccount = new Account(syncAccountName, syncAccountType);
 			am.addAccountExplicitly(kolabAccount, null, null);
@@ -132,9 +132,7 @@ public class KolabAccountAuthenticatorService extends Service
 		private Account getKolabDroidAccount(Context context)
 		{
 			AccountManager am = AccountManager.get(context);
-			final String syncAccountType = context.getResources().getString(
-					R.string.SYNC_ACCOUNT_TYPE);
-			Account[] accounts = am.getAccountsByType(syncAccountType);
+			Account[] accounts = am.getAccountsByType(Utils.SYNC_ACCOUNT_TYPE);
 
 			if (accounts.length > 1) Log.w(
 					KolabAccountAuthenticatorService.class.getSimpleName(),

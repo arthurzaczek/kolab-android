@@ -19,7 +19,6 @@ package at.dasz.KolabDroid.ContactsContract;
 
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
-import android.content.Context;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Event;
@@ -31,7 +30,7 @@ import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.text.TextUtils;
-import at.dasz.KolabDroid.R;
+import at.dasz.KolabDroid.Utils;
 
 /**
  * Helper class for storing data in the platform content providers.
@@ -50,27 +49,23 @@ public class ContactOperations
 
 	private int									mBackReference;
 
-	private Context								mContext;
-
 	private boolean								mIsNewContact;
 
 	/**
 	 * Returns an instance of ContactOperations instance for adding new contact
 	 * to the platform contacts provider.
 	 * 
-	 * @param context
-	 *            the Authenticator Activity context
 	 * @param userId
 	 *            the userId of the sample SyncAdapter user object
 	 * @param accountName
 	 *            the username of the current login
 	 * @return instance of ContactOperations
 	 */
-	public static ContactOperations createNewContact(Context context,
+	public static ContactOperations createNewContact(
 			int userId, String accountName, BatchOperation batchOperation)
 	{
 
-		return new ContactOperations(context, userId, accountName,
+		return new ContactOperations(userId, accountName,
 				batchOperation);
 	}
 
@@ -78,47 +73,43 @@ public class ContactOperations
 	 * Returns an instance of ContactOperations for updating existing contact in
 	 * the platform contacts provider.
 	 * 
-	 * @param context
-	 *            the Authenticator Activity context
 	 * @param rawContactId
 	 *            the unique Id of the existing rawContact
 	 * @return instance of ContactOperations
 	 */
-	public static ContactOperations updateExistingContact(Context context,
+	public static ContactOperations updateExistingContact(
 			long rawContactId, BatchOperation batchOperation)
 	{
 
-		return new ContactOperations(context, rawContactId, batchOperation);
+		return new ContactOperations(rawContactId, batchOperation);
 	}
 
-	public ContactOperations(Context context, BatchOperation batchOperation)
+	public ContactOperations(BatchOperation batchOperation)
 	{
 		mValues = new ContentValues();
 		mYield = true;
 		mBatchOperation = batchOperation;
-		mContext = context;
 	}
 
-	public ContactOperations(Context context, int userId, String accountName,
+	public ContactOperations(int userId, String accountName,
 			BatchOperation batchOperation)
 	{
 
-		this(context, batchOperation);
+		this(batchOperation);
 		mBackReference = mBatchOperation.size();
 		mIsNewContact = true;
 		mValues.put(RawContacts.SOURCE_ID, userId);
-		mValues.put(RawContacts.ACCOUNT_TYPE,
-				mContext.getString(R.string.SYNC_ACCOUNT_TYPE));
+		mValues.put(RawContacts.ACCOUNT_TYPE, Utils.SYNC_ACCOUNT_TYPE);
 		mValues.put(RawContacts.ACCOUNT_NAME, accountName);
 		mBuilder = newInsertCpo(RawContacts.CONTENT_URI, true).withValues(
 				mValues);
 		mBatchOperation.add(mBuilder.build());
 	}
 
-	public ContactOperations(Context context, long rawContactId,
+	public ContactOperations(long rawContactId,
 			BatchOperation batchOperation)
 	{
-		this(context, batchOperation);
+		this(batchOperation);
 		mIsNewContact = false;
 		mRawContactId = rawContactId;
 	}
@@ -328,12 +319,11 @@ public class ContactOperations
 		}
 		return this;
 	}
-	
+
 	public void delete(Uri uri)
 	{
-		addDeleteOp(uri);		
+		addDeleteOp(uri);
 	}
-
 
 	/**
 	 * Adds an insert operation into the batch

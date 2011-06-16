@@ -44,13 +44,16 @@ public class ContactDBHelper
 				mimeType = queryCursor.getString(DataQuery.COLUMN_MIMETYPE);
 				if (mimeType.equals(StructuredName.CONTENT_ITEM_TYPE))
 				{
-					result.setGivenName(queryCursor.getString(DataQuery.COLUMN_GIVEN_NAME));
-					result.setFamilyName(queryCursor.getString(DataQuery.COLUMN_FAMILY_NAME));
+					result.setGivenName(queryCursor
+							.getString(DataQuery.COLUMN_GIVEN_NAME));
+					result.setFamilyName(queryCursor
+							.getString(DataQuery.COLUMN_FAMILY_NAME));
 				}
 				else if (mimeType.equals(Phone.CONTENT_ITEM_TYPE))
 				{
 					PhoneContact pc = new PhoneContact();
-					pc.setData(queryCursor.getString(DataQuery.COLUMN_PHONE_NUMBER));
+					pc.setData(queryCursor
+							.getString(DataQuery.COLUMN_PHONE_NUMBER));
 					pc.setType(queryCursor.getInt(DataQuery.COLUMN_PHONE_TYPE));
 					result.getContactMethods().add(pc);
 
@@ -58,14 +61,16 @@ public class ContactDBHelper
 				else if (mimeType.equals(Email.CONTENT_ITEM_TYPE))
 				{
 					EmailContact pc = new EmailContact();
-					pc.setData(queryCursor.getString(DataQuery.COLUMN_EMAIL_ADDRESS));
+					pc.setData(queryCursor
+							.getString(DataQuery.COLUMN_EMAIL_ADDRESS));
 					pc.setType(queryCursor.getInt(DataQuery.COLUMN_EMAIL_TYPE));
 					result.getContactMethods().add(pc);
 
 				}
 				else if (mimeType.equals(Event.CONTENT_ITEM_TYPE))
 				{
-					String bday = queryCursor.getString(DataQuery.COLUMN_EVENT_START_DATE);
+					String bday = queryCursor
+							.getString(DataQuery.COLUMN_EVENT_START_DATE);
 					result.setBirthday(bday);
 				}
 				else if (mimeType.equals(Photo.CONTENT_ITEM_TYPE))
@@ -101,15 +106,14 @@ public class ContactDBHelper
 
 		if (contact.getId() == 0)
 		{
-			contactOp = ContactOperations.createNewContact(ctx, 0, accountName,
+			contactOp = ContactOperations.createNewContact(0, accountName,
 					batchOperation);
-			// Put the data in the contacts provider
 			contactOp.addName(contact.getGivenName(), contact.getFamilyName());
 		}
 		else
 		{
-			contactOp = ContactOperations.updateExistingContact(ctx,
-					rawContactId, batchOperation);
+			contactOp = ContactOperations.updateExistingContact(rawContactId,
+					batchOperation);
 		}
 
 		saveContactDetails(ctx, ctx.getContentResolver(), accountName, contact,

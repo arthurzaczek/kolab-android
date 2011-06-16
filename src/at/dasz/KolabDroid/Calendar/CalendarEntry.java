@@ -23,8 +23,8 @@ package at.dasz.KolabDroid.Calendar;
 
 import java.util.ArrayList;
 
+import android.text.TextUtils;
 import android.text.format.Time;
-import at.dasz.KolabDroid.Utils;
 
 public class CalendarEntry
 {
@@ -229,8 +229,8 @@ public class CalendarEntry
 		contents.add(getEventLocation() == null ? "no EventLocation"
 				: getEventLocation());
 		contents.add(getrRule() == null ? "no rRule" : getrRule());
-		contents.add(getReminderTime() == -1 ? "no Reminder" : Integer.toString(getReminderTime()));
-		return Utils.join("|", contents.toArray());
+		contents.add(getReminderTime() == -1 ? "no Reminder" : Integer.toString(getReminderTime()));		
+		return TextUtils.join("|", contents.toArray());
 	}
 
 	public static String monthToKolabMonth(String m)

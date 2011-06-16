@@ -7,7 +7,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import android.text.TextUtils;
-import at.dasz.KolabDroid.Utils;
 
 public class Contact
 {
@@ -162,7 +161,7 @@ public class Contact
 			contents.add("noNotes");
 		}
 
-		return Utils.join("|", contents.toArray());
+		return TextUtils.join("|", contents.toArray());
 	}
 
 	public PhoneContact findPhone(String phone)

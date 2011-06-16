@@ -35,6 +35,7 @@ import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.util.Log;
 import at.dasz.KolabDroid.R;
+import at.dasz.KolabDroid.Utils;
 import at.dasz.KolabDroid.Sync.SyncException;
 
 public class CalendarProvider
@@ -371,23 +372,20 @@ public class CalendarProvider
 		dumpAllCalendars();
 
 		String accountName = "";
-		String accountType = "";
 
 		if (account == null) // called by reset button
 		{
 			accountName = ctx.getString(R.string.SYNC_ACCOUNT_NAME);
-			accountType = ctx.getString(R.string.SYNC_ACCOUNT_TYPE);
 		}
 		else
 		{
 			accountName = account.name;
-			accountType = account.type;
 		}
 
 		String selection = "_sync_account=? and _sync_account_type=?";
 
 		Cursor cur = cr.query(CalendarProvider.CALENDAR_CALENDARS_URI, null,
-				selection, new String[] { accountName, accountType }, null);
+				selection, new String[] { accountName, Utils.SYNC_ACCOUNT_TYPE }, null);
 
 		if (cur == null)
 		{
@@ -401,7 +399,7 @@ public class CalendarProvider
 			Log.i(TAG, "Creating new KolabDroid calendar");
 			// create one
 			cvs.put("_sync_account", accountName);
-			cvs.put("_sync_account_type", accountType);
+			cvs.put("_sync_account_type", Utils.SYNC_ACCOUNT_TYPE);
 			cvs.put("name", accountName);
 			cvs.put("displayName", accountName);
 			cvs.put("selected", 1);
