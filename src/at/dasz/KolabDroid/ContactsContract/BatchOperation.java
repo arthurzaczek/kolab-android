@@ -28,6 +28,10 @@ import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.util.Log;
 
+/**
+ * @author arthur
+ *
+ */
 public class BatchOperation
 {
 	private final String TAG = "BatchOperation";
@@ -50,17 +54,19 @@ public class BatchOperation
         mOperations.add(cpo);
     }
 
-    public long execute() {
-        long id = 0;
-
+    public long execute(long id) {
         if (mOperations.size() == 0) {
             return id;
         }
         // Apply the mOperations to the content provider
         try {
             ContentProviderResult[] result = mResolver.applyBatch(ContactsContract.AUTHORITY, mOperations);
-            if(result.length == 0) return 0;
-            id = ContentUris.parseId(result[0].uri);
+            if(result.length > 0)
+            {
+            	// Get first result, if available & parse ID
+            	if(result[0].uri != null)
+            		id = ContentUris.parseId(result[0].uri);
+            }
         } catch (final OperationApplicationException e1) {
             Log.e(TAG, "storing contact data failed", e1);
         } catch (final RemoteException e2) {

@@ -167,7 +167,7 @@ public class CacheEntry
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder();
-		sb.append("CacheEntry: id ");
+		sb.append("CacheEntry: ");
 		sb.append(" localHash: ");
 		sb.append(localHash);
 		sb.append("\n");

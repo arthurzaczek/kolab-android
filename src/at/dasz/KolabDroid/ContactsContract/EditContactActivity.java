@@ -149,6 +149,7 @@ public class EditContactActivity extends Activity
 					// Sorry
 					break;
 				}
+				emailCounter++;
 			}
 			else if (cm instanceof PhoneContact)
 			{

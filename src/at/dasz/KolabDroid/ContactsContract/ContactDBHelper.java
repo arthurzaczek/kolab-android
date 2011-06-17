@@ -59,16 +59,16 @@ public class ContactDBHelper
 					pc.setData(queryCursor
 							.getString(DataQuery.COLUMN_PHONE_NUMBER));
 					pc.setType(queryCursor.getInt(DataQuery.COLUMN_PHONE_TYPE));
-					result.getContactMethods().add(pc);
+					result.addContactMethod(pc);
 
 				}
 				else if (mimeType.equals(Email.CONTENT_ITEM_TYPE))
 				{
-					EmailContact pc = new EmailContact();
-					pc.setData(queryCursor
+					EmailContact ec = new EmailContact();
+					ec.setData(queryCursor
 							.getString(DataQuery.COLUMN_EMAIL_ADDRESS));
-					pc.setType(queryCursor.getInt(DataQuery.COLUMN_EMAIL_TYPE));
-					result.getContactMethods().add(pc);
+					ec.setType(queryCursor.getInt(DataQuery.COLUMN_EMAIL_TYPE));
+					result.addContactMethod(ec);
 
 				}
 				else if (mimeType.equals(Event.CONTENT_ITEM_TYPE))
@@ -133,7 +133,7 @@ public class ContactDBHelper
 		saveContactDetails(ctx, ctx.getContentResolver(), accountName, contact,
 				rawContactId, contactOp);
 
-		long id = batchOperation.execute();
+		long id = batchOperation.execute(contact.getId());
 		
 		if (contact.getId() == 0)
 		{
