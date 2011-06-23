@@ -17,6 +17,7 @@ import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.View;
 import android.widget.DatePicker;
@@ -85,9 +86,11 @@ public class EditContactActivity extends Activity
 	protected Dialog onCreateDialog(int id) {
 	    switch (id) {
 	    case DATE_DIALOG_ID:
+	    	Time now = new Time();
+	    	now.setToNow();
 	        return new DatePickerDialog(this,
 	                    mDateSetListener,
-	                    0, 0, 0);
+	                    now.year, now.month, now.monthDay);
 	    }
 	    return null;
 	}
@@ -278,29 +281,29 @@ public class EditContactActivity extends Activity
 
 		mContact.setNote(notes.getText().toString());
 
-		pcMain = binFromPhone(pcMain, phoneMain.getText().toString(),
+		pcMain = bindFromPhone(pcMain, phoneMain.getText().toString(),
 				Phone.TYPE_MAIN);
-		pcHome1 = binFromPhone(pcHome1, phoneHome1.getText().toString(),
+		pcHome1 = bindFromPhone(pcHome1, phoneHome1.getText().toString(),
 				Phone.TYPE_HOME);
-		pcHome2 = binFromPhone(pcHome2, phoneHome2.getText().toString(),
+		pcHome2 = bindFromPhone(pcHome2, phoneHome2.getText().toString(),
 				Phone.TYPE_HOME);
-		pcWork = binFromPhone(pcWork, phoneWork.getText().toString(),
+		pcWork = bindFromPhone(pcWork, phoneWork.getText().toString(),
 				Phone.TYPE_WORK);
-		pcWorkMobile = binFromPhone(pcWorkMobile, phoneWorkMobile.getText().toString(),
+		pcWorkMobile = bindFromPhone(pcWorkMobile, phoneWorkMobile.getText().toString(),
 				Phone.TYPE_WORK_MOBILE);
-		pcFaxWork = binFromPhone(pcFaxWork, phoneFaxWork.getText().toString(),
+		pcFaxWork = bindFromPhone(pcFaxWork, phoneFaxWork.getText().toString(),
 				Phone.TYPE_FAX_WORK);
-		pcMobile = binFromPhone(pcMobile, phoneMobile.getText().toString(),
+		pcMobile = bindFromPhone(pcMobile, phoneMobile.getText().toString(),
 				Phone.TYPE_MOBILE);
-		pcOther = binFromPhone(pcOther, phoneOther.getText().toString(),
+		pcOther = bindFromPhone(pcOther, phoneOther.getText().toString(),
 				Phone.TYPE_OTHER);
 
-		ec1 = binFromEmail(ec1, email1.getText().toString());
-		ec2 = binFromEmail(ec2, email1.getText().toString());
-		ec3 = binFromEmail(ec3, email1.getText().toString());
+		ec1 = bindFromEmail(ec1, email1.getText().toString());
+		ec2 = bindFromEmail(ec2, email1.getText().toString());
+		ec3 = bindFromEmail(ec3, email1.getText().toString());
 	}
 
-	private PhoneContact binFromPhone(PhoneContact pc, String txt, int type)
+	private PhoneContact bindFromPhone(PhoneContact pc, String txt, int type)
 	{
 		if (!TextUtils.isEmpty(txt))
 		{
@@ -320,7 +323,7 @@ public class EditContactActivity extends Activity
 		return pc;
 	}
 
-	private EmailContact binFromEmail(EmailContact ec, String txt)
+	private EmailContact bindFromEmail(EmailContact ec, String txt)
 	{
 		if (!TextUtils.isEmpty(txt))
 		{
