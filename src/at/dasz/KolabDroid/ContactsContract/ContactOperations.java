@@ -23,7 +23,9 @@ import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Event;
 import android.provider.ContactsContract.CommonDataKinds.Note;
+import android.provider.ContactsContract.CommonDataKinds.Organization;
 import android.provider.ContactsContract.CommonDataKinds.Photo;
+import android.provider.ContactsContract.CommonDataKinds.Website;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.provider.ContactsContract.CommonDataKinds.Email;
@@ -223,16 +225,31 @@ public class ContactOperations
 		}
 		return this;
 	}
+	
+	public ContactOperations addWebpage(String webpage)
+	{
+		mValues.clear();
+		if (!TextUtils.isEmpty(webpage))
+		{
+			mValues.put(Website.URL, webpage);
+			mValues.put(Website.MIMETYPE, Website.TYPE_OTHER);
+			addInsertOp();
+		}
+		return this;
+	}	
 
-	/**
-	 * Updates contact's email
-	 * 
-	 * @param email
-	 *            email id of the sample SyncAdapter user
-	 * @param uri
-	 *            Uri for the existing raw contact to be updated
-	 * @return instance of ContactOperations
-	 */
+	public ContactOperations addOrganization(String org)
+	{
+		mValues.clear();
+		if (!TextUtils.isEmpty(org))
+		{
+			mValues.put(Organization.COMPANY, org);
+			mValues.put(Organization.MIMETYPE, Organization.TYPE_WORK);
+			addInsertOp();
+		}
+		return this;
+	}
+
 	public ContactOperations updateEmail(Uri uri, String email, int type)
 	{
 		mValues.clear();
@@ -242,19 +259,6 @@ public class ContactOperations
 		return this;
 	}
 
-	/**
-	 * Updates contact's name
-	 * 
-	 * @param name
-	 *            Name of contact
-	 * @param existingName
-	 *            Name of contact stored in provider
-	 * @param nameType
-	 *            type of name: family name, given name, etc.
-	 * @param uri
-	 *            Uri for the existing raw contact to be updated
-	 * @return instance of ContactOperations
-	 */
 	public ContactOperations updateName(Uri uri, String firstName,
 			String lastName)
 	{
@@ -296,6 +300,36 @@ public class ContactOperations
 		{
 			mValues.clear();
 			mValues.put(Note.NOTE, notes);
+			addUpdateOp(uri);
+		}
+		else
+		{
+			addDeleteOp(uri);
+		}
+		return this;
+	}
+	
+	public ContactOperations updateWebpage(Uri uri, String webpage)
+	{
+		if (!TextUtils.isEmpty(webpage))
+		{
+			mValues.clear();
+			mValues.put(Website.URL, webpage);
+			addUpdateOp(uri);
+		}
+		else
+		{
+			addDeleteOp(uri);
+		}
+		return this;
+	}
+	
+	public ContactOperations updateOrganization(Uri uri, String org)
+	{
+		if (!TextUtils.isEmpty(org))
+		{
+			mValues.clear();
+			mValues.put(Organization.COMPANY, org);
 			addUpdateOp(uri);
 		}
 		else
@@ -391,4 +425,6 @@ public class ContactOperations
 				.appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER,
 						"true").build();
 	}
+
+	
 }

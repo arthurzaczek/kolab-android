@@ -8,6 +8,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.CommonDataKinds.Organization;
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Event;
@@ -15,6 +16,7 @@ import android.provider.ContactsContract.CommonDataKinds.Note;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.Photo;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
+import android.provider.ContactsContract.CommonDataKinds.Website;
 import android.provider.ContactsContract.Data;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.Sync.SyncException;
@@ -85,6 +87,16 @@ public class ContactDBHelper
 					String note = queryCursor.getString(DataQuery.COLUMN_NOTE);
 					result.setNote(note);
 				}
+				else if (mimeType.equals(Website.CONTENT_ITEM_TYPE))
+				{
+					String webpage = queryCursor.getString(DataQuery.COLUMN_WEBPAGE);
+					result.setWebpage(webpage);
+				}
+				else if (mimeType.equals(Organization.CONTENT_ITEM_TYPE))
+				{
+					String org = queryCursor.getString(DataQuery.COLUMN_ORGANIZATION);
+					result.setOrganization(org);
+				}
 			} while (queryCursor.moveToNext());
 
 			return result;
@@ -137,6 +149,9 @@ public class ContactDBHelper
 		boolean photoUpdated = false;
 		boolean notesUpdated = false;
 		boolean birthdayUpdated = false;
+		boolean webpageUpdated = false;
+		boolean orgUpdated = false;
+		
 		HashSet<PhoneContact> updatedPhoneContacts = new HashSet<PhoneContact>();
 		HashSet<EmailContact> updatedEmailContacts = new HashSet<EmailContact>();
 
@@ -174,6 +189,16 @@ public class ContactDBHelper
 					{
 						birthdayUpdated = true;
 						contactOp.updateBirthday(uri, contact.getBirthday());
+					}
+					else if (mimeType.equals(Website.CONTENT_ITEM_TYPE))
+					{
+						webpageUpdated = true;
+						contactOp.updateWebpage(uri, contact.getWebpage());
+					}
+					else if (mimeType.equals(Organization.CONTENT_ITEM_TYPE))
+					{
+						orgUpdated = true;
+						contactOp.updateOrganization(uri, contact.getOrganization());
 					}
 					else if (mimeType.equals(Phone.CONTENT_ITEM_TYPE))
 					{
@@ -231,6 +256,14 @@ public class ContactDBHelper
 		if (!birthdayUpdated)
 		{
 			contactOp.addBirthday(contact.getBirthday());
+		}
+		if (!webpageUpdated)
+		{
+			contactOp.addWebpage(contact.getWebpage());
+		}
+		if (!orgUpdated)
+		{
+			contactOp.addOrganization(contact.getOrganization());
 		}
 
 		for (ContactMethod cm : contact.getContactMethods())

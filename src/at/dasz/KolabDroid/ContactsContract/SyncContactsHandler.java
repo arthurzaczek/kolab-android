@@ -220,9 +220,11 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		}
 
 		contact.setBirthday(Utils.getXmlElementString(root, "birthday"));
-		Log.d("ConH", "Set Birthday to: " + contact.getBirthday());
+		contact.setWebpage(Utils.getXmlElementString(root, "web-page"));
+		contact.setOrganization(Utils.getXmlElementString(root, "organization"));
+		contact.setNote(Utils.getXmlElementString(root, "body"));
 
-		contact.getContactMethods().clear();
+		contact.clearContactMethods();
 
 		NodeList nl = Utils.getXmlElements(root, "phone");
 		for (int i = 0; i < nl.getLength(); i++)
@@ -260,8 +262,6 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			Log.i("ConH", "No Photo on server for " + contact.getFullName());
 		}
 
-		contact.setNote(Utils.getXmlElementString(root, "body"));
-		Log.d("ConH", "Set Notes to: " + contact.getNotes());
 
 		sync.setCacheEntry(saveContact(contact));
 	}
@@ -315,6 +315,14 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		if (!TextUtils.isEmpty(source.getNotes())) Utils.setXmlElementValue(
 				xml, root, "body", source.getNotes());
 		else Utils.deleteXmlElements(root, "body");
+
+		if (!TextUtils.isEmpty(source.getWebpage())) Utils.setXmlElementValue(
+				xml, root, "web-page", source.getWebpage());
+		else Utils.deleteXmlElements(root, "web-page");
+
+		if (!TextUtils.isEmpty(source.getOrganization())) Utils.setXmlElementValue(
+				xml, root, "organization", source.getOrganization());
+		else Utils.deleteXmlElements(root, "organization");
 
 		if (source.getPhoto() != null) storePhotoInMessage(sync, xml,
 				source.getPhoto());

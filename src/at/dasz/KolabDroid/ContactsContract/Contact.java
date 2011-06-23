@@ -14,10 +14,33 @@ public class Contact
 	private int		id;
 	private String	uid;
 	private String	givenName, familyName, fullName;
-	private String	birthday	= "";		// string as in android for now
+	private String	birthday	= "";					// string as in android
+														// for now
 	private byte[]	photo;
 	private String	notes;
+	private String	webpage;
+	private String  organization;
 
+	public String getWebpage()
+	{
+		return webpage;
+	}
+
+	public void setWebpage(String webpage)
+	{
+		this.webpage = webpage;
+	}
+
+	public String getOrganization()
+	{
+		return organization;
+	}
+
+	public void setOrganization(String organization)
+	{
+		this.organization = organization;
+	}
+	
 	public String getBirthday()
 	{
 		return birthday;
@@ -74,12 +97,11 @@ public class Contact
 	{
 		return fullName;
 	}
-	
+
 	public void setFullName(String fullName)
 	{
 		this.fullName = fullName;
 	}
-
 
 	public byte[] getPhoto()
 	{
@@ -115,6 +137,7 @@ public class Contact
 	{
 		contactMethods.add(cm);
 	}
+
 	public void removeContactMethod(ContactMethod cm)
 	{
 		contactMethods.remove(cm);
@@ -178,25 +201,21 @@ public class Contact
 	{
 		for (ContactMethod cm : contactMethods)
 		{
-			if(cm instanceof PhoneContact && TextUtils.equals(cm.getData(), phone))
-			{
-				return (PhoneContact)cm;
-			}
+			if (cm instanceof PhoneContact
+					&& TextUtils.equals(cm.getData(), phone)) { return (PhoneContact) cm; }
 		}
-		
+
 		return null;
 	}
-	
+
 	public EmailContact findEmail(String mail)
 	{
 		for (ContactMethod cm : contactMethods)
 		{
-			if(cm instanceof EmailContact && TextUtils.equals(cm.getData(), mail))
-			{
-				return (EmailContact)cm;
-			}
+			if (cm instanceof EmailContact
+					&& TextUtils.equals(cm.getData(), mail)) { return (EmailContact) cm; }
 		}
-		
+
 		return null;
 	}
 }

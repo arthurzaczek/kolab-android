@@ -34,6 +34,8 @@ public final class DataQuery
 	public static final int			COLUMN_EVENT_START_DATE = COLUMN_DATA1;
 	public static final int			COLUMN_PHOTO			= COLUMN_DATA15;
 	public static final int			COLUMN_NOTE				= COLUMN_DATA1;
+	public static final int			COLUMN_WEBPAGE			= COLUMN_DATA1;
+	public static final int			COLUMN_ORGANIZATION		= COLUMN_DATA1;
 
 	public static final int			COLUMN_PHONE_NUMBER		= COLUMN_DATA1;
 	public static final int			COLUMN_PHONE_TYPE		= COLUMN_DATA2;

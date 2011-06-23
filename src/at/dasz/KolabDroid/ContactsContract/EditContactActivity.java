@@ -51,6 +51,8 @@ public class EditContactActivity extends Activity
 	private EditText		email3;
 	private TextView		birthday;
 	private EditText		notes;
+	private EditText		webpage;
+	private EditText		organization;
 
 	private PhoneContact	pcMain;
 	private PhoneContact	pcHome1;
@@ -112,6 +114,8 @@ public class EditContactActivity extends Activity
 		lastName.setText(mContact.getFamilyName());
 		birthday.setText(mContact.getBirthday());
 		notes.setText(mContact.getNotes());
+		webpage.setText(mContact.getWebpage());
+		organization.setText(mContact.getOrganization());
 
 		if (mContact.getPhoto() != null)
 		{
@@ -210,6 +214,8 @@ public class EditContactActivity extends Activity
 
 		birthday = (TextView) findViewById(R.id.dateDisplay);
 		notes = (EditText) findViewById(R.id.EditNotes);
+		webpage = (EditText) findViewById(R.id.EditWebPage);
+		organization = (EditText) findViewById(R.id.EditOrganization);
 
 		photoBtn = (ImageButton) findViewById(R.id.EditPhotoButton);
 	}
@@ -280,6 +286,8 @@ public class EditContactActivity extends Activity
 		mContact.setFamilyName(lastName.getText().toString());
 
 		mContact.setNote(notes.getText().toString());
+		mContact.setWebpage(webpage.getText().toString());
+		mContact.setOrganization(organization.getText().toString());
 
 		pcMain = bindFromPhone(pcMain, phoneMain.getText().toString(),
 				Phone.TYPE_MAIN);
