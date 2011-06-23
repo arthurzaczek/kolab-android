@@ -1,131 +1,138 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-	android:orientation="vertical" android:layout_height="fill_parent"
-	android:layout_width="fill_parent">
-	<LinearLayout android:orientation="vertical"
-		android:layout_width="fill_parent" android:layout_height="fill_parent">
-		<LinearLayout android:id="@+id/LinearLayout11"
-			android:layout_height="wrap_content" android:orientation="horizontal"
-			android:layout_width="fill_parent">
-			<ImageButton android:maxWidth="100px" android:minHeight="100px"
-				android:layout_width="wrap_content" android:layout_marginTop="5px"
-				android:minWidth="100px" android:maxHeight="100px" android:id="@+id/EditPhotoButton"
-				android:layout_height="wrap_content" android:onClick="onPhotoBtnClicked"></ImageButton>
-			<Button android:layout_width="wrap_content"
-				android:layout_height="wrap_content" android:text="Remove Photo"
-				android:id="@+id/EditRemovePhotoButton" android:onClick="onRemPhotoClicked"></Button>
-		</LinearLayout>
-		<TextView android:text="Summary" android:textStyle="bold"
-			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:textSize="20dp" android:layout_marginTop="20dp" />
-
-		<TextView android:id="@+id/TextView05" android:layout_height="wrap_content"
-			android:layout_width="fill_parent" android:text="Firstname:" />
-		<EditText android:id="@+id/EditFirstName"
-			android:layout_height="wrap_content" android:layout_width="fill_parent"
-			android:inputType="textPersonName" />
-		<TextView android:id="@+id/TextView06" android:layout_width="wrap_content"
-			android:layout_height="wrap_content" android:text="Lastname:"></TextView>
-		<EditText android:layout_height="wrap_content" android:id="@+id/EditLastName"
-			android:layout_width="fill_parent" android:inputType="textPersonName" />
-
-		<TextView android:text="Phone" android:layout_width="wrap_content"
-			android:layout_height="wrap_content" android:textStyle="bold"
-			android:textSize="20dp" android:layout_marginTop="20dp" />
-
-		<TextView android:layout_width="wrap_content"
-			android:layout_height="wrap_content" android:id="@+id/TextPhoneHome"
-			android:text="Main:" />
-		<EditText android:id="@+id/EditPhoneMain"
-			android:layout_height="wrap_content" android:layout_width="fill_parent"
-			android:inputType="phone" />
-
-		<TextView android:layout_width="wrap_content"
-			android:layout_height="wrap_content" android:id="@+id/TextPhoneHome"
-			android:text="Home1:" />
-		<EditText android:id="@+id/EditPhoneHome1"
-			android:layout_height="wrap_content" android:layout_width="fill_parent"
-			android:inputType="phone" />
-		<TextView android:layout_width="wrap_content"
-			android:layout_height="wrap_content" android:id="@+id/TextPhoneHome"
-			android:text="Home2:" />
-		<EditText android:id="@+id/EditPhoneHome2"
-			android:layout_height="wrap_content" android:layout_width="fill_parent"
-			android:inputType="phone" />
-		<TextView android:id="@+id/TextView02" android:text="Mobile:"
-			android:layout_height="wrap_content" android:layout_width="wrap_content" />
-		<EditText android:id="@+id/EditPhoneMobile"
-			android:layout_height="wrap_content" android:layout_width="fill_parent"
-			android:inputType="phone" />
-		<TextView android:id="@+id/TextView03" android:text="Work:"
-			android:layout_height="wrap_content" android:layout_width="wrap_content" />
-		<EditText android:id="@+id/EditPhoneWork"
-			android:layout_height="wrap_content" android:layout_width="fill_parent"
-			android:inputType="phone" />
-
-		<TextView android:id="@+id/TextView03" android:text="Work2:"
-			android:layout_height="wrap_content" android:layout_width="wrap_content" />
-		<EditText android:id="@+id/EditPhoneWorkMobile"
-			android:layout_height="wrap_content" android:layout_width="fill_parent"
-			android:inputType="phone" />
-		<TextView android:id="@+id/TextView03" android:text="Work Fax:"
-			android:layout_height="wrap_content" android:layout_width="wrap_content" />
-		<EditText android:id="@+id/EditPhoneFaxWork"
-			android:layout_height="wrap_content" android:layout_width="fill_parent"
-			android:inputType="phone" />
-		<TextView android:id="@+id/TextView03" android:text="Other:"
-			android:layout_height="wrap_content" android:layout_width="wrap_content" />
-		<EditText android:id="@+id/EditPhoneOther"
-			android:layout_height="wrap_content" android:layout_width="fill_parent"
-			android:inputType="phone" />
-
-		<TextView android:text="Email" android:textStyle="bold"
-			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:textSize="20dp" android:layout_marginTop="20dp" />
-
-		<TextView android:id="@+id/TextEmail" android:text="Email1:"
-			android:layout_height="wrap_content" android:layout_width="fill_parent" />
-		<EditText android:id="@+id/EditEmail1" android:layout_height="wrap_content"
-			android:layout_width="fill_parent" android:inputType="textEmailAddress" />
-		<TextView android:id="@+id/TextEmail" android:text="Email2:"
-			android:layout_height="wrap_content" android:layout_width="fill_parent" />
-		<EditText android:id="@+id/EditEmail2" android:layout_height="wrap_content"
-			android:layout_width="fill_parent" android:inputType="textEmailAddress" />
-		<TextView android:id="@+id/TextEmail" android:text="Email3:"
-			android:layout_height="wrap_content" android:layout_width="fill_parent" />
-		<EditText android:id="@+id/EditEmail3" android:layout_height="wrap_content"
-			android:layout_width="fill_parent" android:inputType="textEmailAddress" />
-
-		<TextView android:text="More" android:textStyle="bold"
-			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:textSize="20dp" android:layout_marginTop="20dp" />
-
-		<TextView android:id="@+id/TextView01" android:layout_width="wrap_content"
-			android:layout_height="wrap_content" android:text="Birthday:" />
-		<LinearLayout android:layout_width="fill_parent"
-			android:layout_height="wrap_content" android:orientation="vertical">
-			<TextView android:id="@+id/dateDisplay"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical" android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+	<ScrollView android:orientation="vertical"
+		android:layout_height="fill_parent" android:layout_width="fill_parent" android:layout_weight="0.5" android:layout_marginBottom="5dp">
+		<LinearLayout android:orientation="vertical"
+			android:layout_width="fill_parent" android:layout_height="fill_parent">
+			<LinearLayout android:id="@+id/LinearLayout11"
+				android:layout_height="wrap_content" android:orientation="horizontal"
+				android:layout_width="fill_parent">
+				<ImageButton android:maxWidth="100px" android:minHeight="100px"
+					android:layout_width="wrap_content" android:layout_marginTop="5px"
+					android:minWidth="100px" android:maxHeight="100px" android:id="@+id/EditPhotoButton"
+					android:layout_height="wrap_content" android:onClick="onPhotoBtnClicked"></ImageButton>
+				<Button android:layout_width="wrap_content"
+					android:layout_height="wrap_content" android:text="Remove Photo"
+					android:id="@+id/EditRemovePhotoButton" android:onClick="onRemPhotoClicked"></Button>
+			</LinearLayout>
+			<TextView android:text="Summary" android:textStyle="bold"
 				android:layout_width="wrap_content" android:layout_height="wrap_content"
-				android:text="" />
-			<Button android:id="@+id/pickDate" android:layout_width="wrap_content"
-				android:layout_height="wrap_content" android:text="Set" android:layout_gravity="right" android:onClick="onChangeDateClicked"/>
-		</LinearLayout>
-		<TextView android:id="@+id/TextView04" android:layout_width="wrap_content"
-			android:layout_height="wrap_content" android:text="Notes:" />
-		<EditText android:layout_height="wrap_content"
-			android:layout_width="fill_parent" android:id="@+id/EditNotes"
-			android:inputType="textMultiLine" android:minLines="5"
-			android:scrollbars="vertical" android:gravity="top|left" />
+				android:textSize="20dp" android:layout_marginTop="20dp" />
 
-		<LinearLayout android:layout_height="wrap_content"
-			android:orientation="horizontal" android:layout_width="fill_parent">
-			<Button android:layout_width="fill_parent"
-				android:layout_height="wrap_content" android:text="Save" android:id="@+id/btnSave"
-				android:onClick="onSaveClicked" android:layout_weight="0.5" />
-			<Button android:layout_width="fill_parent"
-				android:layout_height="wrap_content" android:text="Cancel"
-				android:id="@+id/btnCancel" android:onClick="onCancelClicked"
-				android:layout_weight="0.5" />
+			<TextView android:id="@+id/TextView05"
+				android:layout_height="wrap_content" android:layout_width="fill_parent"
+				android:text="Firstname:" />
+			<EditText android:id="@+id/EditFirstName"
+				android:layout_height="wrap_content" android:layout_width="fill_parent"
+				android:inputType="textPersonName" />
+			<TextView android:id="@+id/TextView06" android:layout_width="wrap_content"
+				android:layout_height="wrap_content" android:text="Lastname:"></TextView>
+			<EditText android:layout_height="wrap_content" android:id="@+id/EditLastName"
+				android:layout_width="fill_parent" android:inputType="textPersonName" />
+
+			<TextView android:text="Phone" android:layout_width="wrap_content"
+				android:layout_height="wrap_content" android:textStyle="bold"
+				android:textSize="20dp" android:layout_marginTop="20dp" />
+
+			<TextView android:layout_width="wrap_content"
+				android:layout_height="wrap_content" android:id="@+id/TextPhoneHome"
+				android:text="Main:" />
+			<EditText android:id="@+id/EditPhoneMain"
+				android:layout_height="wrap_content" android:layout_width="fill_parent"
+				android:inputType="phone" />
+
+			<TextView android:layout_width="wrap_content"
+				android:layout_height="wrap_content" android:id="@+id/TextPhoneHome"
+				android:text="Home1:" />
+			<EditText android:id="@+id/EditPhoneHome1"
+				android:layout_height="wrap_content" android:layout_width="fill_parent"
+				android:inputType="phone" />
+			<TextView android:layout_width="wrap_content"
+				android:layout_height="wrap_content" android:id="@+id/TextPhoneHome"
+				android:text="Home2:" />
+			<EditText android:id="@+id/EditPhoneHome2"
+				android:layout_height="wrap_content" android:layout_width="fill_parent"
+				android:inputType="phone" />
+			<TextView android:id="@+id/TextView02" android:text="Mobile:"
+				android:layout_height="wrap_content" android:layout_width="wrap_content" />
+			<EditText android:id="@+id/EditPhoneMobile"
+				android:layout_height="wrap_content" android:layout_width="fill_parent"
+				android:inputType="phone" />
+			<TextView android:id="@+id/TextView03" android:text="Work:"
+				android:layout_height="wrap_content" android:layout_width="wrap_content" />
+			<EditText android:id="@+id/EditPhoneWork"
+				android:layout_height="wrap_content" android:layout_width="fill_parent"
+				android:inputType="phone" />
+
+			<TextView android:id="@+id/TextView03" android:text="Work2:"
+				android:layout_height="wrap_content" android:layout_width="wrap_content" />
+			<EditText android:id="@+id/EditPhoneWorkMobile"
+				android:layout_height="wrap_content" android:layout_width="fill_parent"
+				android:inputType="phone" />
+			<TextView android:id="@+id/TextView03" android:text="Work Fax:"
+				android:layout_height="wrap_content" android:layout_width="wrap_content" />
+			<EditText android:id="@+id/EditPhoneFaxWork"
+				android:layout_height="wrap_content" android:layout_width="fill_parent"
+				android:inputType="phone" />
+			<TextView android:id="@+id/TextView03" android:text="Other:"
+				android:layout_height="wrap_content" android:layout_width="wrap_content" />
+			<EditText android:id="@+id/EditPhoneOther"
+				android:layout_height="wrap_content" android:layout_width="fill_parent"
+				android:inputType="phone" />
+
+			<TextView android:text="Email" android:textStyle="bold"
+				android:layout_width="wrap_content" android:layout_height="wrap_content"
+				android:textSize="20dp" android:layout_marginTop="20dp" />
+
+			<TextView android:id="@+id/TextEmail" android:text="Email1:"
+				android:layout_height="wrap_content" android:layout_width="fill_parent" />
+			<EditText android:id="@+id/EditEmail1"
+				android:layout_height="wrap_content" android:layout_width="fill_parent"
+				android:inputType="textEmailAddress" />
+			<TextView android:id="@+id/TextEmail" android:text="Email2:"
+				android:layout_height="wrap_content" android:layout_width="fill_parent" />
+			<EditText android:id="@+id/EditEmail2"
+				android:layout_height="wrap_content" android:layout_width="fill_parent"
+				android:inputType="textEmailAddress" />
+			<TextView android:id="@+id/TextEmail" android:text="Email3:"
+				android:layout_height="wrap_content" android:layout_width="fill_parent" />
+			<EditText android:id="@+id/EditEmail3"
+				android:layout_height="wrap_content" android:layout_width="fill_parent"
+				android:inputType="textEmailAddress" />
+
+			<TextView android:text="More" android:textStyle="bold"
+				android:layout_width="wrap_content" android:layout_height="wrap_content"
+				android:textSize="20dp" android:layout_marginTop="20dp" />
+
+			<TextView android:id="@+id/TextView01" android:layout_width="wrap_content"
+				android:layout_height="wrap_content" android:text="Birthday:" />
+			<LinearLayout android:layout_width="fill_parent"
+				android:layout_height="wrap_content" android:orientation="vertical">
+				<TextView android:id="@+id/dateDisplay"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"
+					android:text="" />
+				<Button android:id="@+id/pickDate" android:layout_width="wrap_content"
+					android:layout_height="wrap_content" android:text="Set"
+					android:layout_gravity="right" android:onClick="onChangeDateClicked" />
+			</LinearLayout>
+			<TextView android:id="@+id/TextView04" android:layout_width="wrap_content"
+				android:layout_height="wrap_content" android:text="Notes:" />
+			<EditText android:layout_height="wrap_content"
+				android:layout_width="fill_parent" android:id="@+id/EditNotes"
+				android:inputType="textMultiLine" android:minLines="5"
+				android:scrollbars="vertical" android:gravity="top|left" />
 		</LinearLayout>
+	</ScrollView>
+	<LinearLayout android:layout_height="wrap_content"
+		android:orientation="horizontal" android:layout_width="fill_parent" android:layout_gravity="bottom">
+		<Button android:layout_width="fill_parent"
+			android:layout_height="wrap_content" android:text="Save" android:id="@+id/btnSave"
+			android:onClick="onSaveClicked" android:layout_weight="0.5" />
+		<Button android:layout_width="fill_parent"
+			android:layout_height="wrap_content" android:text="Cancel"
+			android:id="@+id/btnCancel" android:onClick="onCancelClicked"
+			android:layout_weight="0.5" />
 	</LinearLayout>
-</ScrollView>
+</LinearLayout>
