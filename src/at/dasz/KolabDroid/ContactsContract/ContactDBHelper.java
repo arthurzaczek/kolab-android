@@ -122,7 +122,7 @@ public class ContactDBHelper
 		{
 			contactOp = ContactOperations.createNewContact(0, accountName,
 					batchOperation);
-			contactOp.addName(contact.getGivenName(), contact.getFamilyName());
+			contactOp.addName(contact.getGivenName(), contact.getFamilyName(), contact.getFullName());
 		}
 		else
 		{
@@ -173,7 +173,7 @@ public class ContactDBHelper
 					if (mimeType.equals(StructuredName.CONTENT_ITEM_TYPE))
 					{
 						contactOp.updateName(uri, contact.getGivenName(),
-								contact.getFamilyName());
+								contact.getFamilyName(), contact.getFullName());
 					}
 					else if (mimeType.equals(Photo.CONTENT_ITEM_TYPE))
 					{

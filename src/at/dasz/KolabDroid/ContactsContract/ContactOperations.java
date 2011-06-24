@@ -125,7 +125,7 @@ public class ContactOperations
 	 *            type of name: family name, given name, etc.
 	 * @return instance of ContactOperations
 	 */
-	public ContactOperations addName(String firstName, String lastName)
+	public ContactOperations addName(String firstName, String lastName, String fullName)
 	{
 
 		mValues.clear();
@@ -138,6 +138,12 @@ public class ContactOperations
 		if (!TextUtils.isEmpty(lastName))
 		{
 			mValues.put(StructuredName.FAMILY_NAME, lastName);
+			mValues.put(StructuredName.MIMETYPE,
+					StructuredName.CONTENT_ITEM_TYPE);
+		}
+		if (!TextUtils.isEmpty(fullName))
+		{
+			mValues.put(StructuredName.DISPLAY_NAME, fullName);
 			mValues.put(StructuredName.MIMETYPE,
 					StructuredName.CONTENT_ITEM_TYPE);
 		}
@@ -260,12 +266,13 @@ public class ContactOperations
 	}
 
 	public ContactOperations updateName(Uri uri, String firstName,
-			String lastName)
+			String lastName, String fullName)
 	{
 
 		mValues.clear();
 		mValues.put(StructuredName.GIVEN_NAME, firstName);
 		mValues.put(StructuredName.FAMILY_NAME, lastName);
+		mValues.put(StructuredName.DISPLAY_NAME, fullName);
 		addUpdateOp(uri);
 		return this;
 	}

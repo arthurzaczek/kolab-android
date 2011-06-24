@@ -41,16 +41,6 @@ public class PhoneContact extends ContactMethod
 		Element phone = Utils.createXmlElement(xml, parent, "phone");
 		switch (this.getType())
 		{
-		//TODO: we support to less		
-		case Phone.TYPE_MAIN:
-			Utils.setXmlElementValue(xml, phone, "type", "primary");
-			break;
-		case Phone.TYPE_HOME:
-			Utils.setXmlElementValue(xml, phone, "type", "home1");
-			break;
-		case Phone.TYPE_FAX_HOME:
-			Utils.setXmlElementValue(xml, phone, "type", "home2");
-			break;
 		case Phone.TYPE_WORK:
 			Utils.setXmlElementValue(xml, phone, "type", "business1");
 			break;
@@ -60,8 +50,47 @@ public class PhoneContact extends ContactMethod
 		case Phone.TYPE_FAX_WORK:
 			Utils.setXmlElementValue(xml, phone, "type", "businessfax");
 			break;
+		case Phone.TYPE_CALLBACK:
+			Utils.setXmlElementValue(xml, phone, "type", "callback");
+			break;
+		case Phone.TYPE_CAR:
+			Utils.setXmlElementValue(xml, phone, "type", "car");
+			break;
+		case Phone.TYPE_COMPANY_MAIN:
+			Utils.setXmlElementValue(xml, phone, "type", "company");
+			break;
+		case Phone.TYPE_HOME:
+			Utils.setXmlElementValue(xml, phone, "type", "home1");
+			break;
+		case Phone.TYPE_OTHER_FAX: // sic!
+			Utils.setXmlElementValue(xml, phone, "type", "home2");
+			break;
+		case Phone.TYPE_FAX_HOME:
+			Utils.setXmlElementValue(xml, phone, "type", "homefax");
+			break;
+		case Phone.TYPE_ISDN:
+			Utils.setXmlElementValue(xml, phone, "type", "isdn");
+			break;
 		case Phone.TYPE_MOBILE:
 			Utils.setXmlElementValue(xml, phone, "type", "mobile");
+			break;
+		case Phone.TYPE_PAGER:
+			Utils.setXmlElementValue(xml, phone, "type", "pager");
+			break;
+		case Phone.TYPE_MAIN:
+			Utils.setXmlElementValue(xml, phone, "type", "primary");
+			break;
+		case Phone.TYPE_RADIO:
+			Utils.setXmlElementValue(xml, phone, "type", "radio");
+			break;
+		case Phone.TYPE_TELEX:
+			Utils.setXmlElementValue(xml, phone, "type", "telex");
+			break;
+		case Phone.TYPE_TTY_TDD:
+			Utils.setXmlElementValue(xml, phone, "type", "ttytdd");
+			break;
+		case Phone.TYPE_ASSISTANT:
+			Utils.setXmlElementValue(xml, phone, "type", "assistant");
 			break;
 		default:
 			Utils.setXmlElementValue(xml, phone, "type", "other");
@@ -78,13 +107,24 @@ public class PhoneContact extends ContactMethod
 		String type = Utils.getXmlElementString(parent, "type");
 		if(type != null)
 		{
-			if(type.equals("primary")) setType(Phone.TYPE_MAIN);
-			if(type.equals("home1")) setType(Phone.TYPE_HOME);
-			if(type.equals("home2")) setType(Phone.TYPE_FAX_HOME);
 			if(type.equals("business1")) setType(Phone.TYPE_WORK);
 			if(type.equals("business2")) setType(Phone.TYPE_WORK_MOBILE);
 			if(type.equals("businessfax")) setType(Phone.TYPE_FAX_WORK);
-			if(type.startsWith("mobile")) setType(Phone.TYPE_MOBILE);
+			if(type.equals("callback")) setType(Phone.TYPE_CALLBACK);
+			if(type.equals("car")) setType(Phone.TYPE_CAR);
+			if(type.equals("company")) setType(Phone.TYPE_COMPANY_MAIN);
+			if(type.equals("home1")) setType(Phone.TYPE_HOME);
+			if(type.equals("home2")) setType(Phone.TYPE_OTHER_FAX); // sic!
+			if(type.equals("homefax")) setType(Phone.TYPE_FAX_HOME);
+			if(type.equals("isdn")) setType(Phone.TYPE_ISDN);
+			if(type.equals("mobile")) setType(Phone.TYPE_MOBILE);
+			if(type.equals("pager")) setType(Phone.TYPE_PAGER);
+			if(type.equals("primary")) setType(Phone.TYPE_MAIN);
+			if(type.equals("radio")) setType(Phone.TYPE_RADIO);
+			if(type.equals("telex")) setType(Phone.TYPE_TELEX);
+			if(type.equals("ttytdd")) setType(Phone.TYPE_TTY_TDD);
+			if(type.equals("assistant")) setType(Phone.TYPE_ASSISTANT);
+			if(type.equals("other")) setType(Phone.TYPE_OTHER);
 		}
 	}
 }
