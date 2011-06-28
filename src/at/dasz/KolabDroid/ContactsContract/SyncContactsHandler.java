@@ -243,13 +243,14 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			Log.d("ConH", "Add email with: " + cm);
 		}
 
-		nl = Utils.getXmlElements(root, "address");
-		for (int i = 0; i < nl.getLength(); i++)
-		{
-			ContactMethod cm = new AddressContact();
-			cm.fromXml((Element) nl.item(i));
-			contact.addContactMethod(cm);
-		}
+		// No support for addresses yet
+//		nl = Utils.getXmlElements(root, "address");
+//		for (int i = 0; i < nl.getLength(); i++)
+//		{
+//			ContactMethod cm = new AddressContact();
+//			cm.fromXml((Element) nl.item(i));
+//			contact.addContactMethod(cm);
+//		}
 
 		byte[] photo = getPhotoFromMessage(sync.getMessage(), xml);
 		if (photo != null)

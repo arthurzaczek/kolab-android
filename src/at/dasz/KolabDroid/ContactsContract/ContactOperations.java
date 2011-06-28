@@ -238,7 +238,8 @@ public class ContactOperations
 		if (!TextUtils.isEmpty(webpage))
 		{
 			mValues.put(Website.URL, webpage);
-			mValues.put(Website.MIMETYPE, Website.TYPE_OTHER);
+			mValues.put(Website.TYPE, Website.TYPE_OTHER);
+			mValues.put(Website.MIMETYPE, Website.CONTENT_ITEM_TYPE);
 			addInsertOp();
 		}
 		return this;
@@ -250,7 +251,8 @@ public class ContactOperations
 		if (!TextUtils.isEmpty(org))
 		{
 			mValues.put(Organization.COMPANY, org);
-			mValues.put(Organization.MIMETYPE, Organization.TYPE_WORK);
+			mValues.put(Organization.TYPE, Organization.TYPE_WORK);
+			mValues.put(Organization.MIMETYPE, Organization.CONTENT_ITEM_TYPE);
 			addInsertOp();
 		}
 		return this;

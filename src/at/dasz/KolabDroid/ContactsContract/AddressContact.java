@@ -26,98 +26,99 @@ import org.w3c.dom.Element;
 import android.provider.ContactsContract;
 import at.dasz.KolabDroid.Utils;
 
-public class AddressContact extends ContactMethod
+// no support for address contacts yet
+public class AddressContact// extends ContactMethod
 {
-	private String street;
-	private String city;
-	private String postalcode;
-	private String region;
-	private String country;
-
-	@Override
-	public void toXml(Document xml, Element parent, String fullName)
-	{
-		Element address = Utils.createXmlElement(xml, parent, "address");
-		switch (this.getType())
-		{	
-			case ContactsContract.CommonDataKinds.Phone.TYPE_HOME:
-				Utils.setXmlElementValue(xml, address, "type", "home");
-				break;
-			case ContactsContract.CommonDataKinds.Phone.TYPE_WORK:
-				Utils.setXmlElementValue(xml, address, "type", "business");
-				break;
-			case ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE:
-				Utils.setXmlElementValue(xml, address, "type", "mobile");
-				break;
-			default:
-				break;
-		}
-
-		Utils.setXmlElementValue(xml, address, "street", street);
-		Utils.setXmlElementValue(xml, address, "locality", city);
-		Utils.setXmlElementValue(xml, address, "region", region);
-		Utils.setXmlElementValue(xml, address, "postal-code", postalcode);
-		Utils.setXmlElementValue(xml, address, "country", country);
-
-	}
-
-	@Override
-	public void fromXml(Element parent)
-	{
-		street = Utils.getXmlElementString(parent, "street");
-		city = Utils.getXmlElementString(parent, "locality");
-		region = Utils.getXmlElementString(parent, "region");
-		postalcode = Utils.getXmlElementString(parent, "postal-code");
-		country = Utils.getXmlElementString(parent, "country");
-		
-		String data = "";
-		if(street != null)
-			data += street + ",";
-		if(street != null)
-			data += city + ",";
-		if(street != null)
-			data += postalcode + ",";
-		if(street != null)
-			data += region + ",";
-		if(street != null)
-			data += country;
-		
-		setData(data);
-		String type = Utils.getXmlElementString(parent, "type");
-		if(type != null)
-		{
-			if(type.startsWith("home")) setType(ContactsContract.CommonDataKinds.Phone.TYPE_HOME);
-			if(type.startsWith("business")) setType(ContactsContract.CommonDataKinds.Phone.TYPE_WORK);
-			if(type.startsWith("mobile")) setType(ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE);
-		}
-
-	}
-
-	public String getCity()
-	{
-		return city;
-	}
-
-
-	public String getPostalCode()
-	{
-		return postalcode;
-	}
-
-
-	public String getStreet()
-	{
-		return street;
-	}
-
-	public String getRegion()
-	{
-		return region;
-	}
-
-	public String getCountry()
-	{
-		return country;
-	}
+//	private String street;
+//	private String city;
+//	private String postalcode;
+//	private String region;
+//	private String country;
+//
+//	@Override
+//	public void toXml(Document xml, Element parent, String fullName)
+//	{
+//		Element address = Utils.createXmlElement(xml, parent, "address");
+//		switch (this.getType())
+//		{	
+//			case ContactsContract.CommonDataKinds.Phone.TYPE_HOME:
+//				Utils.setXmlElementValue(xml, address, "type", "home");
+//				break;
+//			case ContactsContract.CommonDataKinds.Phone.TYPE_WORK:
+//				Utils.setXmlElementValue(xml, address, "type", "business");
+//				break;
+//			case ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE:
+//				Utils.setXmlElementValue(xml, address, "type", "mobile");
+//				break;
+//			default:
+//				break;
+//		}
+//
+//		Utils.setXmlElementValue(xml, address, "street", street);
+//		Utils.setXmlElementValue(xml, address, "locality", city);
+//		Utils.setXmlElementValue(xml, address, "region", region);
+//		Utils.setXmlElementValue(xml, address, "postal-code", postalcode);
+//		Utils.setXmlElementValue(xml, address, "country", country);
+//
+//	}
+//
+//	@Override
+//	public void fromXml(Element parent)
+//	{
+//		street = Utils.getXmlElementString(parent, "street");
+//		city = Utils.getXmlElementString(parent, "locality");
+//		region = Utils.getXmlElementString(parent, "region");
+//		postalcode = Utils.getXmlElementString(parent, "postal-code");
+//		country = Utils.getXmlElementString(parent, "country");
+//		
+//		String data = "";
+//		if(street != null)
+//			data += street + ",";
+//		if(street != null)
+//			data += city + ",";
+//		if(street != null)
+//			data += postalcode + ",";
+//		if(street != null)
+//			data += region + ",";
+//		if(street != null)
+//			data += country;
+//		
+//		setData(data);
+//		String type = Utils.getXmlElementString(parent, "type");
+//		if(type != null)
+//		{
+//			if(type.startsWith("home")) setType(ContactsContract.CommonDataKinds.Phone.TYPE_HOME);
+//			if(type.startsWith("business")) setType(ContactsContract.CommonDataKinds.Phone.TYPE_WORK);
+//			if(type.startsWith("mobile")) setType(ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE);
+//		}
+//
+//	}
+//
+//	public String getCity()
+//	{
+//		return city;
+//	}
+//
+//
+//	public String getPostalCode()
+//	{
+//		return postalcode;
+//	}
+//
+//
+//	public String getStreet()
+//	{
+//		return street;
+//	}
+//
+//	public String getRegion()
+//	{
+//		return region;
+//	}
+//
+//	public String getCountry()
+//	{
+//		return country;
+//	}
 
 }

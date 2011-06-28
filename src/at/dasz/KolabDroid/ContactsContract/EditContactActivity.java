@@ -163,7 +163,7 @@ public class EditContactActivity extends Activity
 					phoneHome1.setText(cm.getData());
 					pcHome1 = (PhoneContact) cm;
 					break;
-				case Phone.TYPE_FAX_HOME:
+				case Phone.TYPE_OTHER_FAX:
 					phoneHome2.setText(cm.getData());
 					pcHome2 = (PhoneContact) cm;
 					break;
@@ -295,7 +295,7 @@ public class EditContactActivity extends Activity
 		pcHome1 = bindFromPhone(pcHome1, phoneHome1.getText().toString(),
 				Phone.TYPE_HOME);
 		pcHome2 = bindFromPhone(pcHome2, phoneHome2.getText().toString(),
-				Phone.TYPE_HOME);
+				Phone.TYPE_OTHER_FAX);
 		pcWork = bindFromPhone(pcWork, phoneWork.getText().toString(),
 				Phone.TYPE_WORK);
 		pcWorkMobile = bindFromPhone(pcWorkMobile, phoneWorkMobile.getText().toString(),
@@ -308,8 +308,8 @@ public class EditContactActivity extends Activity
 				Phone.TYPE_OTHER);
 
 		ec1 = bindFromEmail(ec1, email1.getText().toString());
-		ec2 = bindFromEmail(ec2, email1.getText().toString());
-		ec3 = bindFromEmail(ec3, email1.getText().toString());
+		ec2 = bindFromEmail(ec2, email2.getText().toString());
+		ec3 = bindFromEmail(ec3, email3.getText().toString());
 	}
 
 	private PhoneContact bindFromPhone(PhoneContact pc, String txt, int type)
