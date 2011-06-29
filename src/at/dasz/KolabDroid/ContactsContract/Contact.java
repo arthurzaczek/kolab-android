@@ -167,32 +167,12 @@ public class Contact
 			contents.add(cm.getData());
 		}
 
-		if (null != birthday && !"".equals(birthday))
-		{
-			contents.add(birthday);
-		}
-		else
-		{
-			contents.add("noBday");
-		}
-
-		if (null != photo && !"".equals(photo))
-		{
-			contents.add(String.valueOf(Arrays.hashCode(photo)));
-		}
-		else
-		{
-			contents.add("noPhoto");
-		}
-
-		if (null != notes && !"".equals(notes))
-		{
-			contents.add(notes);
-		}
-		else
-		{
-			contents.add("noNotes");
-		}
+		
+		contents.add(TextUtils.isEmpty(birthday) ? "noBday" : birthday);
+		contents.add(null == photo ? "noPhoto" : String.valueOf(Arrays.hashCode(photo)));
+		contents.add(TextUtils.isEmpty(notes) ? "noNotes" : notes);
+		contents.add(TextUtils.isEmpty(webpage) ? "noWebpage" : webpage);
+		contents.add(TextUtils.isEmpty(organization) ? "noOrg" : organization);
 
 		return TextUtils.join("|", contents.toArray());
 	}
