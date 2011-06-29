@@ -586,9 +586,6 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		Utils.setXmlElementValue(messageXml, root, "picture",
 				"kolab-picture.png");
 
-		Utils.setXmlElementValue(messageXml, root, "picture",
-				"kolab-picture.png");
-
 		// create new attachment for new photo
 		// http://java.sun.com/developer/onlineTraining/JavaMail/contents.html#SendingAttachments
 		// explains how
@@ -603,10 +600,6 @@ public class SyncContactsHandler extends AbstractSyncHandler
 				DataSource source = new ByteArrayDataSource(photo, "image/png");
 				part.setDataHandler(new DataHandler(source));
 				part.setFileName("kolab-picture.png");
-
-				// Log.d("ConH", "storePhotoinMsg 1 Photo Hash: " +
-				// Utils.getBytesAsHexString(Utils.sha1Hash(photo)));
-
 				mp.addBodyPart(part);
 			}
 
@@ -614,7 +607,6 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		}
 		catch (MessagingException ex)
 		{
-			// TODO Auto-generated catch block
 			Log.e("ConH", ex.toString());
 		}
 	}

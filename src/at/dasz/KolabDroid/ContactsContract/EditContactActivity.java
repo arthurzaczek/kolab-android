@@ -1,8 +1,10 @@
 package at.dasz.KolabDroid.ContactsContract;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 import android.app.Activity;
 import android.app.DatePickerDialog;
@@ -10,6 +12,9 @@ import android.app.Dialog;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Bitmap.CompressFormat;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -30,8 +35,8 @@ import at.dasz.KolabDroid.Sync.SyncException;
 
 public class EditContactActivity extends Activity
 {
-	static final int DATE_DIALOG_ID = 0;
-	
+	static final int		DATE_DIALOG_ID	= 0;
+
 	private Contact			mContact;
 
 	private ImageButton		photoBtn;
@@ -78,35 +83,43 @@ public class EditContactActivity extends Activity
 		loadContact();
 		bindTo();
 	}
-	
+
 	public void onChangeDateClicked(View v)
 	{
 		showDialog(DATE_DIALOG_ID);
 	}
-	
-	@Override
-	protected Dialog onCreateDialog(int id) {
-	    switch (id) {
-	    case DATE_DIALOG_ID:
-	    	Time now = new Time();
-	    	now.setToNow();
-	        return new DatePickerDialog(this,
-	                    mDateSetListener,
-	                    now.year, now.month, now.monthDay);
-	    }
-	    return null;
-	}
-	
-	private DatePickerDialog.OnDateSetListener mDateSetListener =
-        new DatePickerDialog.OnDateSetListener() {
 
-            public void onDateSet(DatePicker view, int year, 
-                                  int monthOfYear, int dayOfMonth) {
-                String date = String.format("%04d-%02d-%02d", year, monthOfYear+1, dayOfMonth);
-                birthday.setText(date);
-                mContact.setBirthday(date);
-            }
-        };
+	@Override
+	protected Dialog onCreateDialog(int id)
+	{
+		switch (id)
+		{
+		case DATE_DIALOG_ID:
+			Time now = new Time();
+			now.setToNow();
+			return new DatePickerDialog(this, mDateSetListener, now.year,
+					now.month, now.monthDay);
+		}
+		return null;
+	}
+
+	private DatePickerDialog.OnDateSetListener	mDateSetListener	= new DatePickerDialog.OnDateSetListener() {
+
+																		public void onDateSet(
+																				DatePicker view,
+																				int year,
+																				int monthOfYear,
+																				int dayOfMonth)
+																		{
+																			String date = String
+																					.format("%04d-%02d-%02d",
+																							year,
+																							monthOfYear + 1,
+																							dayOfMonth);
+																			birthday.setText(date);
+																			mContact.setBirthday(date);
+																		}
+																	};
 
 	private void bindTo()
 	{
@@ -122,7 +135,7 @@ public class EditContactActivity extends Activity
 			ByteArrayInputStream bais = new ByteArrayInputStream(
 					mContact.getPhoto());
 			Drawable d = Drawable.createFromStream(bais, "picture");
-			photoBtn.setBackgroundDrawable(d);
+			photoBtn.setImageDrawable(d);
 		}
 
 		int emailCounter = 1;
@@ -231,7 +244,7 @@ public class EditContactActivity extends Activity
 	public void onRemPhotoClicked(View v)
 	{
 		mContact.setPhoto(null);
-		photoBtn.setBackgroundDrawable(null);
+		photoBtn.setImageDrawable(null);
 	}
 
 	private void loadContact()
@@ -298,8 +311,8 @@ public class EditContactActivity extends Activity
 				Phone.TYPE_OTHER_FAX);
 		pcWork = bindFromPhone(pcWork, phoneWork.getText().toString(),
 				Phone.TYPE_WORK);
-		pcWorkMobile = bindFromPhone(pcWorkMobile, phoneWorkMobile.getText().toString(),
-				Phone.TYPE_WORK_MOBILE);
+		pcWorkMobile = bindFromPhone(pcWorkMobile, phoneWorkMobile.getText()
+				.toString(), Phone.TYPE_WORK_MOBILE);
 		pcFaxWork = bindFromPhone(pcFaxWork, phoneFaxWork.getText().toString(),
 				Phone.TYPE_FAX_WORK);
 		pcMobile = bindFromPhone(pcMobile, phoneMobile.getText().toString(),
@@ -372,34 +385,54 @@ public class EditContactActivity extends Activity
 				String filePath = cursor.getString(columnIndex);
 				cursor.close();
 
-				byte[] fileData = null;
-
-				File imageFile = new File(filePath);
 				try
 				{
-					FileInputStream fis = new FileInputStream(imageFile);
+					Bitmap bmp = decodeFile(new File(filePath), 96);
 
-					fileData = new byte[(int) imageFile.length()];
-					fis.read(fileData);
-					fis.close();
+					ByteArrayOutputStream out = new ByteArrayOutputStream(20480);
+					bmp.compress(CompressFormat.PNG, 90, out);
+
+					photoBtn.setImageBitmap(bmp);
+					mContact.setPhoto(out.toByteArray());
 				}
 				catch (Exception e)
 				{
 					Log.e("ECA:", e.toString());
 				}
-
-				if (fileData != null)
-				{
-					ByteArrayInputStream bais = new ByteArrayInputStream(
-							fileData);
-					Drawable d = Drawable.createFromStream(bais, "picture");
-
-					photoBtn.setBackgroundDrawable(d);
-					mContact.setPhoto(fileData);
-				}
-				// Log.i("ECA:", "saved pic");
-
 			}
 		}
+	}
+
+	// decodes image and scales it to reduce memory consumption
+	// http://stackoverflow.com/questions/477572/android-strange-out-of-memory-issue/823966#823966
+	private Bitmap decodeFile(File f, int req_size)
+	{
+		try
+		{
+			// Decode image size
+			BitmapFactory.Options o = new BitmapFactory.Options();
+			o.inJustDecodeBounds = true;
+			BitmapFactory.decodeStream(new FileInputStream(f), null, o);
+
+			// Find the correct scale value. It should be the power of 2.
+			int width_tmp = o.outWidth, height_tmp = o.outHeight;
+			int scale = 1;
+			while (true)
+			{
+				if (width_tmp / 2 < req_size || height_tmp / 2 < req_size) break;
+				width_tmp /= 2;
+				height_tmp /= 2;
+				scale *= 2;
+			}
+
+			// Decode with inSampleSize
+			BitmapFactory.Options o2 = new BitmapFactory.Options();
+			o2.inSampleSize = scale;
+			return BitmapFactory.decodeStream(new FileInputStream(f), null, o2);
+		}
+		catch (FileNotFoundException e)
+		{
+		}
+		return null;
 	}
 }
