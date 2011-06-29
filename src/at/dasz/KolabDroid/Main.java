@@ -38,9 +38,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import at.dasz.KolabDroid.Imap.DchFactory;
 import at.dasz.KolabDroid.Provider.StatusProvider;
-import at.dasz.KolabDroid.Sync.BaseWorker;
-import at.dasz.KolabDroid.Sync.ResetService;
-import at.dasz.KolabDroid.Sync.ResetSoftService;
 import at.dasz.KolabDroid.Sync.StatusEntry;
 
 public class Main extends Activity implements MainActivity
@@ -145,12 +142,8 @@ public class Main extends Activity implements MainActivity
 		super.onPause();
 	}
 
-	public final static int	MENU_RESET_CALENDAR			= 1;
-	public final static int	MENU_RESET_CONTACTS			= 2;
 	public final static int	MENU_REFRESH				= 3;
 	public final static int	MENU_CLEAR_LOG				= 6;
-	public final static int	MENU_RESET_CALENDAR_SOFT	= 7;
-	public final static int	MENU_RESET_CONTACTS_SOFT	= 8;
 	public final static int	MENU_DIAG_DUMP				= 9;
 
 	/* Creates the menu items */
@@ -158,12 +151,6 @@ public class Main extends Activity implements MainActivity
 	{
 		menu.add(0, MENU_REFRESH, 0, R.string.refreshstatus);
 		menu.add(0, MENU_CLEAR_LOG, 0, R.string.clearlog);
-
-		menu.add(0, MENU_RESET_CALENDAR_SOFT, 0, R.string.ResetCalendarSoft);
-		menu.add(0, MENU_RESET_CONTACTS_SOFT, 0, R.string.ResetContactsSoft);
-
-		menu.add(0, MENU_RESET_CALENDAR, 0, R.string.ResetCalendar);
-		menu.add(0, MENU_RESET_CONTACTS, 0, R.string.ResetContacts);
 
 		menu.add(0, MENU_DIAG_DUMP, 0, R.string.diag_dump);
 
@@ -176,20 +163,6 @@ public class Main extends Activity implements MainActivity
 	{
 		switch (item.getItemId())
 		{
-		case MENU_RESET_CALENDAR:
-			resetData(MENU_RESET_CALENDAR);
-			return true;
-		case MENU_RESET_CONTACTS:
-			resetData(MENU_RESET_CONTACTS);
-			return true;
-		case MENU_RESET_CALENDAR_SOFT:
-			resetDataSoft(MENU_RESET_CALENDAR_SOFT);
-			bindStatus();
-			return true;
-		case MENU_RESET_CONTACTS_SOFT:
-			resetDataSoft(MENU_RESET_CONTACTS_SOFT);
-			bindStatus();
-			return true;
 		case MENU_REFRESH:
 			bindStatus();
 			return true;
@@ -209,120 +182,6 @@ public class Main extends Activity implements MainActivity
 	{
 		DiagDump.writeDump(this);
 	}
-
-	private void resetData(int what)
-	{
-		if (BaseWorker.isRunning())
-		{
-			NotificationDialog.show(this, BaseWorker.getRunningMessageResID());
-		}
-		else
-		{
-
-			switch (what)
-			{
-			case MENU_RESET_CALENDAR:
-				NotificationDialog.showYesNo(this,
-						R.string.really_reset_calendar,
-						dlgResetCalendarListener, NotificationDialog.closeDlg);
-				break;
-
-			case MENU_RESET_CONTACTS:
-				NotificationDialog.showYesNo(this,
-						R.string.really_reset_contacts,
-						dlgResetContactsListener, NotificationDialog.closeDlg);
-				break;
-
-			default:
-				break;
-			}
-
-		}
-	}
-
-	private void resetDataSoft(int what)
-	{
-		if (BaseWorker.isRunning())
-		{
-			NotificationDialog.show(this, BaseWorker.getRunningMessageResID());
-		}
-		else
-		{
-
-			switch (what)
-			{
-			case MENU_RESET_CALENDAR_SOFT:
-				NotificationDialog.showYesNo(this,
-						R.string.really_reset_calendar_soft,
-						dlgResetCalendarSoftListener,
-						NotificationDialog.closeDlg);
-				break;
-
-			case MENU_RESET_CONTACTS_SOFT:
-				NotificationDialog.showYesNo(this,
-						R.string.really_reset_contacts_soft,
-						dlgResetContactsSoftListener,
-						NotificationDialog.closeDlg);
-				break;
-
-			default:
-				break;
-			}
-
-		}
-	}
-
-	private final DialogInterface.OnClickListener	dlgResetCalendarListener		= new DialogInterface.OnClickListener() {
-																						public void onClick(
-																								DialogInterface dialog,
-																								int which)
-																						{
-																							ResetService
-																									.startReset(
-																											Main.this,
-																											MENU_RESET_CALENDAR);
-																							dialog.cancel();
-																						}
-																					};
-
-	private final DialogInterface.OnClickListener	dlgResetContactsListener		= new DialogInterface.OnClickListener() {
-																						public void onClick(
-																								DialogInterface dialog,
-																								int which)
-																						{
-																							ResetService
-																									.startReset(
-																											Main.this,
-																											MENU_RESET_CONTACTS);
-																							dialog.cancel();
-																						}
-																					};
-
-	private final DialogInterface.OnClickListener	dlgResetCalendarSoftListener	= new DialogInterface.OnClickListener() {
-																						public void onClick(
-																								DialogInterface dialog,
-																								int which)
-																						{
-																							ResetSoftService
-																									.startReset(
-																											Main.this,
-																											MENU_RESET_CALENDAR_SOFT);
-																							dialog.cancel();
-																						}
-																					};
-
-	private final DialogInterface.OnClickListener	dlgResetContactsSoftListener	= new DialogInterface.OnClickListener() {
-																						public void onClick(
-																								DialogInterface dialog,
-																								int which)
-																						{
-																							ResetSoftService
-																									.startReset(
-																											Main.this,
-																											MENU_RESET_CONTACTS_SOFT);
-																							dialog.cancel();
-																						}
-																					};
 
 	public void setStatusText(int resid)
 	{

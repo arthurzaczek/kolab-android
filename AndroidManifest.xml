@@ -45,8 +45,6 @@
               </intent-filter>
 		</activity>
 
-		<service android:name=".Sync.ResetService" />
-		<service android:name=".Sync.ResetSoftService" />
 		<service android:name=".Account.KolabAccountAuthenticatorService"
 			android:exported="true">
 			<intent-filter>
