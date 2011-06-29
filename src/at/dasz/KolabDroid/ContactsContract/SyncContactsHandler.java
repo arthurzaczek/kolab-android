@@ -243,14 +243,14 @@ public class SyncContactsHandler extends AbstractSyncHandler
 			Log.d("ConH", "Add email with: " + cm);
 		}
 
-		// No support for addresses yet
-//		nl = Utils.getXmlElements(root, "address");
-//		for (int i = 0; i < nl.getLength(); i++)
-//		{
-//			ContactMethod cm = new AddressContact();
-//			cm.fromXml((Element) nl.item(i));
-//			contact.addContactMethod(cm);
-//		}
+		nl = Utils.getXmlElements(root, "address");
+		for (int i = 0; i < nl.getLength(); i++)
+		{
+			ContactMethod cm = new AddressContact();
+			cm.fromXml((Element) nl.item(i));
+			contact.addContactMethod(cm);
+			Log.d("ConH", "Add email with: " + cm);
+		}
 
 		byte[] photo = getPhotoFromMessage(sync.getMessage(), xml);
 		if (photo != null)
@@ -331,6 +331,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 
 		Utils.deleteXmlElements(root, "phone");
 		Utils.deleteXmlElements(root, "email");
+		Utils.deleteXmlElements(root, "address");
 
 		for (ContactMethod cm : source.getContactMethods())
 		{
@@ -389,42 +390,6 @@ public class SyncContactsHandler extends AbstractSyncHandler
 
 		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 
-		// TODO: who put this syncadapter to the first call and why is it still
-		// working? O_o
-
-		// normal delete first, then with syncadapter flag
-		Uri rawUri = addCallerIsSyncAdapterParameter(ContactsContract.RawContacts.CONTENT_URI);
-		ops.add(ContentProviderOperation
-				.newDelete(rawUri)
-				.withSelection(ContactsContract.RawContacts._ID + "=?",
-						new String[] { String.valueOf(localId) }).build());
-
-		// remove contact from raw_contact table (this time with syncadapter
-		// flag set)
-		rawUri = addCallerIsSyncAdapterParameter(ContactsContract.RawContacts.CONTENT_URI);
-		ops.add(ContentProviderOperation
-				.newDelete(rawUri)
-				.withSelection(ContactsContract.RawContacts._ID + "=?",
-						new String[] { String.valueOf(localId) }).build());
-
-		try
-		{
-			cr.applyBatch(ContactsContract.AUTHORITY, ops);
-		}
-		catch (Exception e)
-		{
-			Log.e("EE", e.toString());
-		}
-
-	}
-
-	private void deleteLocalItemFinally(int localId)
-	{
-		Log.d("ConH", "Delete raw_contract from DB with raw_contact ID: "
-				+ localId);
-		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
-
-		// remove contact from raw_contact table (with syncadapter flag set)
 		Uri rawUri = addCallerIsSyncAdapterParameter(ContactsContract.RawContacts.CONTENT_URI);
 		ops.add(ContentProviderOperation
 				.newDelete(rawUri)
@@ -448,19 +413,15 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	{
 		Log.d("sync", "Deleting from server: " + sync.getMessage().getSubject());
 		sync.getMessage().setFlag(Flag.DELETED, true);
-		// remove contents too, to avoid confusing the butchered JAF
-		// message.setContent("", "text/plain");
-		// message.saveChanges();
-
-		// TODO: the local item doesn't exist here anyway, does it?
 
 		Log.d("sync", "Deleting local cache entry with id: "
 				+ sync.getCacheEntry().getId());
 		getLocalCacheProvider().deleteEntry(sync.getCacheEntry());
 
+		// TODO: the local item doesn't exist here anyway, does it?
 		// make sure it gets flushed from the raw_contacts table on the phone as
 		// well
-		deleteLocalItemFinally(sync.getCacheEntry().getLocalId());
+		deleteLocalItem(sync.getCacheEntry().getLocalId());
 	}
 
 	private CacheEntry saveContact(Contact contact) throws SyncException

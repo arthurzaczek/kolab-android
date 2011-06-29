@@ -218,4 +218,15 @@ public class Contact
 
 		return null;
 	}
+	
+	public AddressContact findAddress(int type)
+	{
+		for (ContactMethod cm : contactMethods)
+		{
+			if (cm instanceof AddressContact
+					&& cm.getType() == type) { return (AddressContact) cm; }
+		}
+
+		return null;
+	}
 }

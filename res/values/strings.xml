@@ -81,7 +81,7 @@
 	<string name="checkSettingsTestSuccessfulTitle">Success</string>
 	<string name="checkSettingsTestSuccessful">IMAP test connection has been successfully
 		established.</string>
-	<string name="checkSettingsMsgDialogButton">Dismiss</string>
+	<string name="checkSettingsMsgDialogButton">Ok</string>
 	<string name="checkSettingsCertificateChainSavedTitle">SSL Certificate</string>
 	<string name="checkSettingsCertificateChainSaved">Certificate chain has been saved to local keystore.
 	</string>

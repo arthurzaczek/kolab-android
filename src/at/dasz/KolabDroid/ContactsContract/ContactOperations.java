@@ -25,6 +25,7 @@ import android.provider.ContactsContract.CommonDataKinds.Event;
 import android.provider.ContactsContract.CommonDataKinds.Note;
 import android.provider.ContactsContract.CommonDataKinds.Organization;
 import android.provider.ContactsContract.CommonDataKinds.Photo;
+import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.CommonDataKinds.Website;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
@@ -63,12 +64,11 @@ public class ContactOperations
 	 *            the username of the current login
 	 * @return instance of ContactOperations
 	 */
-	public static ContactOperations createNewContact(
-			int userId, String accountName, BatchOperation batchOperation)
+	public static ContactOperations createNewContact(int userId,
+			String accountName, BatchOperation batchOperation)
 	{
 
-		return new ContactOperations(userId, accountName,
-				batchOperation);
+		return new ContactOperations(userId, accountName, batchOperation);
 	}
 
 	/**
@@ -79,8 +79,8 @@ public class ContactOperations
 	 *            the unique Id of the existing rawContact
 	 * @return instance of ContactOperations
 	 */
-	public static ContactOperations updateExistingContact(
-			long rawContactId, BatchOperation batchOperation)
+	public static ContactOperations updateExistingContact(long rawContactId,
+			BatchOperation batchOperation)
 	{
 
 		return new ContactOperations(rawContactId, batchOperation);
@@ -108,8 +108,7 @@ public class ContactOperations
 		mBatchOperation.add(mBuilder.build());
 	}
 
-	public ContactOperations(long rawContactId,
-			BatchOperation batchOperation)
+	public ContactOperations(long rawContactId, BatchOperation batchOperation)
 	{
 		this(batchOperation);
 		mIsNewContact = false;
@@ -125,7 +124,8 @@ public class ContactOperations
 	 *            type of name: family name, given name, etc.
 	 * @return instance of ContactOperations
 	 */
-	public ContactOperations addName(String firstName, String lastName, String fullName)
+	public ContactOperations addName(String firstName, String lastName,
+			String fullName)
 	{
 
 		mValues.clear();
@@ -170,6 +170,22 @@ public class ContactOperations
 			mValues.put(Email.MIMETYPE, Email.CONTENT_ITEM_TYPE);
 			addInsertOp();
 		}
+		return this;
+	}
+
+	public ContactOperations addAddress(String street, String city,
+			String region, String postalcode, String country, int type)
+	{
+		mValues.clear();
+		mValues.put(StructuredPostal.STREET, street);
+		mValues.put(StructuredPostal.CITY, city);
+		mValues.put(StructuredPostal.REGION, region);
+		mValues.put(StructuredPostal.POSTCODE, postalcode);
+		mValues.put(StructuredPostal.COUNTRY, country);
+		mValues.put(StructuredPostal.TYPE, type);
+		mValues.put(StructuredPostal.MIMETYPE,
+				StructuredPostal.CONTENT_ITEM_TYPE);
+		addInsertOp();
 		return this;
 	}
 
@@ -231,7 +247,7 @@ public class ContactOperations
 		}
 		return this;
 	}
-	
+
 	public ContactOperations addWebpage(String webpage)
 	{
 		mValues.clear();
@@ -243,7 +259,7 @@ public class ContactOperations
 			addInsertOp();
 		}
 		return this;
-	}	
+	}
 
 	public ContactOperations addOrganization(String org)
 	{
@@ -263,6 +279,20 @@ public class ContactOperations
 		mValues.clear();
 		mValues.put(Email.DATA, email);
 		mValues.put(Email.TYPE, type);
+		addUpdateOp(uri);
+		return this;
+	}
+
+	public ContactOperations updateAddress(Uri uri, String street, String city,
+			String region, String postalcode, String country, int type)
+	{
+		mValues.clear();
+		mValues.put(StructuredPostal.STREET, street);
+		mValues.put(StructuredPostal.CITY, city);
+		mValues.put(StructuredPostal.REGION, region);
+		mValues.put(StructuredPostal.POSTCODE, postalcode);
+		mValues.put(StructuredPostal.COUNTRY, country);
+		mValues.put(StructuredPostal.TYPE, type);
 		addUpdateOp(uri);
 		return this;
 	}
@@ -317,7 +347,7 @@ public class ContactOperations
 		}
 		return this;
 	}
-	
+
 	public ContactOperations updateWebpage(Uri uri, String webpage)
 	{
 		if (!TextUtils.isEmpty(webpage))
@@ -332,7 +362,7 @@ public class ContactOperations
 		}
 		return this;
 	}
-	
+
 	public ContactOperations updateOrganization(Uri uri, String org)
 	{
 		if (!TextUtils.isEmpty(org))
@@ -434,6 +464,4 @@ public class ContactOperations
 				.appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER,
 						"true").build();
 	}
-
-	
 }

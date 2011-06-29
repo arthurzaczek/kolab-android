@@ -60,7 +60,6 @@ public class ContactDBHelper
 							.getString(DataQuery.COLUMN_PHONE_NUMBER));
 					pc.setType(queryCursor.getInt(DataQuery.COLUMN_PHONE_TYPE));
 					result.addContactMethod(pc);
-
 				}
 				else if (mimeType.equals(Email.CONTENT_ITEM_TYPE))
 				{
@@ -69,7 +68,24 @@ public class ContactDBHelper
 							.getString(DataQuery.COLUMN_EMAIL_ADDRESS));
 					ec.setType(queryCursor.getInt(DataQuery.COLUMN_EMAIL_TYPE));
 					result.addContactMethod(ec);
-
+				}
+				else if (mimeType.equals(StructuredPostal.CONTENT_ITEM_TYPE))
+				{
+					AddressContact ac = new AddressContact();
+					ac.setCity(queryCursor
+							.getString(DataQuery.COLUMN_ADDRESS_CITY));
+					ac.setCountry(queryCursor
+							.getString(DataQuery.COLUMN_ADDRESS_COUNTRY));
+					ac.setPostalcode(queryCursor
+							.getString(DataQuery.COLUMN_ADDRESS_POSTALCODE));
+					ac.setRegion(queryCursor
+							.getString(DataQuery.COLUMN_ADDRESS_REGION));
+					ac.setStreet(queryCursor
+							.getString(DataQuery.COLUMN_ADDRESS_STREET));
+					ac.setType(queryCursor
+							.getInt(DataQuery.COLUMN_ADDRESS_TYPE));
+					ac.updateData();
+					result.addContactMethod(ac);
 				}
 				else if (mimeType.equals(Event.CONTENT_ITEM_TYPE))
 				{
@@ -89,12 +105,14 @@ public class ContactDBHelper
 				}
 				else if (mimeType.equals(Website.CONTENT_ITEM_TYPE))
 				{
-					String webpage = queryCursor.getString(DataQuery.COLUMN_WEBPAGE);
+					String webpage = queryCursor
+							.getString(DataQuery.COLUMN_WEBPAGE);
 					result.setWebpage(webpage);
 				}
 				else if (mimeType.equals(Organization.CONTENT_ITEM_TYPE))
 				{
-					String org = queryCursor.getString(DataQuery.COLUMN_ORGANIZATION);
+					String org = queryCursor
+							.getString(DataQuery.COLUMN_ORGANIZATION);
 					result.setOrganization(org);
 				}
 			} while (queryCursor.moveToNext());
@@ -122,7 +140,8 @@ public class ContactDBHelper
 		{
 			contactOp = ContactOperations.createNewContact(0, accountName,
 					batchOperation);
-			contactOp.addName(contact.getGivenName(), contact.getFamilyName(), contact.getFullName());
+			contactOp.addName(contact.getGivenName(), contact.getFamilyName(),
+					contact.getFullName());
 		}
 		else
 		{
@@ -134,11 +153,12 @@ public class ContactDBHelper
 				rawContactId, contactOp);
 
 		long id = batchOperation.execute(contact.getId());
-		
+
 		if (contact.getId() == 0)
 		{
-			if(id == 0) throw new SyncException(contact.getFullName(), "Unable to get ID of newly created item");
-			contact.setId((int)id);
+			if (id == 0) throw new SyncException(contact.getFullName(),
+					"Unable to get ID of newly created item");
+			contact.setId((int) id);
 		}
 	}
 
@@ -151,9 +171,10 @@ public class ContactDBHelper
 		boolean birthdayUpdated = false;
 		boolean webpageUpdated = false;
 		boolean orgUpdated = false;
-		
+
 		HashSet<PhoneContact> updatedPhoneContacts = new HashSet<PhoneContact>();
 		HashSet<EmailContact> updatedEmailContacts = new HashSet<EmailContact>();
+		HashSet<AddressContact> updatedAddressContacts = new HashSet<AddressContact>();
 
 		// Update existing contact fields
 		if (rawContactId != 0)
@@ -198,7 +219,8 @@ public class ContactDBHelper
 					else if (mimeType.equals(Organization.CONTENT_ITEM_TYPE))
 					{
 						orgUpdated = true;
-						contactOp.updateOrganization(uri, contact.getOrganization());
+						contactOp.updateOrganization(uri,
+								contact.getOrganization());
 					}
 					else if (mimeType.equals(Phone.CONTENT_ITEM_TYPE))
 					{
@@ -235,6 +257,21 @@ public class ContactDBHelper
 					else if (mimeType
 							.equals(StructuredPostal.CONTENT_ITEM_TYPE))
 					{
+						final int type = c
+								.getInt(DataQuery.COLUMN_ADDRESS_TYPE);
+						AddressContact ac = contact.findAddress(type);
+						if (ac != null)
+						{
+							contactOp.updateAddress(uri, ac.getStreet(),
+									ac.getCity(), ac.getRegion(),
+									ac.getPostalcode(), ac.getCountry(),
+									ac.getType());
+							updatedAddressContacts.add(ac);
+						}
+						else
+						{
+							contactOp.delete(uri);
+						}
 					}
 				} // while
 			}
@@ -280,11 +317,14 @@ public class ContactDBHelper
 				contactOp.addPhone(cm.getData(), cm.getType());
 			}
 
-			// if (cm instanceof AddressContact)
-			// {
-			// AddressContact acm = (AddressContact)cm;
-			// contactOp.
-			// }
+			if (cm instanceof AddressContact
+					&& !updatedAddressContacts.contains(cm))
+			{
+				AddressContact ac = (AddressContact) cm;
+				contactOp.addAddress(ac.getStreet(), ac.getCity(),
+						ac.getRegion(), ac.getPostalcode(), ac.getCountry(),
+						ac.getType());
+			}
 		}
 	}
 }
