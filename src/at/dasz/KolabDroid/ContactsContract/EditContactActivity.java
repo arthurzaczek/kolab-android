@@ -7,9 +7,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.ContentUris;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -18,6 +20,7 @@ import android.graphics.Bitmap.CompressFormat;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.MediaStore;
@@ -36,6 +39,7 @@ import at.dasz.KolabDroid.Sync.SyncException;
 public class EditContactActivity extends Activity
 {
 	static final int		DATE_DIALOG_ID	= 0;
+	static final int		PHONE_TYPE_DIALOG_ID = 1;
 
 	private Contact			mContact;
 
@@ -71,6 +75,9 @@ public class EditContactActivity extends Activity
 	private EmailContact	ec1;
 	private EmailContact	ec2;
 	private EmailContact	ec3;
+	
+	//private int phoneType = -1; //stores the type selected in choose dialog when adding a number from call list to a contact
+	private String phonenumber;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -88,6 +95,24 @@ public class EditContactActivity extends Activity
 	{
 		showDialog(DATE_DIALOG_ID);
 	}
+	
+	private void setReceivedPhone(int type)
+	{
+		PhoneContact pc = new PhoneContact();
+		pc.setType(type);
+		pc.setData(phonenumber);
+		
+		//for adding to existing contact we delete the existing for now
+		PhoneContact pcTmp = new PhoneContact();
+		pcTmp.setType(type);
+		mContact.removeContactMethod(pcTmp);
+		
+		mContact.addContactMethod(pc);
+		
+		//refresh GUI
+		bindTo();
+	}
+	
 
 	@Override
 	protected Dialog onCreateDialog(int id)
@@ -99,6 +124,39 @@ public class EditContactActivity extends Activity
 			now.setToNow();
 			return new DatePickerDialog(this, mDateSetListener, now.year,
 					now.month, now.monthDay);
+		case PHONE_TYPE_DIALOG_ID:
+			//Log.i("ECA", "Phone_type dialog should appear");
+			
+			final CharSequence[] items = {"Home", "Work", "Mobile"};
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("Choose Phone type");
+			builder.setItems(items, new DialogInterface.OnClickListener() {
+			    public void onClick(DialogInterface dialog, int item) {
+			    	
+			    	int phoneType = -1;
+			    	
+			    	if("Home".equals(items[item]))
+			    	{
+			    		phoneType = ContactsContract.CommonDataKinds.Phone.TYPE_HOME;
+			    	}
+			    	else if("Work".equals(items[item]))
+			    	{
+			    		phoneType = ContactsContract.CommonDataKinds.Phone.TYPE_WORK;
+			    	}
+			    	else if("Mobile".equals(items[item]))
+			    	{
+			    		phoneType = ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE;
+			    	}			    	
+			    	Log.i("ECA", "Phone_type dialog selected type: " + phoneType);
+			    	setReceivedPhone(phoneType);
+			    }
+			});
+			AlertDialog alert = builder.create();
+			return alert;
+		default:
+			Log.i("BLA", "Strange call to dialog method with id: " + id);
+			break;
 		}
 		return null;
 	}
@@ -253,10 +311,11 @@ public class EditContactActivity extends Activity
 
 		Uri uri = Uri.parse(intent.getDataString());
 		Log.i("ECA:", "Edit uri: " + uri);
+		
 
 		if (uri.toString().endsWith("contacts")) // new contact
 		{
-			mContact = new Contact();
+			mContact = new Contact();			
 		}
 		else
 		{
@@ -271,6 +330,17 @@ public class EditContactActivity extends Activity
 				this.finish();
 			}
 		}
+		
+		//TODO: we might also catch emails in order to add them to contacts, here
+		
+		phonenumber = intent.getStringExtra(ContactsContract.Intents.Insert.PHONE);
+		//Log.i("ECA:", "Edit received phone#: " + phonenumber);
+		
+		if(null != phonenumber)
+		{						
+			showDialog(PHONE_TYPE_DIALOG_ID);
+		}			
+		
 	}
 
 	public void onSaveClicked(View view) throws SyncException

@@ -138,9 +138,21 @@ public class Contact
 		contactMethods.add(cm);
 	}
 
+	//remove cm by type now
 	public void removeContactMethod(ContactMethod cm)
 	{
-		contactMethods.remove(cm);
+		//contactMethods.remove(cm);
+		if(null == cm)
+			return;
+		
+		ContactMethod toRemove = null;
+		for(ContactMethod c : contactMethods)
+		{
+			if(c.getType() == cm.getType())
+				toRemove = c; break;
+		}
+		contactMethods.remove(toRemove);
+		
 	}
 
 	@Override
