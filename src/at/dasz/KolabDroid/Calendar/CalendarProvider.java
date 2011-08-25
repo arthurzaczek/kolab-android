@@ -406,7 +406,7 @@ public class CalendarProvider
 			cvs.put("access_level", 700);
 
 			// TODO: Arthur: Do we need that? I don't think so
-			cvs.put("url", "http://www.test.de"); // TODO what to put here?
+			//cvs.put("url", "http://www.test.de"); // TODO what to put here? -> reported as invalid by Android >= 3.0.1
 			cvs.put("color", -14069085); // TODO: how are colors represented?
 			cvs.put("timezone", "Europe/Berlin"); // TODO: where to get timezone
 													// for
