@@ -1,7 +1,9 @@
 package at.dasz.KolabDroid.ContactsContract;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
+import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -18,11 +20,29 @@ import android.provider.ContactsContract.CommonDataKinds.Photo;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.CommonDataKinds.Website;
 import android.provider.ContactsContract.Data;
+import android.util.Log;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.Sync.SyncException;
 
 public class ContactDBHelper
 {
+	//wipe those contacts which are marked as deleted (we call that before a sync)
+	public static void wipeDeletedContacts(ContentResolver cr)
+	{
+		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+		
+		ops.add(ContentProviderOperation.newDelete(ContactsContract.RawContacts.CONTENT_URI.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build()).
+				withSelection("deleted=?", new String[]{String.valueOf(1)}).
+				
+				build());    	
+		
+		try {
+			cr.applyBatch(ContactsContract.AUTHORITY, ops);
+		} catch (Exception e) {
+			Log.e("EE", e.toString());
+		}
+	}
+	
 	public static Contact getContactByRawID(long contactID, ContentResolver cr)
 			throws SyncException
 	{

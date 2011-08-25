@@ -129,6 +129,9 @@ public class SyncContactsHandler extends AbstractSyncHandler
 
 	public void fetchAllLocalItems() throws SyncException
 	{
+		//wipe deleted contacts before we continue processing
+		ContactDBHelper.wipeDeletedContacts(cr);
+		
 		localItemsCache = new HashMap<Integer, Contact>();
 		Cursor personCursor = getAllLocalItemsCursor();
 		try
@@ -155,14 +158,15 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	public Cursor getAllLocalItemsCursor()
 	{
 		// only return those from our account
+		//Also make sure we do NOT return deleted (via contacts app) contacts
 		String where = ContactsContract.RawContacts.ACCOUNT_NAME + "=? and "
-				+ ContactsContract.RawContacts.ACCOUNT_TYPE + "=?";
+				+ ContactsContract.RawContacts.ACCOUNT_TYPE + "=? and deleted=?";
 
 		// TODO: maybe we should use the account.name and account.type instead
 		// of string
 		return cr.query(ContactsContract.RawContacts.CONTENT_URI, null, where,
 				new String[] { ctx.getString(R.string.SYNC_ACCOUNT_NAME),
-						Utils.SYNC_ACCOUNT_TYPE }, null);
+						Utils.SYNC_ACCOUNT_TYPE, String.valueOf(0) }, null);
 	}
 
 	public int getIdColumnIndex(Cursor c)

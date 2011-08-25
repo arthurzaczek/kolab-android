@@ -148,7 +148,10 @@ public class AccountManager extends Activity
 
 		ContentResolver cr = getContentResolver();
 
-		String where = ContactsContract.RawContacts.ACCOUNT_NAME + "=?";
+		//Do not include contacts marked as deleted
+		
+		//String where = ContactsContract.RawContacts.ACCOUNT_NAME + "=?";
+		String where = ContactsContract.RawContacts.ACCOUNT_NAME + "=? and deleted=?";
 
 		Cursor dbContacts = null;
 
@@ -160,9 +163,9 @@ public class AccountManager extends Activity
 		else
 		{
 			dbContacts = cr.query(ContactsContract.RawContacts.CONTENT_URI,
-					null, where, new String[] { srcAccountName }, null);
+					null, where, new String[] { srcAccountName, String.valueOf(0) }, null);
 		}
-
+		
 		int count = dbContacts.getCount();
 
 		Contact[] cs = new Contact[count];
