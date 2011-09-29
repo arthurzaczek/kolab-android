@@ -149,7 +149,19 @@ public class CalendarProvider
 		e.setDtstart(start);
 
 		Time end = new Time();
-		end.set(cur.getLong(5));
+		
+		// Tobias, 20/09/2011:
+		// somehow the end date sometimes seems to be set to 0 for recurring events within the
+		// Android database. For now, I just set the end date to the start date + 1 hour if we have
+		// this case and we're not having an all day event.
+		//
+		// TODO We should try to figure out why the end date is set to 0.
+		if (cur.getLong(5) == 0 && !e.getAllDay()) {
+			end.set(start);
+			end.hour += 1;
+			end.normalize(true);
+		} else
+			end.set(cur.getLong(5));
 		e.setDtend(end);
 
 		e.setDescription(cur.getString(6));

@@ -109,6 +109,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 	public void fetchAllLocalItems()
 	{
+		
 		localItemsCache = new HashMap<Integer, CalendarEntry>();
 
 		Cursor cur = calendarProvider.fetchAllLocalItems();
@@ -172,6 +173,16 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		{
 			cal = new CalendarEntry();
 		}
+		updateLocalItemFromXml(sync, cal, xml);
+	}
+	
+	protected void updateLocalItemFromXml(SyncContext sync, CalendarEntry cal, Document xml) throws SyncException {
+		populateCalendarEntry(cal, xml);
+		CacheEntry cacheEntry = saveCalender(cal);
+		sync.setCacheEntry(cacheEntry);
+	}
+	
+	protected static void populateCalendarEntry(CalendarEntry cal, Document xml) throws SyncException {
 		Element root = xml.getDocumentElement();
 
 		cal.setUid(Utils.getXmlElementString(root, "uid"));
@@ -185,6 +196,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			cal.setHasAlarm(1);
 			cal.setReminderTime(reminderTime);
 		}
+		
 
 		try
 		{
@@ -206,7 +218,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			if(Time.compare(start, end) > 0 ) {
 				// end before start, can't be
 				Log.w("sync", "End is before Start, can't be.");
-				end = start; 
+				end = start;
 				if(!cal.getAllDay()) {
 					// add one hour
 					end.hour += 1;
@@ -355,8 +367,6 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 				Log.d("sync", "RRule = " + cal.getrRule());
 				Log.d("sync", "ExDate = " + cal.getexDate());
 			}
-
-			sync.setCacheEntry(saveCalender(cal));
 		}
 		catch (Exception ex)
 		{
@@ -398,7 +408,6 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		entry.setRemoteChangedDate(lastChanged);
 
 		writeXml(xml, source, lastChanged);
-
 	}
 
 	private final static java.util.regex.Pattern	regFREQ				= java.util.regex.Pattern
@@ -407,7 +416,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	// java.util.regex.Pattern
 	// .compile(";WKST=(\\w*)");
 	private final static java.util.regex.Pattern	regUNTIL			= java.util.regex.Pattern
-																				.compile(".*;UNTIL=(\\d{8})T(\\d*)");
+																				.compile(".*;UNTIL=(\\d{8})T(\\d*)Z?;?.*");
 	private final static java.util.regex.Pattern	regBYDAY			= java.util.regex.Pattern
 																				.compile(".*;BYDAY=([\\+\\-\\,0-9A-Z]*);?.*");
 	private final static java.util.regex.Pattern	regBYDAYSubPattern	= java.util.regex.Pattern
@@ -419,7 +428,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	private final static java.util.regex.Pattern	regBYMONTH			= java.util.regex.Pattern
 																				.compile(".*;BYMONTH=(\\d*);?.*");
 
-	private void writeXml(Document xml, CalendarEntry source,
+	private static void writeXml(Document xml, CalendarEntry source,
 			final Date lastChanged)
 	{
 		Element root = xml.getDocumentElement();
