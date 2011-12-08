@@ -109,7 +109,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 	public void fetchAllLocalItems()
 	{
-		
+
 		localItemsCache = new HashMap<Integer, CalendarEntry>();
 
 		Cursor cur = calendarProvider.fetchAllLocalItems();
@@ -130,7 +130,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 	public int getIdColumnIndex(Cursor c)
 	{
-		return c.getColumnIndex(CalendarProvider._ID);
+		return c.getColumnIndex("_id");
 	}
 
 	public Cursor getAllLocalItemsCursor()
@@ -175,14 +175,18 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		}
 		updateLocalItemFromXml(sync, cal, xml);
 	}
-	
-	protected void updateLocalItemFromXml(SyncContext sync, CalendarEntry cal, Document xml) throws SyncException {
+
+	protected void updateLocalItemFromXml(SyncContext sync, CalendarEntry cal,
+			Document xml) throws SyncException
+	{
 		populateCalendarEntry(cal, xml);
 		CacheEntry cacheEntry = saveCalender(cal);
 		sync.setCacheEntry(cacheEntry);
 	}
-	
-	protected static void populateCalendarEntry(CalendarEntry cal, Document xml) throws SyncException {
+
+	protected static void populateCalendarEntry(CalendarEntry cal, Document xml)
+			throws SyncException
+	{
 		Element root = xml.getDocumentElement();
 
 		cal.setUid(Utils.getXmlElementString(root, "uid"));
@@ -196,7 +200,6 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			cal.setHasAlarm(1);
 			cal.setReminderTime(reminderTime);
 		}
-		
 
 		try
 		{
@@ -215,11 +218,13 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 				end.monthDay += 1;
 				end.toMillis(true);
 			}
-			if(Time.compare(start, end) > 0 ) {
+			if (Time.compare(start, end) > 0)
+			{
 				// end before start, can't be
 				Log.w("sync", "End is before Start, can't be.");
 				end = start;
-				if(!cal.getAllDay()) {
+				if (!cal.getAllDay())
+				{
 					// add one hour
 					end.hour += 1;
 				}
