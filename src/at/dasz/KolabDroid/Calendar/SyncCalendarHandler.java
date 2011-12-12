@@ -702,4 +702,9 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	{
 		// nothing to do
 	}
+
+	public String getLogTag()
+	{
+		return "Cal";
+	}
 }

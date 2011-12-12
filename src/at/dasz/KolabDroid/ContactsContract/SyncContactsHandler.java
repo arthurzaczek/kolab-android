@@ -656,4 +656,9 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		// nothing to do
 
 	}
+
+	public String getLogTag()
+	{
+		return "Ct";
+	}
 }
