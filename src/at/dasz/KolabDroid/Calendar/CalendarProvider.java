@@ -260,7 +260,8 @@ public class CalendarProvider
 		values.put(Events.DURATION, duration);
 		values.put(Events.DESCRIPTION, e.getDescription());
 		values.put(Events.EVENT_LOCATION, e.getEventLocation());
-		values.put(Events.VISIBLE, e.getVisibility());
+		// TODO: not allowed by CalendarContract
+		// values.put(Events.VISIBLE, e.getVisibility());
 		values.put(Events.HAS_ALARM, e.getHasAlarm());
 		values.put(Events.RRULE, e.getrRule());
 		values.put(Events.EXDATE, e.getexDate());
