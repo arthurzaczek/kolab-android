@@ -30,7 +30,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.provider.CalendarContract;
 import android.provider.CalendarContract.CalendarAlerts;
 import android.provider.CalendarContract.Calendars;
