@@ -368,6 +368,8 @@ public class EditContactActivity extends Activity
 	{
 		mContact.setGivenName(firstName.getText().toString());
 		mContact.setFamilyName(lastName.getText().toString());
+		//update fullname too on name change
+		mContact.setFullName(firstName.getText().toString() + " " + lastName.getText().toString());
 
 		mContact.setNote(notes.getText().toString());
 		mContact.setWebpage(webpage.getText().toString());
