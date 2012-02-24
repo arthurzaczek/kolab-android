@@ -200,19 +200,23 @@ public abstract class LocalCacheProvider
 		Cursor c = null;
 		try
 		{
+			final long localId = newlyCreated.getLocalId();
 			c = getCursor(db, DatabaseHelper.ID_PROJECTION, COL_LOCAL_ID
-					+ " = " + newlyCreated.getLocalId(), null, null, null, null);
+					+ " = " + localId, null, null, null, null);
 			if (c.moveToFirst())
 			{
-				newlyCreated.setId(c.getInt(DatabaseHelper.COL_IDX_ID));
-				db.update(tableName, newlyCreated.toContentValues(),
-						DatabaseHelper.COL_ID + " = " + newlyCreated.getId(),
+				final long id = c.getInt(DatabaseHelper.COL_IDX_ID);
+				final int rows = db.update(tableName, newlyCreated.toContentValues(),
+						DatabaseHelper.COL_ID + " = " + id,
 						null);
+				if(rows != 1) {
+					Log.w("LCP", "More than one CacheEntry updated with localId: " + localId);
+				}
 				while (c.moveToNext())
 				{
 					// Delete duplicated entries
-					int id = c.getInt(DatabaseHelper.COL_IDX_ID);
-					deleteEntry(id);
+					final int idDelete = c.getInt(DatabaseHelper.COL_IDX_ID);
+					deleteEntry(idDelete);
 				}
 			}
 			else

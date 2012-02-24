@@ -37,7 +37,7 @@ public class CacheEntry
 
 	private long	id;
 	private int	localId, remoteSize;
-	private long		remoteChangedDate;
+	private long remoteChangedDate;
 	private String	localHash, remoteId, remoteImapUid;
 	private byte[]	remoteHash;
 
@@ -48,16 +48,14 @@ public class CacheEntry
 
 	public CacheEntry(Cursor c)
 	{
-		setId(c.getInt(DatabaseHelper.COL_IDX_ID));
-		setLocalId(c.getInt(LocalCacheProvider.COL_IDX_LOCAL_ID));
-		setRemoteChangedDate(c
-				.getLong(LocalCacheProvider.COL_IDX_REMOTE_CHANGEDDATE));
-		setRemoteSize(c.getInt(LocalCacheProvider.COL_IDX_REMOTE_SIZE));
-		setLocalHash(c.getString(LocalCacheProvider.COL_IDX_LOCAL_HASH));
-		setRemoteId(c.getString(LocalCacheProvider.COL_IDX_REMOTE_ID));
-		setRemoteImapUid(c
-				.getString(LocalCacheProvider.COL_IDX_REMOTE_IMAP_UID));
-		setRemoteHash(c.getBlob(LocalCacheProvider.COL_IDX_REMOTE_HASH));
+		id = c.getInt(DatabaseHelper.COL_IDX_ID);
+		localId = c.getInt(LocalCacheProvider.COL_IDX_LOCAL_ID);
+		remoteChangedDate = c.getLong(LocalCacheProvider.COL_IDX_REMOTE_CHANGEDDATE);
+		remoteSize = c.getInt(LocalCacheProvider.COL_IDX_REMOTE_SIZE);
+		localHash = c.getString(LocalCacheProvider.COL_IDX_LOCAL_HASH);
+		remoteId = c.getString(LocalCacheProvider.COL_IDX_REMOTE_ID);
+		remoteImapUid = c.getString(LocalCacheProvider.COL_IDX_REMOTE_IMAP_UID);
+		remoteHash = c.getBlob(LocalCacheProvider.COL_IDX_REMOTE_HASH);
 	}
 
 	public void setId(long rowId)
@@ -148,18 +146,13 @@ public class CacheEntry
 	public ContentValues toContentValues()
 	{
 		ContentValues result = new ContentValues();
-		if (getId() != 0)
-		{
-			result.put(DatabaseHelper.COL_ID, getId());
-		}
-		result.put(LocalCacheProvider.COL_LOCAL_ID, getLocalId());
-		result.put(LocalCacheProvider.COL_REMOTE_CHANGEDDATE,
-				getRemoteChangedDate().getTime());
-		result.put(LocalCacheProvider.COL_REMOTE_SIZE, getRemoteSize());
-		result.put(LocalCacheProvider.COL_LOCAL_HASH, getLocalHash());
-		result.put(LocalCacheProvider.COL_REMOTE_ID, getRemoteId());
-		result.put(LocalCacheProvider.COL_REMOTE_IMAP_UID, getRemoteImapUid());
-		result.put(LocalCacheProvider.COL_REMOTE_HASH, getRemoteHash());
+		result.put(LocalCacheProvider.COL_LOCAL_ID, localId);
+		result.put(LocalCacheProvider.COL_REMOTE_CHANGEDDATE, remoteChangedDate);
+		result.put(LocalCacheProvider.COL_REMOTE_SIZE, remoteSize);
+		result.put(LocalCacheProvider.COL_LOCAL_HASH, localHash);
+		result.put(LocalCacheProvider.COL_REMOTE_ID, remoteId);
+		result.put(LocalCacheProvider.COL_REMOTE_IMAP_UID, remoteImapUid);
+		result.put(LocalCacheProvider.COL_REMOTE_HASH, remoteHash);
 		return result;
 	}
 	
