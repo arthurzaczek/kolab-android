@@ -143,10 +143,26 @@ public class CalendarProvider
 		e.setUid(uid);
 		e.setCalendar_id(cur.getInt(1));
 		e.setTitle(cur.getString(2));
-		e.setAllDay(cur.getInt(3) != 0);
+		boolean allDay = cur.getInt(3) != 0;
+		e.setAllDay(allDay);
+		
+		long startMillis = cur.getLong(4);
+		long endMillis = cur.getLong(5);
 
+		// If the event is all-day, read the times in UTC timezone
 		Time start = new Time();
-		start.set(cur.getLong(4));
+		if(allDay)
+		{
+			String tz = start.timezone;
+			start.timezone = Time.TIMEZONE_UTC;
+			start.set(startMillis);
+			start.timezone = tz;
+
+            // Calling normalize to calculate isDst
+			start.normalize(true);
+		} else {
+			start.set(startMillis);
+		}		
 		e.setDtstart(start);
 
 		Time end = new Time();
@@ -157,12 +173,24 @@ public class CalendarProvider
 		// this case and we're not having an all day event.
 		//
 		// TODO We should try to figure out why the end date is set to 0.
-		if (cur.getLong(5) == 0 && !e.getAllDay()) {
+		if (endMillis == 0 && !allDay) {
 			end.set(start);
 			end.hour += 1;
 			end.normalize(true);
 		} else
-			end.set(cur.getLong(5));
+		{
+			if(allDay) {
+				String tz = start.timezone;
+                end.timezone = Time.TIMEZONE_UTC;
+                end.set(endMillis);
+                end.timezone = tz;
+
+                // Calling normalize to calculate isDst
+                end.normalize(true);
+			} else {
+			end.set(endMillis);
+			}
+		}
 		e.setDtend(end);
 
 		e.setDescription(cur.getString(6));
