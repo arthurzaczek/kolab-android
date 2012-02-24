@@ -25,4 +25,13 @@ public class SyncException extends Exception
 	}
 
 	private String	_Item;
+	
+	@Override
+	public String toString()
+	{
+		if(_Item != null)
+			return _Item + ": " + super.toString();
+		else 
+			return super.toString();
+	}
 }
