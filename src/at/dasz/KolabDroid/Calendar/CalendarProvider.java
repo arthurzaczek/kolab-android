@@ -22,6 +22,7 @@
 package at.dasz.KolabDroid.Calendar;
 
 import java.util.Calendar;
+import java.util.TimeZone;
 
 import android.accounts.Account;
 import android.content.ContentResolver;
@@ -255,10 +256,10 @@ public class CalendarProvider
 		values.put("_sync_dirty", 0);
 		values.put("_sync_time", System.currentTimeMillis());
 
-		// values.put("eventTimezone", "UTC"); //TODO: put eventTimezone here:
-		// UTC from kolab? Arthur: yes, see comment in writeXml
-
+		String timezone = TimeZone.getDefault().getID();
 		values.put("calendar_id", e.getCalendar_id());
+		values.put("eventTimezone", timezone);
+
 		values.put("title", e.getTitle());
 		values.put("allDay", e.getAllDay() ? 1 : 0);
 		values.put("dtstart", start);
