@@ -203,27 +203,28 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			Time start = Utils.getXmlElementTime(root, "start-date");
 			Time end = Utils.getXmlElementTime(root, "end-date");
 
-			cal.setAllDay(start.hour == 0 && end.hour == 0 && start.minute == 0
-					&& end.minute == 0 && start.second == 0 && end.second == 0);
+			boolean allDay = start.hour == 0 && end.hour == 0 && start.minute == 0
+			&& end.minute == 0 && start.second == 0 && end.second == 0;
+			cal.setAllDay(allDay);						
 
 			cal.setDtstart(start);
 
 			// allday events of length n days have dtend == dtstart + (n-1) in
 			// kolab, android calendar has dtend == dtstart + n.
-			if (cal.getAllDay())
+			if (allDay)
 			{
 				end.monthDay += 1;
-				end.toMillis(true);
+				end.normalize(true);
 			}
 			if(Time.compare(start, end) > 0 ) {
 				// end before start, can't be
 				Log.w("sync", "End is before Start, can't be.");
 				end = start;
-				if(!cal.getAllDay()) {
+				if(!allDay) {
 					// add one hour
 					end.hour += 1;
 				}
-				end.toMillis(true);
+				end.normalize(true);
 			}
 			cal.setDtend(end);
 

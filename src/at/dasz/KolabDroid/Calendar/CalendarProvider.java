@@ -153,12 +153,8 @@ public class CalendarProvider
 		Time start = new Time();
 		if(allDay)
 		{
-			String tz = start.timezone;
 			start.timezone = Time.TIMEZONE_UTC;
 			start.set(startMillis);
-			start.timezone = tz;
-
-            // Calling normalize to calculate isDst
 			start.normalize(true);
 		} else {
 			start.set(startMillis);
@@ -180,12 +176,8 @@ public class CalendarProvider
 		} else
 		{
 			if(allDay) {
-				String tz = start.timezone;
                 end.timezone = Time.TIMEZONE_UTC;
                 end.set(endMillis);
-                end.timezone = tz;
-
-                // Calling normalize to calculate isDst
                 end.normalize(true);
 			} else {
 			end.set(endMillis);
@@ -242,7 +234,7 @@ public class CalendarProvider
 		// some useful information:
 		// http://www.google.com/codesearch/p?hl=en&sa=N&cd=3&ct=rc#uX1GffpyOZk/core/java/android/provider/Calendar.java
 
-		ContentValues values = new ContentValues();
+		final ContentValues values = new ContentValues();
 		if (e == null)
 		{
 			Log.e(TAG,
@@ -263,19 +255,20 @@ public class CalendarProvider
 							+ e.getCalendar_id());
 			return;
 		}
-		long start = e.getDtstart().toMillis(true);
-		long end = e.getDtend().toMillis(true);
+		final long start = e.getDtstart().toMillis(true);
+		final long end = e.getDtend().toMillis(true);
+		final boolean allDay = e.getAllDay();
 
 		String duration;
-		if (e.getAllDay())
+		if (allDay)
 		{
-			long days = (end - start + DateUtils.DAY_IN_MILLIS - 1)
+			final long days = (end - start + DateUtils.DAY_IN_MILLIS - 1)
 					/ DateUtils.DAY_IN_MILLIS;
 			duration = "P" + days + "D";
 		}
 		else
 		{
-			long seconds = (end - start) / DateUtils.SECOND_IN_MILLIS;
+			final long seconds = (end - start) / DateUtils.SECOND_IN_MILLIS;
 			duration = "P" + seconds + "S";
 		}
 
@@ -286,7 +279,7 @@ public class CalendarProvider
 
 		values.put("calendar_id", e.getCalendar_id());
 		String timezone;
-		if (e.getAllDay()) {
+		if (allDay) {
 			timezone = Time.TIMEZONE_UTC;
 		} else {
 			timezone = TimeZone.getDefault().getID();
@@ -294,7 +287,7 @@ public class CalendarProvider
 		values.put("eventTimezone", timezone);
 
 		values.put("title", e.getTitle());
-		values.put("allDay", e.getAllDay() ? 1 : 0);
+		values.put("allDay", allDay ? 1 : 0);
 		values.put("dtstart", start);
 		values.put("dtend", end);
 		values.put("duration", duration);
