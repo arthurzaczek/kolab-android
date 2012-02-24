@@ -159,7 +159,8 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		try
 		{
 			InputStream xmlinput = extractXml(sync.getMessage());
-			if(xmlinput == null) throw new SyncException(getItemText(sync), "Unable to find XML Document");
+			if (xmlinput == null) throw new SyncException(getItemText(sync),
+					"Unable to find XML Document");
 			Document doc = Utils.getDocument(xmlinput);
 			updateLocalItemFromServer(sync, doc);
 			updateCacheEntryFromMessage(sync, doc);
@@ -182,7 +183,8 @@ public abstract class AbstractSyncHandler implements SyncHandler
 			try
 			{
 				InputStream xmlinput = extractXml(sync.getMessage());
-				if(xmlinput == null) throw new SyncException(getItemText(sync), "Unable to find XML Document");
+				if (xmlinput == null) throw new SyncException(
+						getItemText(sync), "Unable to find XML Document");
 				Document doc = Utils.getDocument(xmlinput);
 				updateLocalItemFromServer(sync, doc);
 				updateCacheEntryFromMessage(sync, doc);
@@ -271,7 +273,8 @@ public abstract class AbstractSyncHandler implements SyncHandler
 				+ sync.getCacheEntry().getLocalId());
 
 		InputStream xmlinput = extractXml(sync.getMessage());
-		if(xmlinput == null) throw new SyncException(getItemText(sync), "Unable to find XML Document");
+		if (xmlinput == null) throw new SyncException(getItemText(sync),
+				"Unable to find XML Document");
 		try
 		{
 			// Parse XML
@@ -324,27 +327,29 @@ public abstract class AbstractSyncHandler implements SyncHandler
 	protected InputStream extractXml(Message message)
 			throws MessagingException, IOException
 	{
-		DataSource mainDataSource = message.getDataHandler().getDataSource();
-		if ((mainDataSource instanceof MultipartDataSource))
+		final DataSource mainDataSource = message.getDataHandler().getDataSource();
+		if (mainDataSource instanceof MultipartDataSource)
 		{
 			MultipartDataSource multipart = (MultipartDataSource) mainDataSource;
 			for (int idx = 0; idx < multipart.getCount(); idx++)
 			{
-				BodyPart p = multipart.getBodyPart(idx);
-
+				final BodyPart p = multipart.getBodyPart(idx);
 				if (p.isMimeType(getMimeType())) { return p.getInputStream(); }
 			}
 		}
 		else
 		{
 			// What's the difference?
-			MimeMultipart multipart = (MimeMultipart) message.getContent();
-
-			for (int idx = 0; idx < multipart.getCount(); idx++)
+			final Object content = message.getContent();
+			if (content instanceof MimeMultipart)
 			{
-				BodyPart p = multipart.getBodyPart(idx);
-
-				if (p.isMimeType(getMimeType())) { return p.getInputStream(); }
+				final MimeMultipart multipart = (MimeMultipart) content;
+				for (int idx = 0; idx < multipart.getCount(); idx++)
+				{
+					final BodyPart p = multipart.getBodyPart(idx);
+					if (p.isMimeType(getMimeType())) { 
+						return p.getInputStream(); }
+				}
 			}
 		}
 		return null;
