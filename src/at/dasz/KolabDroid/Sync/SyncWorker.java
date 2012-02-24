@@ -55,6 +55,8 @@ import at.dasz.KolabDroid.Settings.Settings;
  */
 public class SyncWorker
 {
+	private static final String TAG = "sync";
+	
 	// Not final to avoid warnings
 	private static boolean	DBG_LOCAL_CHANGED	= false;
 	private static boolean	DBG_REMOTE_CHANGED	= false;
@@ -126,7 +128,7 @@ public class SyncWorker
 			status.setFatalErrorMsg(ex.toString());
 			StatusHandler
 					.writeStatus(String.format(errorFormat, ex.getMessage()));
-			Log.e("sync", ex.toString());
+			Log.e(TAG, ex.toString());
 		}
 		finally
 		{
@@ -139,7 +141,7 @@ public class SyncWorker
 			catch (Exception ex)
 			{
 				// don't fail here
-				Log.e("sync", ex.toString());
+				Log.e(TAG, ex.toString());
 			}
 		}
 	}
@@ -159,7 +161,7 @@ public class SyncWorker
 
 			if (settings.getUseSSL())
 			{
-				Log.v("sync", "loading local keystore");
+				Log.v(TAG, "loading local keystore");
 				TrustManagerFactory.loadLocalKeystore(context);
 			}
 
@@ -183,19 +185,21 @@ public class SyncWorker
 			fp.add(FetchProfile.Item.ENVELOPE);
 			sourceFolder.fetch(msgs, fp);
 
-			LocalCacheProvider cache = handler.getLocalCacheProvider();
-			Set<Integer> processedEntries = new HashSet<Integer>(
+			final LocalCacheProvider cache = handler.getLocalCacheProvider();
+			final Set<Integer> processedEntries = new HashSet<Integer>(
 					(int) (msgs.length * 1.2));
 			final String processMessageFormat = this.context.getResources()
 					.getString(R.string.processing_message_format);
 			final StatusEntry status = handler.getStatus();
+			final boolean useRemoteHash = settings.getCreateRemoteHash();
+			Log.d(TAG, "Using remote hash = " + useRemoteHash);
 
 			Log.i("sync", "Syncing IMAP Messages");
 			for (Message m : msgs)
 			{
 				if (m.getFlags().contains(Flag.DELETED))
 				{
-					Log.d("sync", "Found deleted message, continue");
+					// Log.d(TAG, "Found deleted message, continue");
 					continue;
 				}
 
@@ -208,11 +212,11 @@ public class SyncWorker
 
 					// 2. check message headers for changes
 					String subject = sync.getMessage().getSubject();
-					Log.i("sync", "2. Checking message " + subject);
+					// Log.i(TAG, "2. Checking message " + subject);
 					
 					if(subject == null || "".equals(subject))
 					{
-						Log.w("sync", "2. Message does NOT have a subject => will ignore it");
+						Log.w(TAG, "2. Message does NOT have a subject => will ignore it");
 						continue;
 					}
 
@@ -222,12 +226,12 @@ public class SyncWorker
 
 					if (cacheEntry == null)
 					{
-						Log.i("sync", "6. found no local entry => save");
+						Log.i(TAG, "6. found no local entry => save");
 						handler.createLocalItemFromServer(session, sourceFolder, sync);
 						status.incrementLocalNew();
 						if (sync.getCacheEntry() == null)
 						{
-							Log.w("sync", "createLocalItemFromServer returned a null object! See Logfile for parsing errors");
+							Log.w(TAG, "createLocalItemFromServer returned a null object! See Logfile for parsing errors");
 						}
 
 					}
@@ -235,60 +239,58 @@ public class SyncWorker
 					{
 						if (processedEntries.contains(cacheEntry.getLocalId()))
 						{
-							Log.w("sync",
+							Log.w(TAG,
 							 	"7. already processed from server: skipping");
 							continue;
 						}
-						Log.d("sync", "7. compare data to figure out what happened");
+						// Log.d("sync", "7. compare data to figure out what happened");
 
 						boolean cacheIsSame = false;
-						if (settings.getCreateRemoteHash())
+						if (useRemoteHash)
 						{
-							Log.d("sync", "We are using the RemoteHash option");
 							cacheIsSame = handler.isSameRemoteHash(cacheEntry, sync.getMessage());
 						}
 						else
 						{
-							Log.d("sync", "We are NOT using the RemoteHash option");
 							cacheIsSame = handler.isSame(cacheEntry, sync.getMessage());
 						}
 
 						if (cacheIsSame && !DBG_REMOTE_CHANGED)
 						{
-							Log.d("sync", "7.a/d cur=localdb (cache is same)");
+							//Log.d(TAG, "7.a/d cur=localdb (cache is same)");
 							if (handler.hasLocalItem(sync))
 							{
-								Log.d("sync", "7.a check for local changes and upload them");
+								//Log.d(TAG, "7.a check for local changes and upload them");
 								if (handler.hasLocalChanges(sync) || DBG_LOCAL_CHANGED)
 								{
-									Log.i("sync", "7.a local changes found: updating ServerItem from Local");
+									Log.i(TAG, "7.a local changes found: updating ServerItem from Local");
 									handler.updateServerItemFromLocal(session, sourceFolder, sync);
 									status.incrementRemoteChanged();
 								}
 								else
 								{
-									Log.d("sync", "7.a NO local changes found => doing nothing");
+									//Log.d(TAG, "7.a NO local changes found => doing nothing");
 									handler.markAsSynced(sync);
 								}
 							}
 							else
 							{
-								Log.i("sync", "7.d entry missing => delete on server");
+								Log.i(TAG, "7.d entry missing => delete on server");
 								handler.deleteServerItem(sync);
 								status.incrementRemoteDeleted();
 							}
 						}
 						else
 						{
-							Log.d("sync", "7.b/c check for local changes and \"resolve\" the conflict");
+							//Log.d(TAG, "7.b/c check for local changes and \"resolve\" the conflict");
 							if (handler.hasLocalChanges(sync))
 							{
-								Log.i("sync", "7.c local changes found: conflicting, updating local item from server");
+								Log.i(TAG, "7.c local changes found: conflicting, updating local item from server");
 								status.incrementConflicted();
 							}
 							else
 							{
-								Log.i("sync", "7.b no local changes found: updating local item from server");
+								Log.i(TAG, "7.b no local changes found: updating local item from server");
 							}
 							handler.updateLocalItemFromServer(sync);
 							status.incrementLocalChanged();
@@ -297,29 +299,29 @@ public class SyncWorker
 				}
 				catch (SyncException ex)
 				{
-					Log.e("sync", ex.toString());
+					Log.e(TAG, ex.toString());
 					status.incrementErrors();
 				}
 				catch(MessagingException mex) 
 				{
-					Log.e("sync", mex.toString());
+					Log.e(TAG, mex.toString());
 					status.incrementErrors();					
 				}
 				catch(IOException ioex)
 				{
-					Log.e("sync", ioex.toString());
+					Log.e(TAG, ioex.toString());
 					status.incrementErrors();					
 				}
 				if (sync.getCacheEntry() != null)
 				{
-					Log.d("sync", "8. remember message as processed (item id=" + sync.getCacheEntry().getLocalId() + ")");
+					//Log.d(TAG, "8. remember message as processed (item id=" + sync.getCacheEntry().getLocalId() + ")");
 					processedEntries.add(sync.getCacheEntry().getLocalId());
 				}
 			}
 
 			// 9. for all unprocessed local items
 			// 9.a upload/delete
-			Log.i("sync", "9. process unprocessed local items");
+			Log.i(TAG, "9. process unprocessed local items");
 
 			Set<Integer> localIDs = handler.getAllLocalItemsIDs();
 			if (localIDs == null) throw new SyncException("getAllLocalItems", "cr.query returned null");
@@ -332,7 +334,7 @@ public class SyncWorker
 
 				for (int localId : localIDs)
 				{
-					Log.i("sync", "9. processing local#" + localId);
+					//Log.i(TAG, "9. processing local#" + localId);
 
 					StatusHandler.writeStatus(String.format(processItemFormat,
 							currentLocalItemNo++, itemsCount));
@@ -348,7 +350,7 @@ public class SyncWorker
 					sync.setCacheEntry(cache.getEntryFromLocalId(localId));
 					if (sync.getCacheEntry() != null)
 					{
-						Log.i("sync", "9.b found in local cache: deleting localy");
+						Log.i(TAG, "9.b found in local cache: deleting localy");
 						handler.deleteLocalItem(sync);
 						status.incrementLocalDeleted();
 						status.incrementItems();
@@ -356,7 +358,7 @@ public class SyncWorker
 					}
 					else
 					{
-						Log.i("sync", "9.c NOT found in local cache: creating on server");
+						Log.i(TAG, "9.c NOT found in local cache: creating on server");
 						handler.createServerItemFromLocal(session, sourceFolder, sync, localId);
 						status.incrementRemoteNew();
 						status.incrementItems();
@@ -366,7 +368,7 @@ public class SyncWorker
 			}
 			catch (SyncException ex)
 			{
-				Log.e("sync", ex.toString());
+				Log.e(TAG, ex.toString());
 				status.incrementErrors();
 			}
 			catch(MessagingException mex) 
@@ -378,7 +380,7 @@ public class SyncWorker
 		finally
 		{
 			handler.finalizeSync();
-			Log.e("sync", "** sync finished");
+			Log.e(TAG, "** sync finished");
 			if (sourceFolder != null) {
 				try {
 					sourceFolder.close(true);
