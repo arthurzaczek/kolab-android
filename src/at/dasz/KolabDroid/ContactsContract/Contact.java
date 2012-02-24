@@ -48,7 +48,14 @@ public class Contact
 
 	public void setBirthday(String birthday)
 	{
-		this.birthday = birthday;
+		if(birthday != null && birthday.startsWith("0001-01-01"))
+		{
+			this.birthday = null;
+		}
+		else
+		{
+			this.birthday = birthday;
+		}
 	}
 
 	public String getGivenName()
