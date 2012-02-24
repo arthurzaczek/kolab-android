@@ -218,8 +218,9 @@ public class SyncWorker
 
 					// 5. fetch local cache entry
 					sync.setCacheEntry(cache.getEntryFromRemoteId(subject));
+					final CacheEntry cacheEntry = sync.getCacheEntry(); 
 
-					if (sync.getCacheEntry() == null)
+					if (cacheEntry == null)
 					{
 						Log.i("sync", "6. found no local entry => save");
 						handler.createLocalItemFromServer(session, sourceFolder, sync);
@@ -232,18 +233,24 @@ public class SyncWorker
 					}
 					else
 					{
+						if (processedEntries.contains(cacheEntry.getLocalId()))
+						{
+							Log.w("sync",
+							 	"7. already processed from server: skipping");
+							continue;
+						}
 						Log.d("sync", "7. compare data to figure out what happened");
 
 						boolean cacheIsSame = false;
 						if (settings.getCreateRemoteHash())
 						{
 							Log.d("sync", "We are using the RemoteHash option");
-							cacheIsSame = handler.isSameRemoteHash(sync.getCacheEntry(), sync.getMessage());
+							cacheIsSame = handler.isSameRemoteHash(cacheEntry, sync.getMessage());
 						}
 						else
 						{
 							Log.d("sync", "We are NOT using the RemoteHash option");
-							cacheIsSame = handler.isSame(sync.getCacheEntry(), sync.getMessage());
+							cacheIsSame = handler.isSame(cacheEntry, sync.getMessage());
 						}
 
 						if (cacheIsSame && !DBG_REMOTE_CHANGED)
