@@ -440,14 +440,19 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		Utils.setXmlElementValue(xml, root, "summary", source.getTitle());
 		Utils.setXmlElementValue(xml, root, "location",
 				source.getEventLocation());
+		
+		boolean allDay = source.getAllDay();
 
 		// times have to be in UTC, according to
 		// http://www.kolab.org/doc/kolabformat-2.0rc7-html/x123.html
 		Time startTime = source.getDtstart();
-		startTime.switchTimezone("UTC");
+		if(!allDay) {
+			// All day events already normalized, don't switch
+			startTime.switchTimezone("UTC");
+		}
 
 		Utils.setXmlElementValue(xml, root, "start-date",
-				startTime.format3339(source.getAllDay()));
+				startTime.format3339(allDay));
 
 		if (source.getHasAlarm() != 0)
 		{
@@ -456,9 +461,12 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		}
 
 		Time endTime = source.getDtend();
-		endTime.switchTimezone("UTC");
+		if(!allDay) {
+			// All day events already normalized, don't switch
+			endTime.switchTimezone("UTC");
+		}
 
-		if (source.getAllDay())
+		if (allDay)
 		{
 			// whole day events (1 day) do start and end on the same day in
 			// kolab XML.
@@ -467,7 +475,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			endTime.normalize(true);
 		}
 		Utils.setXmlElementValue(xml, root, "end-date",
-				endTime.format3339(source.getAllDay()));
+				endTime.format3339(allDay));
 
 		String rrule = source.getrRule();
 		if (rrule != null && !"".equals(rrule))

@@ -284,8 +284,13 @@ public class CalendarProvider
 		values.put("_sync_dirty", 0);
 		values.put("_sync_time", System.currentTimeMillis());
 
-		String timezone = TimeZone.getDefault().getID();
 		values.put("calendar_id", e.getCalendar_id());
+		String timezone;
+		if (e.getAllDay()) {
+			timezone = Time.TIMEZONE_UTC;
+		} else {
+			timezone = TimeZone.getDefault().getID();
+		}
 		values.put("eventTimezone", timezone);
 
 		values.put("title", e.getTitle());
