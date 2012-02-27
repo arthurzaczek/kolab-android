@@ -1,7 +1,6 @@
 package at.dasz.KolabDroid.ContactsContract;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
@@ -60,10 +59,15 @@ public class ContactDBHelper
 			Contact result = new Contact();
 			result.setId((int) contactID);
 			String mimeType;
+			Uri uri;
+			long id;
 
 			do
 			{
 				mimeType = queryCursor.getString(DataQuery.COLUMN_MIMETYPE);
+				id = queryCursor.getLong(DataQuery.COLUMN_ID);
+				uri = ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, id);
+				
 				if (mimeType.equals(StructuredName.CONTENT_ITEM_TYPE))
 				{
 					result.setGivenName(queryCursor
@@ -79,6 +83,7 @@ public class ContactDBHelper
 					pc.setData(queryCursor
 							.getString(DataQuery.COLUMN_PHONE_NUMBER));
 					pc.setType(queryCursor.getInt(DataQuery.COLUMN_PHONE_TYPE));
+					pc.setUri(uri);
 					result.addContactMethod(pc);
 				}
 				else if (mimeType.equals(Email.CONTENT_ITEM_TYPE))
@@ -87,6 +92,7 @@ public class ContactDBHelper
 					ec.setData(queryCursor
 							.getString(DataQuery.COLUMN_EMAIL_ADDRESS));
 					ec.setType(queryCursor.getInt(DataQuery.COLUMN_EMAIL_TYPE));
+					ec.setUri(uri);
 					result.addContactMethod(ec);
 				}
 				else if (mimeType.equals(StructuredPostal.CONTENT_ITEM_TYPE))
@@ -105,6 +111,7 @@ public class ContactDBHelper
 					ac.setType(queryCursor
 							.getInt(DataQuery.COLUMN_ADDRESS_TYPE));
 					ac.updateData();
+					ac.setUri(uri);
 					result.addContactMethod(ac);
 				}
 				else if (mimeType.equals(Event.CONTENT_ITEM_TYPE))
@@ -192,10 +199,6 @@ public class ContactDBHelper
 		boolean webpageUpdated = false;
 		boolean orgUpdated = false;
 
-		HashSet<PhoneContact> updatedPhoneContacts = new HashSet<PhoneContact>();
-		HashSet<EmailContact> updatedEmailContacts = new HashSet<EmailContact>();
-		HashSet<AddressContact> updatedAddressContacts = new HashSet<AddressContact>();
-
 		// Update existing contact fields
 		if (rawContactId != 0)
 		{
@@ -244,14 +247,11 @@ public class ContactDBHelper
 					}
 					else if (mimeType.equals(Phone.CONTENT_ITEM_TYPE))
 					{
-						final String phone = c
-								.getString(DataQuery.COLUMN_PHONE_NUMBER);
-						PhoneContact pc = contact.findPhone(phone);
+						final PhoneContact pc = contact.findPhone(uri);
 						if (pc != null)
 						{
 							contactOp.updatePhone(uri, pc.getData(),
 									pc.getType());
-							updatedPhoneContacts.add(pc);
 						}
 						else
 						{
@@ -260,14 +260,11 @@ public class ContactDBHelper
 					}
 					else if (mimeType.equals(Email.CONTENT_ITEM_TYPE))
 					{
-						final String mail = c
-								.getString(DataQuery.COLUMN_EMAIL_ADDRESS);
-						EmailContact ec = contact.findEmail(mail);
+						final EmailContact ec = contact.findEmail(uri);
 						if (ec != null)
 						{
 							contactOp.updateEmail(uri, ec.getData(),
 									ec.getType());
-							updatedEmailContacts.add(ec);
 						}
 						else
 						{
@@ -277,16 +274,13 @@ public class ContactDBHelper
 					else if (mimeType
 							.equals(StructuredPostal.CONTENT_ITEM_TYPE))
 					{
-						final int type = c
-								.getInt(DataQuery.COLUMN_ADDRESS_TYPE);
-						AddressContact ac = contact.findAddress(type);
+						final AddressContact ac = contact.findAddress(uri);
 						if (ac != null)
 						{
 							contactOp.updateAddress(uri, ac.getStreet(),
 									ac.getCity(), ac.getRegion(),
 									ac.getPostalcode(), ac.getCountry(),
 									ac.getType());
-							updatedAddressContacts.add(ac);
 						}
 						else
 						{
@@ -326,19 +320,19 @@ public class ContactDBHelper
 		for (ContactMethod cm : contact.getContactMethods())
 		{
 			if (cm instanceof EmailContact
-					&& !updatedEmailContacts.contains(cm))
+					&& cm.getUri() == null)
 			{
 				contactOp.addEmail(cm.getData(), cm.getType());
 			}
 
 			if (cm instanceof PhoneContact
-					&& !updatedPhoneContacts.contains(cm))
+					&& cm.getUri() == null)
 			{
 				contactOp.addPhone(cm.getData(), cm.getType());
 			}
 
 			if (cm instanceof AddressContact
-					&& !updatedAddressContacts.contains(cm))
+					&& cm.getUri() == null)
 			{
 				AddressContact ac = (AddressContact) cm;
 				contactOp.addAddress(ac.getStreet(), ac.getCity(),

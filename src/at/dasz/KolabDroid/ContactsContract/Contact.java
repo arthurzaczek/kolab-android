@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import android.net.Uri;
 import android.text.TextUtils;
 
 public class Contact
@@ -212,6 +213,22 @@ public class Contact
 
 		return null;
 	}
+	
+	public PhoneContact findPhone(Uri uri)
+	{
+		if(uri == null) return null;
+		
+		for (ContactMethod cm : contactMethods)
+		{
+			if (cm instanceof PhoneContact
+					&& uri.equals(cm.getUri())) 
+			{ 
+				return (PhoneContact) cm; 
+			}
+		}
+
+		return null;
+	}
 
 	public EmailContact findEmail(String mail)
 	{
@@ -227,12 +244,44 @@ public class Contact
 		return null;
 	}
 	
+	public EmailContact findEmail(Uri uri)
+	{
+		if(uri == null) return null;
+		
+		for (ContactMethod cm : contactMethods)
+		{
+			if (cm instanceof EmailContact
+					&& uri.equals(cm.getUri())) 
+			{ 
+				return (EmailContact) cm; 
+			}
+		}
+
+		return null;
+	}
+	
 	public AddressContact findAddress(int type)
 	{
 		for (ContactMethod cm : contactMethods)
 		{
 			if (cm instanceof AddressContact
 					&& cm.getType() == type) 
+			{ 
+				return (AddressContact) cm; 
+			}
+		}
+
+		return null;
+	}
+	
+	public AddressContact findAddress(Uri uri)
+	{
+		if(uri == null) return null;
+		
+		for (ContactMethod cm : contactMethods)
+		{
+			if (cm instanceof AddressContact
+					&& uri.equals(cm.getUri())) 
 			{ 
 				return (AddressContact) cm; 
 			}

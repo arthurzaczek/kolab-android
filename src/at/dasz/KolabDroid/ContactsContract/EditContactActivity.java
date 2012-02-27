@@ -352,6 +352,8 @@ public class EditContactActivity extends Activity
 	{
 		bindFrom();
 		saveContact();
+		// do not reload until the newly created/updated contact can be received
+		// ContactMethod relies heavily on URIs
 		this.finish();
 	}
 
