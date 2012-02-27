@@ -376,9 +376,17 @@ public class EditContactActivity extends Activity
 	{
 		mContact.setGivenName(firstName.getText().toString());
 		mContact.setFamilyName(lastName.getText().toString());
+
 		// update fullname too on name change
-		mContact.setFullName(firstName.getText().toString() + " "
-				+ lastName.getText().toString());
+		StringBuilder sb = new StringBuilder();
+		if(!TextUtils.isEmpty(firstName.getText().toString())) {
+			sb.append(firstName.getText().toString());
+			sb.append(" ");
+		}
+		if(!TextUtils.isEmpty(lastName.getText().toString())) {
+			sb.append(lastName.getText().toString());
+		}
+		mContact.setFullName(sb.toString().trim());
 
 		mContact.setNote(notes.getText().toString());
 		mContact.setWebpage(webpage.getText().toString());
