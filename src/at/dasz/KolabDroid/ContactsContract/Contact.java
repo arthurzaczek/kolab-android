@@ -145,21 +145,11 @@ public class Contact
 		contactMethods.add(cm);
 	}
 
-	//remove cm by type now
 	public void removeContactMethod(ContactMethod cm)
 	{
-		//contactMethods.remove(cm);
 		if(null == cm)
 			return;
-		
-		ContactMethod toRemove = null;
-		for(ContactMethod c : contactMethods)
-		{
-			if(c.getType() == cm.getType())
-				toRemove = c; break;
-		}
-		contactMethods.remove(toRemove);
-		
+		contactMethods.remove(cm);
 	}
 
 	@Override
@@ -185,7 +175,6 @@ public class Contact
 		{
 			contents.add(cm.getData());
 		}
-
 		
 		contents.add(TextUtils.isEmpty(birthday) ? "noBday" : birthday);
 		contents.add(null == photo ? "noPhoto" : String.valueOf(Arrays.hashCode(photo)));
@@ -201,7 +190,24 @@ public class Contact
 		for (ContactMethod cm : contactMethods)
 		{
 			if (cm instanceof PhoneContact
-					&& TextUtils.equals(cm.getData(), phone)) { return (PhoneContact) cm; }
+					&& TextUtils.equals(cm.getData(), phone)) 
+			{ 
+				return (PhoneContact) cm; 
+			}
+		}
+
+		return null;
+	}
+	
+	public PhoneContact findPhone(int type)
+	{
+		for (ContactMethod cm : contactMethods)
+		{
+			if (cm instanceof PhoneContact
+					&& cm.getType() == type) 
+			{ 
+				return (PhoneContact) cm; 
+			}
 		}
 
 		return null;
@@ -212,7 +218,10 @@ public class Contact
 		for (ContactMethod cm : contactMethods)
 		{
 			if (cm instanceof EmailContact
-					&& TextUtils.equals(cm.getData(), mail)) { return (EmailContact) cm; }
+					&& TextUtils.equals(cm.getData(), mail)) 
+			{ 
+				return (EmailContact) cm; 
+			}
 		}
 
 		return null;
@@ -223,7 +232,10 @@ public class Contact
 		for (ContactMethod cm : contactMethods)
 		{
 			if (cm instanceof AddressContact
-					&& cm.getType() == type) { return (AddressContact) cm; }
+					&& cm.getType() == type) 
+			{ 
+				return (AddressContact) cm; 
+			}
 		}
 
 		return null;

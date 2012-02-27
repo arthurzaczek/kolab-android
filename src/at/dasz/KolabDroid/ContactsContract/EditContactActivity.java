@@ -103,16 +103,13 @@ public class EditContactActivity extends Activity
 
 	private void setReceivedPhone(int type)
 	{
-		PhoneContact pc = new PhoneContact();
-		pc.setType(type);
+		PhoneContact pc = mContact.findPhone(type);
+		if(pc == null) {
+			pc = new PhoneContact();
+			pc.setType(type);
+			mContact.addContactMethod(pc);
+		}
 		pc.setData(phonenumber);
-
-		// for adding to existing contact we delete the existing for now
-		PhoneContact pcTmp = new PhoneContact();
-		pcTmp.setType(type);
-		mContact.removeContactMethod(pcTmp);
-
-		mContact.addContactMethod(pc);
 
 		// refresh GUI
 		bindTo();
