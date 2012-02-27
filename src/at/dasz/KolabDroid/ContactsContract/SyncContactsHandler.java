@@ -264,6 +264,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 		}
 		else
 		{
+			// Don't touch local photo
 			Log.i("ConH", "No Photo on server for " + contact.getFullName());
 		}
 
