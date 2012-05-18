@@ -55,7 +55,7 @@ import at.dasz.KolabDroid.Settings.Settings;
  */
 public class SyncWorker
 {
-	private static final String TAG = "sync";
+	private static String TAG = "sync";
 	
 	// Not final to avoid warnings
 	private static boolean	DBG_LOCAL_CHANGED	= false;

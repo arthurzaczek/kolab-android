@@ -53,7 +53,6 @@ public class CalendarProvider
 	public static Uri				CALENDAR_REMINDER_URI;
 	public static Uri				CALENDAR_CALENDARS_URI;
 
-	private static final String		CALLER_IS_SYNCADAPTER	= "caller_is_syncadapter";
 	public static final String[]	eventsProjection	= new String[] {
 			Events._ID, Events.CALENDAR_ID, Events.TITLE, Events.ALL_DAY,
 			Events.DTSTART, Events.DTEND, Events.DESCRIPTION,
@@ -70,7 +69,7 @@ public class CalendarProvider
 
 	private long					calendarID				= -1;
 
-	private Context					ctx						= null;
+	private static Context					ctx						= null;
 	private Account					account					= null;
 
 	public CalendarProvider(Context ctx, Account account)
