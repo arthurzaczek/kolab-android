@@ -109,7 +109,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 	public void fetchAllLocalItems()
 	{
-
+		
 		localItemsCache = new HashMap<Integer, CalendarEntry>();
 
 		Cursor cur = calendarProvider.fetchAllLocalItems();
@@ -130,7 +130,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 
 	public int getIdColumnIndex(Cursor c)
 	{
-		return c.getColumnIndex("_id");
+		return c.getColumnIndex(CalendarProvider._ID);
 	}
 
 	public Cursor getAllLocalItemsCursor()
@@ -175,18 +175,14 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		}
 		updateLocalItemFromXml(sync, cal, xml);
 	}
-
-	protected void updateLocalItemFromXml(SyncContext sync, CalendarEntry cal,
-			Document xml) throws SyncException
-	{
+	
+	protected void updateLocalItemFromXml(SyncContext sync, CalendarEntry cal, Document xml) throws SyncException {
 		populateCalendarEntry(cal, xml);
 		CacheEntry cacheEntry = saveCalender(cal);
 		sync.setCacheEntry(cacheEntry);
 	}
-
-	protected static void populateCalendarEntry(CalendarEntry cal, Document xml)
-			throws SyncException
-	{
+	
+	protected static void populateCalendarEntry(CalendarEntry cal, Document xml) throws SyncException {
 		Element root = xml.getDocumentElement();
 
 		cal.setUid(Utils.getXmlElementString(root, "uid"));
@@ -200,35 +196,35 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			cal.setHasAlarm(1);
 			cal.setReminderTime(reminderTime);
 		}
+		
 
 		try
 		{
 			Time start = Utils.getXmlElementTime(root, "start-date");
 			Time end = Utils.getXmlElementTime(root, "end-date");
 
-			cal.setAllDay(start.hour == 0 && end.hour == 0 && start.minute == 0
-					&& end.minute == 0 && start.second == 0 && end.second == 0);
+			boolean allDay = start.hour == 0 && end.hour == 0 && start.minute == 0
+			&& end.minute == 0 && start.second == 0 && end.second == 0;
+			cal.setAllDay(allDay);						
 
 			cal.setDtstart(start);
 
 			// allday events of length n days have dtend == dtstart + (n-1) in
 			// kolab, android calendar has dtend == dtstart + n.
-			if (cal.getAllDay())
+			if (allDay)
 			{
 				end.monthDay += 1;
-				end.toMillis(true);
+				end.normalize(true);
 			}
-			if (Time.compare(start, end) > 0)
-			{
+			if(Time.compare(start, end) > 0 ) {
 				// end before start, can't be
 				Log.w("sync", "End is before Start, can't be.");
 				end = start;
-				if (!cal.getAllDay())
-				{
+				if(!allDay) {
 					// add one hour
 					end.hour += 1;
 				}
-				end.toMillis(true);
+				end.normalize(true);
 			}
 			cal.setDtend(end);
 
@@ -445,14 +441,19 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		Utils.setXmlElementValue(xml, root, "summary", source.getTitle());
 		Utils.setXmlElementValue(xml, root, "location",
 				source.getEventLocation());
+		
+		boolean allDay = source.getAllDay();
 
 		// times have to be in UTC, according to
 		// http://www.kolab.org/doc/kolabformat-2.0rc7-html/x123.html
 		Time startTime = source.getDtstart();
-		startTime.switchTimezone("UTC");
+		if(!allDay) {
+			// All day events already normalized, don't switch
+			startTime.switchTimezone("UTC");
+		}
 
 		Utils.setXmlElementValue(xml, root, "start-date",
-				startTime.format3339(source.getAllDay()));
+				startTime.format3339(allDay));
 
 		if (source.getHasAlarm() != 0)
 		{
@@ -461,9 +462,12 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		}
 
 		Time endTime = source.getDtend();
-		endTime.switchTimezone("UTC");
+		if(!allDay) {
+			// All day events already normalized, don't switch
+			endTime.switchTimezone("UTC");
+		}
 
-		if (source.getAllDay())
+		if (allDay)
 		{
 			// whole day events (1 day) do start and end on the same day in
 			// kolab XML.
@@ -472,7 +476,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			endTime.normalize(true);
 		}
 		Utils.setXmlElementValue(xml, root, "end-date",
-				endTime.format3339(source.getAllDay()));
+				endTime.format3339(allDay));
 
 		String rrule = source.getrRule();
 		if (rrule != null && !"".equals(rrule))

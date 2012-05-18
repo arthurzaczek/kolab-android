@@ -38,8 +38,12 @@ import at.dasz.KolabDroid.Sync.SyncException;
 
 public class EditContactActivity extends Activity
 {
-	static final int		DATE_DIALOG_ID	= 0;
-	static final int		PHONE_TYPE_DIALOG_ID = 1;
+	static final int		DATE_DIALOG_ID			= 0;
+	static final int		PHONE_TYPE_DIALOG_ID	= 1;
+
+	static final int		RESULT_ID_PIC_PHOTO		= 1;
+
+	static final int		PIC_SIZE				= 96;
 
 	private Contact			mContact;
 
@@ -75,9 +79,10 @@ public class EditContactActivity extends Activity
 	private EmailContact	ec1;
 	private EmailContact	ec2;
 	private EmailContact	ec3;
-	
-	//private int phoneType = -1; //stores the type selected in choose dialog when adding a number from call list to a contact
-	private String phonenumber;
+
+	// private int phoneType = -1; //stores the type selected in choose dialog
+	// when adding a number from call list to a contact
+	private String			phonenumber;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -95,24 +100,20 @@ public class EditContactActivity extends Activity
 	{
 		showDialog(DATE_DIALOG_ID);
 	}
-	
+
 	private void setReceivedPhone(int type)
 	{
-		PhoneContact pc = new PhoneContact();
-		pc.setType(type);
+		PhoneContact pc = mContact.findPhone(type);
+		if(pc == null) {
+			pc = new PhoneContact();
+			pc.setType(type);
+			mContact.addContactMethod(pc);
+		}
 		pc.setData(phonenumber);
-		
-		//for adding to existing contact we delete the existing for now
-		PhoneContact pcTmp = new PhoneContact();
-		pcTmp.setType(type);
-		mContact.removeContactMethod(pcTmp);
-		
-		mContact.addContactMethod(pc);
-		
-		//refresh GUI
+
+		// refresh GUI
 		bindTo();
 	}
-	
 
 	@Override
 	protected Dialog onCreateDialog(int id)
@@ -125,32 +126,34 @@ public class EditContactActivity extends Activity
 			return new DatePickerDialog(this, mDateSetListener, now.year,
 					now.month, now.monthDay);
 		case PHONE_TYPE_DIALOG_ID:
-			//Log.i("ECA", "Phone_type dialog should appear");
-			
-			final CharSequence[] items = {"Home", "Work", "Mobile"};
+			// Log.i("ECA", "Phone_type dialog should appear");
+
+			final CharSequence[] items = { "Home", "Work", "Mobile" };
 
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setTitle("Choose Phone type");
 			builder.setItems(items, new DialogInterface.OnClickListener() {
-			    public void onClick(DialogInterface dialog, int item) {
-			    	
-			    	int phoneType = -1;
-			    	
-			    	if("Home".equals(items[item]))
-			    	{
-			    		phoneType = ContactsContract.CommonDataKinds.Phone.TYPE_HOME;
-			    	}
-			    	else if("Work".equals(items[item]))
-			    	{
-			    		phoneType = ContactsContract.CommonDataKinds.Phone.TYPE_WORK;
-			    	}
-			    	else if("Mobile".equals(items[item]))
-			    	{
-			    		phoneType = ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE;
-			    	}			    	
-			    	Log.i("ECA", "Phone_type dialog selected type: " + phoneType);
-			    	setReceivedPhone(phoneType);
-			    }
+				public void onClick(DialogInterface dialog, int item)
+				{
+
+					int phoneType = -1;
+
+					if ("Home".equals(items[item]))
+					{
+						phoneType = ContactsContract.CommonDataKinds.Phone.TYPE_HOME;
+					}
+					else if ("Work".equals(items[item]))
+					{
+						phoneType = ContactsContract.CommonDataKinds.Phone.TYPE_WORK;
+					}
+					else if ("Mobile".equals(items[item]))
+					{
+						phoneType = ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE;
+					}
+					Log.i("ECA", "Phone_type dialog selected type: "
+							+ phoneType);
+					setReceivedPhone(phoneType);
+				}
 			});
 			AlertDialog alert = builder.create();
 			return alert;
@@ -296,7 +299,8 @@ public class EditContactActivity extends Activity
 	{
 		Intent i = new Intent(Intent.ACTION_PICK,
 				android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI);
-		startActivityForResult(Intent.createChooser(i, "Select Picture"), 1);
+		startActivityForResult(Intent.createChooser(i, "Select Picture"),
+				RESULT_ID_PIC_PHOTO);
 	}
 
 	public void onRemPhotoClicked(View v)
@@ -311,11 +315,10 @@ public class EditContactActivity extends Activity
 
 		Uri uri = Uri.parse(intent.getDataString());
 		Log.i("ECA:", "Edit uri: " + uri);
-		
 
 		if (uri.toString().endsWith("contacts")) // new contact
 		{
-			mContact = new Contact();			
+			mContact = new Contact();
 		}
 		else
 		{
@@ -330,23 +333,27 @@ public class EditContactActivity extends Activity
 				this.finish();
 			}
 		}
-		
-		//TODO: we might also catch emails in order to add them to contacts, here
-		
-		phonenumber = intent.getStringExtra(ContactsContract.Intents.Insert.PHONE);
-		//Log.i("ECA:", "Edit received phone#: " + phonenumber);
-		
-		if(null != phonenumber)
-		{						
+
+		// TODO: we might also catch emails in order to add them to contacts,
+		// here
+
+		phonenumber = intent
+				.getStringExtra(ContactsContract.Intents.Insert.PHONE);
+		// Log.i("ECA:", "Edit received phone#: " + phonenumber);
+
+		if (null != phonenumber)
+		{
 			showDialog(PHONE_TYPE_DIALOG_ID);
-		}			
-		
+		}
+
 	}
 
 	public void onSaveClicked(View view) throws SyncException
 	{
 		bindFrom();
 		saveContact();
+		// do not reload until the newly created/updated contact can be received
+		// ContactMethod relies heavily on URIs
 		this.finish();
 	}
 
@@ -368,6 +375,17 @@ public class EditContactActivity extends Activity
 	{
 		mContact.setGivenName(firstName.getText().toString());
 		mContact.setFamilyName(lastName.getText().toString());
+
+		// update fullname too on name change
+		StringBuilder sb = new StringBuilder();
+		if(!TextUtils.isEmpty(firstName.getText().toString())) {
+			sb.append(firstName.getText().toString());
+			sb.append(" ");
+		}
+		if(!TextUtils.isEmpty(lastName.getText().toString())) {
+			sb.append(lastName.getText().toString());
+		}
+		mContact.setFullName(sb.toString().trim());
 
 		mContact.setNote(notes.getText().toString());
 		mContact.setWebpage(webpage.getText().toString());
@@ -440,10 +458,9 @@ public class EditContactActivity extends Activity
 	{
 		if (resultCode == RESULT_OK)
 		{
-			if (requestCode == 1)
+			if (requestCode == RESULT_ID_PIC_PHOTO)
 			{
 				Uri selectedImageUri = data.getData();
-				// Log.i("ECA:", "Selected pic uri:" + selectedImageUri);
 
 				String[] filePathColumn = { MediaStore.Images.Media.DATA };
 
@@ -457,7 +474,7 @@ public class EditContactActivity extends Activity
 
 				try
 				{
-					Bitmap bmp = decodeFile(new File(filePath), 96);
+					Bitmap bmp = decodeFile(new File(filePath), PIC_SIZE);
 
 					ByteArrayOutputStream out = new ByteArrayOutputStream(20480);
 					bmp.compress(CompressFormat.PNG, 90, out);

@@ -24,11 +24,21 @@ package at.dasz.KolabDroid.ContactsContract;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import android.net.Uri;
+
 
 public abstract class ContactMethod {
 	private int type;
-
 	private String data;
+	private Uri uri;
+
+	public Uri getUri()	{
+		return uri;
+	}
+
+	public void setUri(Uri uri)	{
+		this.uri = uri;
+	}
 
 	public final void setData(String data) {
 		this.data = data;

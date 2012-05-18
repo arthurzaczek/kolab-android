@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import android.net.Uri;
 import android.text.TextUtils;
 
 public class Contact
@@ -48,7 +49,14 @@ public class Contact
 
 	public void setBirthday(String birthday)
 	{
-		this.birthday = birthday;
+		if(birthday != null && birthday.startsWith("0001-01-01"))
+		{
+			this.birthday = null;
+		}
+		else
+		{
+			this.birthday = birthday;
+		}
 	}
 
 	public String getGivenName()
@@ -138,21 +146,11 @@ public class Contact
 		contactMethods.add(cm);
 	}
 
-	//remove cm by type now
 	public void removeContactMethod(ContactMethod cm)
 	{
-		//contactMethods.remove(cm);
 		if(null == cm)
 			return;
-		
-		ContactMethod toRemove = null;
-		for(ContactMethod c : contactMethods)
-		{
-			if(c.getType() == cm.getType())
-				toRemove = c; break;
-		}
-		contactMethods.remove(toRemove);
-		
+		contactMethods.remove(cm);
 	}
 
 	@Override
@@ -178,7 +176,6 @@ public class Contact
 		{
 			contents.add(cm.getData());
 		}
-
 		
 		contents.add(TextUtils.isEmpty(birthday) ? "noBday" : birthday);
 		contents.add(null == photo ? "noPhoto" : String.valueOf(Arrays.hashCode(photo)));
@@ -194,7 +191,40 @@ public class Contact
 		for (ContactMethod cm : contactMethods)
 		{
 			if (cm instanceof PhoneContact
-					&& TextUtils.equals(cm.getData(), phone)) { return (PhoneContact) cm; }
+					&& TextUtils.equals(cm.getData(), phone)) 
+			{ 
+				return (PhoneContact) cm; 
+			}
+		}
+
+		return null;
+	}
+	
+	public PhoneContact findPhone(int type)
+	{
+		for (ContactMethod cm : contactMethods)
+		{
+			if (cm instanceof PhoneContact
+					&& cm.getType() == type) 
+			{ 
+				return (PhoneContact) cm; 
+			}
+		}
+
+		return null;
+	}
+	
+	public PhoneContact findPhone(Uri uri)
+	{
+		if(uri == null) return null;
+		
+		for (ContactMethod cm : contactMethods)
+		{
+			if (cm instanceof PhoneContact
+					&& uri.equals(cm.getUri())) 
+			{ 
+				return (PhoneContact) cm; 
+			}
 		}
 
 		return null;
@@ -205,7 +235,26 @@ public class Contact
 		for (ContactMethod cm : contactMethods)
 		{
 			if (cm instanceof EmailContact
-					&& TextUtils.equals(cm.getData(), mail)) { return (EmailContact) cm; }
+					&& TextUtils.equals(cm.getData(), mail)) 
+			{ 
+				return (EmailContact) cm; 
+			}
+		}
+
+		return null;
+	}
+	
+	public EmailContact findEmail(Uri uri)
+	{
+		if(uri == null) return null;
+		
+		for (ContactMethod cm : contactMethods)
+		{
+			if (cm instanceof EmailContact
+					&& uri.equals(cm.getUri())) 
+			{ 
+				return (EmailContact) cm; 
+			}
 		}
 
 		return null;
@@ -216,7 +265,26 @@ public class Contact
 		for (ContactMethod cm : contactMethods)
 		{
 			if (cm instanceof AddressContact
-					&& cm.getType() == type) { return (AddressContact) cm; }
+					&& cm.getType() == type) 
+			{ 
+				return (AddressContact) cm; 
+			}
+		}
+
+		return null;
+	}
+	
+	public AddressContact findAddress(Uri uri)
+	{
+		if(uri == null) return null;
+		
+		for (ContactMethod cm : contactMethods)
+		{
+			if (cm instanceof AddressContact
+					&& uri.equals(cm.getUri())) 
+			{ 
+				return (AddressContact) cm; 
+			}
 		}
 
 		return null;

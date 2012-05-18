@@ -358,12 +358,8 @@ public final class Utils
 		try
 		{
 			hash = MessageDigest.getInstance("SHA1");
-
 			byte[] input = text.getBytes();
-
 			byte[] hashValue = hash.digest(input);
-
-			// Log.i("II","out digest: " + hashValue);
 			return hashValue;
 		}
 		catch (Exception ex)
@@ -381,10 +377,7 @@ public final class Utils
 		try
 		{
 			hash = MessageDigest.getInstance("SHA1");
-
 			byte[] hashValue = hash.digest(input);
-
-			// Log.i("II","out digest: " + hashValue);
 			return hashValue;
 		}
 		catch (Exception ex)
@@ -410,5 +403,4 @@ public final class Utils
 
 		return hex.toString();
 	}
-
 }

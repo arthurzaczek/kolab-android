@@ -220,9 +220,9 @@ public class CalendarEntry
 		ArrayList<String> contents = new ArrayList<String>(4);
 		contents.add(getTitle() == null ? "no title" : getTitle());
 		contents.add(getDtstart() == null ? "no start" : "start "
-				+ getDtstart().toMillis(false));
+				+ getDtstart().toMillis(true));
 		contents.add(getDtend() == null ? "no end" : "end "
-				+ getDtend().toMillis(false));
+				+ getDtend().toMillis(true));
 		contents.add(getAllDay() ? "AllDay" : "Not AllDay");
 		contents.add(getDescription() == null ? "no Description"
 				: getDescription());

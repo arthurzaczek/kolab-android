@@ -22,6 +22,7 @@
 package at.dasz.KolabDroid.Calendar;
 
 import java.util.Calendar;
+import java.util.TimeZone;
 
 import android.accounts.Account;
 import android.content.ContentResolver;
@@ -44,26 +45,33 @@ import at.dasz.KolabDroid.Sync.SyncException;
 
 public class CalendarProvider
 {
-	public static final String		TAG					= "KolabCalendarProvider";
-
+	public static final String TAG = "KolabCalendarProvider";
+	
 	// don't make them public - it's better to do all database access jobs here
 	public static Uri				CALENDAR_EVENTS_URI;
 	public static Uri				CALENDAR_ALERT_URI;
 	public static Uri				CALENDAR_REMINDER_URI;
 	public static Uri				CALENDAR_CALENDARS_URI;
 
+	private static final String		CALLER_IS_SYNCADAPTER	= "caller_is_syncadapter";
 	public static final String[]	eventsProjection	= new String[] {
 			Events._ID, Events.CALENDAR_ID, Events.TITLE, Events.ALL_DAY,
 			Events.DTSTART, Events.DTEND, Events.DESCRIPTION,
 			Events.EVENT_LOCATION, Events.VISIBLE, Events.HAS_ALARM,
 			Events.RRULE, Events.EXDATE				};
 
+	public static final String		_ID						= "_id";
+
+	public static final String[]	projection				= new String[] {
+			_ID, "calendar_id", "title", "allDay", "dtstart", "dtend",
+			"description", "eventLocation", "visibility", "hasAlarm", "rrule",
+			"exdate"										};
 	private ContentResolver			cr;
 
-	private long					calendarID			= -1;
+	private long					calendarID				= -1;
 
-	private Context					ctx					= null;
-	private Account					account				= null;
+	private Context					ctx						= null;
+	private Account					account					= null;
 
 	public CalendarProvider(Context ctx, Account account)
 	{
@@ -77,7 +85,7 @@ public class CalendarProvider
 		CALENDAR_CALENDARS_URI = addCallerIsSyncAdapterParameter(Calendars.CONTENT_URI);
 	}
 
-	private Uri addCallerIsSyncAdapterParameter(Uri uri)
+	private static Uri addCallerIsSyncAdapterParameter(Uri uri)
 	{
 		return uri
 				.buildUpon()
@@ -129,29 +137,46 @@ public class CalendarProvider
 		e.setUid(uid);
 		e.setCalendar_id(cur.getInt(1));
 		e.setTitle(cur.getString(2));
-		e.setAllDay(cur.getInt(3) != 0);
+		boolean allDay = cur.getInt(3) != 0;
+		e.setAllDay(allDay);
+		
+		long startMillis = cur.getLong(4);
+		long endMillis = cur.getLong(5);
 
+		// If the event is all-day, read the times in UTC timezone
 		Time start = new Time();
-		start.set(cur.getLong(4));
+		if(allDay)
+		{
+			start.timezone = Time.TIMEZONE_UTC;
+			start.set(startMillis);
+			start.normalize(true);
+		} else {
+			start.set(startMillis);
+		}		
 		e.setDtstart(start);
 
 		Time end = new Time();
-
+		
 		// Tobias, 20/09/2011:
-		// somehow the end date sometimes seems to be set to 0 for recurring
-		// events within the
-		// Android database. For now, I just set the end date to the start date
-		// + 1 hour if we have
+		// somehow the end date sometimes seems to be set to 0 for recurring events within the
+		// Android database. For now, I just set the end date to the start date + 1 hour if we have
 		// this case and we're not having an all day event.
 		//
 		// TODO We should try to figure out why the end date is set to 0.
-		if (cur.getLong(5) == 0 && !e.getAllDay())
-		{
+		if (endMillis == 0 && !allDay) {
 			end.set(start);
 			end.hour += 1;
 			end.normalize(true);
+		} else
+		{
+			if(allDay) {
+                end.timezone = Time.TIMEZONE_UTC;
+                end.set(endMillis);
+                end.normalize(true);
+			} else {
+			end.set(endMillis);
+			}
 		}
-		else end.set(cur.getLong(5));
 		e.setDtend(end);
 
 		e.setDescription(cur.getString(6));
@@ -204,10 +229,11 @@ public class CalendarProvider
 		// some useful information:
 		// http://www.google.com/codesearch/p?hl=en&sa=N&cd=3&ct=rc#uX1GffpyOZk/core/java/android/provider/Calendar.java
 
-		ContentValues values = new ContentValues();
+		final ContentValues values = new ContentValues();
 		if (e == null)
 		{
-			Log.e(TAG, "e == null ; cannot save calendar entry");
+			Log.e(TAG,
+					"e == null ; cannot save calendar entry");
 			return;
 		}
 		if (e.getDtstart() == null)
@@ -224,19 +250,20 @@ public class CalendarProvider
 							+ e.getCalendar_id());
 			return;
 		}
-		long start = e.getDtstart().toMillis(true);
-		long end = e.getDtend().toMillis(true);
+		final long start = e.getDtstart().toMillis(true);
+		final long end = e.getDtend().toMillis(true);
+		final boolean allDay = e.getAllDay();
 
 		String duration;
-		if (e.getAllDay())
+		if (allDay)
 		{
-			long days = (end - start + DateUtils.DAY_IN_MILLIS - 1)
+			final long days = (end - start + DateUtils.DAY_IN_MILLIS - 1)
 					/ DateUtils.DAY_IN_MILLIS;
 			duration = "P" + days + "D";
 		}
 		else
 		{
-			long seconds = (end - start) / DateUtils.SECOND_IN_MILLIS;
+			final long seconds = (end - start) / DateUtils.SECOND_IN_MILLIS;
 			duration = "P" + seconds + "S";
 		}
 
@@ -245,8 +272,14 @@ public class CalendarProvider
 		// values.put(Events.ACCOUNT_TYPE, account.type);
 		values.put(Events.DIRTY, 0);
 
-		// TODO: doesn't exist anymore
-		// values.put("_sync_time", System.currentTimeMillis());
+		//values.put("calendar_id", e.getCalendar_id());
+		String timezone;
+		if (allDay) {
+			timezone = Time.TIMEZONE_UTC;
+		} else {
+			timezone = TimeZone.getDefault().getID();
+		}
+		values.put("eventTimezone", timezone);
 
 		// values.put("eventTimezone", "UTC"); //TODO: put eventTimezone here:
 		// UTC from kolab? Arthur: yes, see comment in writeXml
@@ -346,8 +379,9 @@ public class CalendarProvider
 		{
 			while (cur.moveToNext())
 			{
-				Log.d(TAG, cur.getString(0) + " - " + cur.getString(1) + " - "
-						+ cur.getString(2) + " - " + cur.getString(3));
+				Log.d(TAG,
+						cur.getString(0) + " - " + cur.getString(1) + " - "
+								+ cur.getString(2) + " - " + cur.getString(3));
 			}
 		}
 		finally
@@ -392,8 +426,7 @@ public class CalendarProvider
 				+ Calendars.ACCOUNT_TYPE + "=?";
 
 		Cursor cur = cr.query(CalendarProvider.CALENDAR_CALENDARS_URI, null,
-				selection,
-				new String[] { accountName, Utils.SYNC_ACCOUNT_TYPE }, null);
+				selection, new String[] { accountName, Utils.SYNC_ACCOUNT_TYPE }, null);
 
 		if (cur == null)
 		{
