@@ -5,6 +5,7 @@
 	<classpathentry kind="src" path="javamail"/>
 	<classpathentry kind="src" path="activation"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
-	<classpathentry kind="lib" path="acra-2.0.3/build/acra-2.0.3.jar"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry kind="lib" path="libs/acra-2.0.3.jar"/>
+	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

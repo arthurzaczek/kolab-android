@@ -81,6 +81,10 @@ public class SyncWorker
 
 	public void runWorker()
 	{
+		// http://blog.hpxn.net/2009/12/02/tomcat-java-6-and-javamail-cant-load-dch/
+		// from: http://stackoverflow.com/questions/1969667/send-a-mail-from-java5-and-java6/1969983#1969983
+		Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+
 		StatusProvider statProvider = new StatusProvider(context);
 		status = handler.getStatus();
 		try
