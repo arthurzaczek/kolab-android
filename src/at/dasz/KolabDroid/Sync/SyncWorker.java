@@ -28,6 +28,8 @@ import java.security.cert.CertificateException;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.activation.CommandMap;
+import javax.activation.MailcapCommandMap;
 import javax.mail.FetchProfile;
 import javax.mail.Folder;
 import javax.mail.Message;
@@ -81,9 +83,7 @@ public class SyncWorker
 
 	public void runWorker()
 	{
-		// http://blog.hpxn.net/2009/12/02/tomcat-java-6-and-javamail-cant-load-dch/
-		// from: http://stackoverflow.com/questions/1969667/send-a-mail-from-java5-and-java6/1969983#1969983
-		Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+		initJavaMail();
 
 		StatusProvider statProvider = new StatusProvider(context);
 		status = handler.getStatus();
@@ -150,6 +150,21 @@ public class SyncWorker
 		}
 	}
 
+	private void initJavaMail()
+	{
+		// http://blog.hpxn.net/2009/12/02/tomcat-java-6-and-javamail-cant-load-dch/
+		// from: http://stackoverflow.com/questions/1969667/send-a-mail-from-java5-and-java6/1969983#1969983
+		Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+		// http://stackoverflow.com/questions/1969667/send-a-mail-from-java5-and-java6
+		// add handlers for main mail MIME types
+		MailcapCommandMap mc = (MailcapCommandMap)CommandMap.getDefaultCommandMap();
+		mc.addMailcap("text/html;; x-java-content-handler=com.sun.mail.handlers.text_html");
+		mc.addMailcap("text/xml;; x-java-content-handler=com.sun.mail.handlers.text_xml");
+		mc.addMailcap("text/plain;; x-java-content-handler=com.sun.mail.handlers.text_plain");
+		mc.addMailcap("multipart/*;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed");
+		mc.addMailcap("multipart/mixed;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed");
+	}
+
 	private void sync(Settings settings, SyncHandler handler)
 			throws MessagingException, IOException,
 			ParserConfigurationException, SyncException, CertificateException
@@ -198,7 +213,7 @@ public class SyncWorker
 			final boolean useRemoteHash = settings.getCreateRemoteHash();
 			Log.d(TAG, "Using remote hash = " + useRemoteHash);
 
-			Log.i("sync", "Syncing IMAP Messages");
+			Log.i("sync", "1. Syncing IMAP Messages");
 			for (Message m : msgs)
 			{
 				if (m.getFlags().contains(Flag.DELETED))
