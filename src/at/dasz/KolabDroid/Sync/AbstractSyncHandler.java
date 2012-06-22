@@ -311,7 +311,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 	public void deleteLocalItem(SyncContext sync) throws SyncException
 	{
 		Log.d("sync", "Deleting locally: "
-				+ sync.getCacheEntry().getLocalHash());
+				+ sync.getCacheEntry().getId());
 		deleteLocalItem(sync.getCacheEntry().getLocalId());
 		getLocalCacheProvider().deleteEntry(sync.getCacheEntry());
 	}
