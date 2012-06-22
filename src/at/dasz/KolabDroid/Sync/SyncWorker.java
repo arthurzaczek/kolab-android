@@ -28,6 +28,8 @@ import java.security.cert.CertificateException;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.activation.CommandMap;
+import javax.activation.MailcapCommandMap;
 import javax.mail.FetchProfile;
 import javax.mail.Folder;
 import javax.mail.Message;
@@ -55,7 +57,7 @@ import at.dasz.KolabDroid.Settings.Settings;
  */
 public class SyncWorker
 {
-	private static String TAG = "sync";
+	private static final String TAG = "sync";
 	
 	// Not final to avoid warnings
 	private static boolean	DBG_LOCAL_CHANGED	= false;
@@ -82,6 +84,8 @@ public class SyncWorker
 
 	public void runWorker()
 	{
+		initJavaMail();
+
 		StatusProvider statProvider = new StatusProvider(context);
 		status = handler.getStatus();
 		try
@@ -129,7 +133,7 @@ public class SyncWorker
 			status.setFatalErrorMsg(ex.toString());
 			StatusHandler
 					.writeStatus(String.format(errorFormat, ex.getMessage()));
-			Log.e("sync", ex.toString());
+			Log.e(TAG, ex.toString());
 		}
 		finally
 		{
@@ -145,6 +149,21 @@ public class SyncWorker
 				Log.e(TAG, ex.toString());
 			}
 		}
+	}
+
+	private void initJavaMail()
+	{
+		// http://blog.hpxn.net/2009/12/02/tomcat-java-6-and-javamail-cant-load-dch/
+		// from: http://stackoverflow.com/questions/1969667/send-a-mail-from-java5-and-java6/1969983#1969983
+		Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+		// http://stackoverflow.com/questions/1969667/send-a-mail-from-java5-and-java6
+		// add handlers for main mail MIME types
+		MailcapCommandMap mc = (MailcapCommandMap)CommandMap.getDefaultCommandMap();
+		mc.addMailcap("text/html;; x-java-content-handler=com.sun.mail.handlers.text_html");
+		mc.addMailcap("text/xml;; x-java-content-handler=com.sun.mail.handlers.text_xml");
+		mc.addMailcap("text/plain;; x-java-content-handler=com.sun.mail.handlers.text_plain");
+		mc.addMailcap("multipart/*;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed");
+		mc.addMailcap("multipart/mixed;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed");
 	}
 
 	private void sync(Settings settings, SyncHandler handler)
@@ -195,7 +214,7 @@ public class SyncWorker
 			final boolean useRemoteHash = settings.getCreateRemoteHash();
 			Log.d(TAG, "Using remote hash = " + useRemoteHash);
 
-			Log.i(TAG, "Syncing IMAP Messages");
+			Log.i(TAG, "1. Syncing IMAP Messages");
 			for (Message m : msgs)
 			{
 				if (m.getFlags().contains(Flag.DELETED))
@@ -213,7 +232,7 @@ public class SyncWorker
 
 					// 2. check message headers for changes
 					String subject = sync.getMessage().getSubject();
-					Log.i("sync", "2. Checking message " + subject);
+					// Log.i(TAG, "2. Checking message " + subject);
 					
 					if(subject == null || "".equals(subject))
 					{
@@ -381,7 +400,7 @@ public class SyncWorker
 		finally
 		{
 			handler.finalizeSync();
-			Log.e("sync", "** sync finished");
+			Log.e(TAG, "** sync finished");
 			if (sourceFolder != null) {
 				try {
 					sourceFolder.close(true);

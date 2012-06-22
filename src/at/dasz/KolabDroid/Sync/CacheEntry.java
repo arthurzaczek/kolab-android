@@ -162,8 +162,8 @@ public class CacheEntry
 		StringBuilder sb = new StringBuilder();
 		sb.append("CacheEntry: ");
 		sb.append(" localHash: ");
-		sb.append(localHash);
-		sb.append("\n");
+		sb.append(localHash != null ? localHash.length() : 0);
+		sb.append(" chars ");
 		sb.append("localId: ");
 		sb.append(localId);
 		sb.append(" remoteChangeDate: ");
