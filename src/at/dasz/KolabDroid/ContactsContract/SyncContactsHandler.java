@@ -33,12 +33,10 @@ import java.util.UUID;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.mail.BodyPart;
-import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
-import javax.mail.Session;
 import javax.mail.Flags.Flag;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
@@ -48,7 +46,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
@@ -172,28 +169,6 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	public int getIdColumnIndex(Cursor c)
 	{
 		return c.getColumnIndex(ContactsContract.RawContacts._ID);
-	}
-
-	@Override
-	public void createLocalItemFromServer(Session session, Folder targetFolder,
-			SyncContext sync) throws MessagingException,
-			ParserConfigurationException, IOException, SyncException
-	{
-		Log.d("sync", "Downloading item ...");
-		try
-		{
-			InputStream xmlinput = extractXml(sync.getMessage());
-			if (xmlinput == null) throw new SyncException(getItemText(sync),
-					"Unable to find XML Document");
-			Document doc = Utils.getDocument(xmlinput);
-			updateLocalItemFromServer(sync, doc);
-			updateCacheEntryFromMessage(sync, doc);
-		}
-		catch (SAXException ex)
-		{
-			throw new SyncException(getItemText(sync),
-					"Unable to parse XML Document", ex);
-		}
 	}
 
 	@Override

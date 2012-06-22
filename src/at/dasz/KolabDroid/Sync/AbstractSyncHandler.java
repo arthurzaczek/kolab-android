@@ -150,7 +150,6 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		return status;
 	}
 
-	// public void createLocalItemFromServer(SyncContext sync)
 	public void createLocalItemFromServer(Session session, Folder folder,
 			SyncContext sync) throws MessagingException,
 			ParserConfigurationException, IOException, SyncException
@@ -168,7 +167,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		catch (SAXException ex)
 		{
 			throw new SyncException(getItemText(sync),
-					"Unable to extract XML Document", ex);
+					"Unable to parse XML Document", ex);
 		}
 	}
 
@@ -192,7 +191,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 			catch (SAXException ex)
 			{
 				throw new SyncException(getItemText(sync),
-						"Unable to extract XML Document", ex);
+						"Unable to parse XML Document", ex);
 			}
 		}
 	}
@@ -311,7 +310,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 	public void deleteLocalItem(SyncContext sync) throws SyncException
 	{
 		Log.d("sync", "Deleting locally: "
-				+ sync.getCacheEntry().getLocalHash());
+				+ sync.getCacheEntry().getId());
 		deleteLocalItem(sync.getCacheEntry().getLocalId());
 		getLocalCacheProvider().deleteEntry(sync.getCacheEntry());
 	}
