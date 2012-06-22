@@ -237,10 +237,6 @@ public class SettingsView extends Activity implements Runnable
 	{
 		ArrayAdapter<String> adapter;
 		Object selectedItem = spinner.getSelectedItem();
-		if (selectedItem == null)
-		{
-			Log.v(LOG_TAG, "selectedItem == null");
-		}
 		int newPosition = -1;
 		if (imapFolders != null)
 		{
@@ -254,19 +250,14 @@ public class SettingsView extends Activity implements Runnable
 						newPosition = i;
 					}
 				}
-				Log.v(LOG_TAG, "newPosition is " + newPosition + " ==> "
-						+ imapFolders[newPosition]);
 			}
 			adapter = new ArrayAdapter<String>(SettingsView.this,
 					android.R.layout.simple_spinner_item, imapFolders);
 		}
 		else
 		{
-			Log.v(LOG_TAG, "imapFolders == null");
 			if (selectedItem != null)
 			{
-				Log.v(LOG_TAG,
-						"setting only one item: " + selectedItem.toString());
 				adapter = new ArrayAdapter<String>(
 						SettingsView.this,
 						android.R.layout.simple_spinner_item,
@@ -277,7 +268,6 @@ public class SettingsView extends Activity implements Runnable
 			{
 				if (defaultvalue.equals(""))
 				{
-					Log.v(LOG_TAG, "setting empty list");
 					adapter = new ArrayAdapter<String>(
 							SettingsView.this,
 							android.R.layout.simple_spinner_item);
@@ -285,7 +275,6 @@ public class SettingsView extends Activity implements Runnable
 				}
 				else
 				{
-					Log.v(LOG_TAG, "setting default item: " + defaultvalue);
 					adapter = new ArrayAdapter<String>(
 							SettingsView.this,
 							android.R.layout.simple_spinner_item,
@@ -296,7 +285,6 @@ public class SettingsView extends Activity implements Runnable
 		}
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		spinner.setAdapter(adapter);
-		Log.v(LOG_TAG, "Setting new position to " + newPosition);
 		if (newPosition >= 0) spinner.setSelection(newPosition);
 	}
 
