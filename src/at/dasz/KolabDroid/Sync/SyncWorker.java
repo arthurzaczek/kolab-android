@@ -72,7 +72,6 @@ public class SyncWorker
 		this.context = context;
 		this.account = account;
 		this.handler = handler;
-		this.TAG = "sync" + this.handler.getLogTag();
 	}
 
 	private static StatusEntry	status;
