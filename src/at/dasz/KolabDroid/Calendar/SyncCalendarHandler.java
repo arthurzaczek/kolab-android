@@ -202,6 +202,18 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		{
 			Time start = Utils.getXmlElementTime(root, "start-date");
 			Time end = Utils.getXmlElementTime(root, "end-date");
+			
+			if(start == null) {
+				throw new SyncException(cal.getTitle(), "start is null (not found in XML)");
+			}
+			
+			if(end == null) {
+				// end is null, can't be
+				Log.w("sync", "End is null, can't be.");
+				end = start;				
+				end.hour += 1; // add one hour
+				end.normalize(true);
+			}
 
 			boolean allDay = start.hour == 0 && end.hour == 0 && start.minute == 0
 			&& end.minute == 0 && start.second == 0 && end.second == 0;
