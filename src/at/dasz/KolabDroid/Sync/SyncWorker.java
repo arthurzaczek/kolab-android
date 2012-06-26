@@ -121,6 +121,11 @@ public class SyncWorker
 				status.setFatalErrorMsg(mex.toString());
 			}
 		}
+		// Database error - either wrong database or database not ready
+		catch(android.database.sqlite.SQLiteException sqlex) {
+			StatusHandler.writeStatus("Error: " + sqlex.getMessage());
+			status.setFatalErrorMsg(sqlex.toString());
+		}
 		catch (Exception ex)
 		{
 			final String errorFormat = this.context.getResources().getString(
@@ -399,7 +404,7 @@ public class SyncWorker
 		finally
 		{
 			handler.finalizeSync();
-			Log.e(TAG, "** sync finished");
+			Log.i(TAG, "** sync finished");
 			if (sourceFolder != null) {
 				try {
 					sourceFolder.close(true);
