@@ -71,6 +71,7 @@ public class SettingsView extends Activity implements Runnable
 	private Spinner				spFolderCalendar;
 	private Spinner				spFolderContacts;
 	private Spinner				spMinSyncInterval;
+	private CheckBox			cbDiagLog;
 
 	private Handler				mHandler				= new Handler();
 	private ProgressDialog		mProgDialog				= null;
@@ -97,6 +98,7 @@ public class SettingsView extends Activity implements Runnable
 		spFolderCalendar = (Spinner) findViewById(R.id.spinnerFolderCalendar);
 		spFolderContacts = (Spinner) findViewById(R.id.spinnerFolderContacts);
 		spMinSyncInterval = (Spinner) findViewById(R.id.spinnerSyncInterval);
+		cbDiagLog = (CheckBox)findViewById(R.id.diagLog);
 
 		pref = new Settings(this);
 
@@ -127,6 +129,7 @@ public class SettingsView extends Activity implements Runnable
 		txtIMAPNamespace.setText(pref.getIMAPNamespace());
 		cbCreateRemoteHash.setChecked(pref.getCreateRemoteHash());
 		cbMergeContactsByName.setChecked(pref.getMergeContactsByName());
+		cbDiagLog.setChecked(pref.getDiagLog());
 
 		updateFolderSpinner(spFolderCalendar, pref.getCalendarFolder());
 		updateFolderSpinner(spFolderContacts, pref.getContactsFolder());
@@ -172,6 +175,7 @@ public class SettingsView extends Activity implements Runnable
 		
 		Minute m = (Minute)spMinSyncInterval.getSelectedItem();
 		pref.setMinSynIntervalMinutes(m.Value);
+		pref.setDiagLog(cbDiagLog.isChecked());
 
 		pref.save();
 

@@ -32,7 +32,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import android.database.Cursor;
 import at.dasz.KolabDroid.Provider.LocalCacheProvider;
-import at.dasz.KolabDroid.Settings.Settings;
 
 /**
  * This interface defines the necessary operations to be able to synchronize a 
@@ -186,19 +185,6 @@ public interface SyncHandler
 	public abstract void deleteServerItem(SyncContext sync)
 			throws MessagingException, SyncException;
 	
-	/**
-	 * Get Main Application Settings, set by the user
-	 * 
-	 * @return Settings
-	 */
-	public abstract Settings getSettings();
-	
-	/**
-	 * Set Main Application Settings, set by the user
-	 * 
-	 * @param settings
-	 */
-	public abstract void setSettings(Settings settings);
 	/**
 	 * Checks whether the specified CacheEntry and the Message are in sync.
 	 * Creates a HashValue for the Remote Message, needs to retrieve it first

@@ -63,6 +63,8 @@ import at.dasz.KolabDroid.Settings.Settings;
  */
 public abstract class AbstractSyncHandler implements SyncHandler
 {
+	private static final String	TAG	= "sync";
+
 	protected AbstractSyncHandler(Context context, Account account)
 	{
 		this.context = context;
@@ -71,6 +73,9 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		Time t = new Time();
 		t.setToNow();
 		status.setTime(t);
+		
+		settings = new Settings(context);
+		diagLog = settings.getDiagLog();
 	}
 
 	protected StatusEntry	status;
@@ -78,6 +83,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 	protected Account		account;
 
 	protected Settings		settings;
+	protected boolean 		diagLog = false;
 
 	protected abstract String getMimeType();
 
@@ -326,31 +332,50 @@ public abstract class AbstractSyncHandler implements SyncHandler
 	protected InputStream extractXml(Message message)
 			throws MessagingException, IOException
 	{
+		if(diagLog) Log.d(TAG, "extractXml");
 		final DataSource mainDataSource = message.getDataHandler().getDataSource();
+		if(mainDataSource == null) {
+			if(diagLog) Log.d(TAG, "getDataSource returned NULL");
+			return null;
+		}
 		if (mainDataSource instanceof MultipartDataSource)
 		{
+			if(diagLog) Log.d(TAG, "mainDataSource is a MultipartDataSource");
 			MultipartDataSource multipart = (MultipartDataSource) mainDataSource;
+			if(diagLog) Log.d(TAG, "  containing " + multipart.getCount() + " items");
 			for (int idx = 0; idx < multipart.getCount(); idx++)
 			{
 				final BodyPart p = multipart.getBodyPart(idx);
-				if (p.isMimeType(getMimeType())) { return p.getInputStream(); }
+				if(diagLog) Log.d(TAG, "  " + idx + ": " + p.getContentType());
+				if (p.isMimeType(getMimeType())) 
+				{ 
+					if(diagLog) Log.d(TAG, "  -> found");
+					return p.getInputStream(); 
+				}
 			}
 		}
 		else
 		{
+			if(diagLog) Log.d(TAG, "mainDataSource is a MimeMultipart");
 			// What's the difference?
 			final Object content = message.getContent();
 			if (content instanceof MimeMultipart)
 			{
 				final MimeMultipart multipart = (MimeMultipart) content;
+				if(diagLog) Log.d(TAG, "  containing " + multipart.getCount() + " items");
 				for (int idx = 0; idx < multipart.getCount(); idx++)
 				{
 					final BodyPart p = multipart.getBodyPart(idx);
-					if (p.isMimeType(getMimeType())) { 
-						return p.getInputStream(); }
+					if(diagLog) Log.d(TAG, "  " + idx + ": " + p.getContentType());
+					if (p.isMimeType(getMimeType())) 
+					{ 
+						if(diagLog) Log.d(TAG, "  -> found");
+						return p.getInputStream(); 
+					}
 				}
 			}
 		}
+		if(diagLog) Log.d(TAG, "no XML found");
 		return null;
 	}
 
@@ -417,16 +442,6 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		result.setFlag(Flags.Flag.SEEN, true);
 
 		return result;
-	}
-
-	public Settings getSettings()
-	{
-		return this.settings;
-	}
-
-	public void setSettings(Settings settings)
-	{
-		this.settings = settings;
 	}
 
 	public boolean isSameRemoteHash(CacheEntry entry, Message message)

@@ -60,7 +60,6 @@ import android.util.Log;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.Utils;
 import at.dasz.KolabDroid.Provider.LocalCacheProvider;
-import at.dasz.KolabDroid.Settings.Settings;
 import at.dasz.KolabDroid.Sync.AbstractSyncHandler;
 import at.dasz.KolabDroid.Sync.CacheEntry;
 import at.dasz.KolabDroid.Sync.SyncContext;
@@ -93,9 +92,7 @@ public class SyncContactsHandler extends AbstractSyncHandler
 	public SyncContactsHandler(Context context, Account account)
 	{
 		super(context, account);
-		Settings s = new Settings(context);
-		settings = s;
-		defaultFolderName = s.getContactsFolder();
+		defaultFolderName = settings.getContactsFolder();
 		cacheProvider = new LocalCacheProvider.ContactsCacheProvider(context);
 		cr = context.getContentResolver();
 		ctx = context;
