@@ -53,7 +53,7 @@ public class CalendarEntry
 	private String				rRule;
 	private String				exDate;
 	private String				uid;
-	private int					reminderTime = -1;
+	private int					reminderTime = 0; // 0 = no alarm
 
 	public int getId()
 	{
@@ -229,7 +229,7 @@ public class CalendarEntry
 		contents.add(TextUtils.isEmpty(getEventLocation()) ? "no EventLocation"
 				: getEventLocation());
 		contents.add(TextUtils.isEmpty(getrRule()) ? "no rRule" : getrRule());
-		contents.add(getReminderTime() == -1 ? "no Reminder" : Integer.toString(getReminderTime()));		
+		contents.add(getReminderTime() == 0 ? "no Reminder" : Integer.toString(getReminderTime()));		
 		return TextUtils.join("|", contents.toArray());
 	}
 
