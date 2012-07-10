@@ -229,7 +229,9 @@ public class CalendarEntry
 		contents.add(TextUtils.isEmpty(getEventLocation()) ? "no EventLocation"
 				: getEventLocation());
 		contents.add(TextUtils.isEmpty(getrRule()) ? "no rRule" : getrRule());
-		contents.add(getReminderTime() == 0 ? "no Reminder" : Integer.toString(getReminderTime()));		
+		// No reminder for now - they change on every system different when the alarm was fired
+		// And worst: they change!
+		// contents.add(getReminderTime() == 0 ? "no Reminder" : Integer.toString(getReminderTime()));		
 		return TextUtils.join("|", contents.toArray());
 	}
 
