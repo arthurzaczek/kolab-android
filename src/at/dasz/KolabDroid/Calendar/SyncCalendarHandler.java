@@ -43,7 +43,6 @@ import android.util.Log;
 import at.dasz.KolabDroid.R;
 import at.dasz.KolabDroid.Utils;
 import at.dasz.KolabDroid.Provider.LocalCacheProvider;
-import at.dasz.KolabDroid.Settings.Settings;
 import at.dasz.KolabDroid.Sync.AbstractSyncHandler;
 import at.dasz.KolabDroid.Sync.CacheEntry;
 import at.dasz.KolabDroid.Sync.SyncContext;
@@ -51,6 +50,8 @@ import at.dasz.KolabDroid.Sync.SyncException;
 
 public class SyncCalendarHandler extends AbstractSyncHandler
 {
+	private static final String	TAG	= "sync";
+
 	private final String					defaultFolderName;
 	private final LocalCacheProvider		cacheProvider;
 
@@ -61,9 +62,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	public SyncCalendarHandler(Context context, Account account)
 	{
 		super(context, account);
-		Settings s = new Settings(context);
-		settings = s;
-		defaultFolderName = s.getCalendarFolder();
+		defaultFolderName = settings.getCalendarFolder();
 		cacheProvider = new LocalCacheProvider.CalendarCacheProvider(context);
 		calendarProvider = new CalendarProvider(context, account);
 		status.setTask("Calendar");
@@ -159,9 +158,16 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 	{
 		CacheEntry e = sync.getCacheEntry();
 		CalendarEntry cal = getLocalItem(sync);
-		String entryHash = e.getLocalHash();
+		String cacheHash = e.getLocalHash();
 		String calHash = cal != null ? cal.getLocalHash() : "";
-		return !entryHash.equals(calHash);
+		boolean hasChanges = !cacheHash.equals(calHash);
+		if(diagLog && hasChanges) 
+		{
+			Log.d(TAG, "hasLocalChanges = true");
+			Log.d(TAG, "  cacheHash = " + cacheHash);
+			Log.d(TAG, "  calHash   = " + calHash);
+		}
+		return hasChanges;
 	}
 
 	@Override
@@ -202,6 +208,18 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 		{
 			Time start = Utils.getXmlElementTime(root, "start-date");
 			Time end = Utils.getXmlElementTime(root, "end-date");
+			
+			if(start == null) {
+				throw new SyncException(cal.getTitle(), "start is null (not found in XML)");
+			}
+			
+			if(end == null) {
+				// end is null, can't be
+				Log.w(TAG, "End is null, can't be.");
+				end = start;				
+				end.hour += 1; // add one hour
+				end.normalize(true);
+			}
 
 			boolean allDay = start.hour == 0 && end.hour == 0 && start.minute == 0
 			&& end.minute == 0 && start.second == 0 && end.second == 0;
@@ -218,7 +236,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 			}
 			if(Time.compare(start, end) > 0 ) {
 				// end before start, can't be
-				Log.w("sync", "End is before Start, can't be.");
+				Log.w(TAG, "End is before Start, can't be.");
 				end = start;
 				if(!allDay) {
 					// add one hour
@@ -311,7 +329,7 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 					String rangestr = Utils.getXmlElementString(range);
 					String rangeType = Utils.getXmlAttributeString(range,
 							"type");
-					Log.d("sync", "rangeType=" + rangeType + "   value="
+					Log.d(TAG, "rangeType=" + rangeType + "   value="
 							+ rangestr);
 					if ("date".equals(rangeType))
 					{
@@ -365,8 +383,8 @@ public class SyncCalendarHandler extends AbstractSyncHandler
 				}
 
 				cal.setrRule(sb.toString());
-				Log.d("sync", "RRule = " + cal.getrRule());
-				Log.d("sync", "ExDate = " + cal.getexDate());
+				Log.d(TAG, "RRule = " + cal.getrRule());
+				Log.d(TAG, "ExDate = " + cal.getexDate());
 			}
 		}
 		catch (Exception ex)

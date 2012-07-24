@@ -163,7 +163,7 @@ public class Contact
 	{
 		ArrayList<String> contents = new ArrayList<String>(
 				contactMethods.size() + 1);
-		contents.add(getFullName() == null ? "no name" : getFullName());
+		contents.add(TextUtils.isEmpty(getFullName()) ? "no name" : getFullName());
 
 		Collections.sort(contactMethods, new Comparator<ContactMethod>() {
 			public int compare(ContactMethod cm1, ContactMethod cm2)

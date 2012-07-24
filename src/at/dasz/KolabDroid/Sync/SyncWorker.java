@@ -66,6 +66,8 @@ public class SyncWorker
 	protected Context		context;
 	protected Account		account;
 	protected SyncHandler	handler;
+	
+	protected boolean diagLog = false;
 
 	public SyncWorker(Context context, Account account, SyncHandler handler)
 	{
@@ -121,6 +123,11 @@ public class SyncWorker
 				status.setFatalErrorMsg(mex.toString());
 			}
 		}
+		// Database error - either wrong database or database not ready
+		catch(android.database.sqlite.SQLiteException sqlex) {
+			StatusHandler.writeStatus("Error: " + sqlex.getMessage());
+			status.setFatalErrorMsg(sqlex.toString());
+		}
 		catch (Exception ex)
 		{
 			final String errorFormat = this.context.getResources().getString(
@@ -169,6 +176,7 @@ public class SyncWorker
 			throws MessagingException, IOException,
 			ParserConfigurationException, SyncException, CertificateException
 	{
+		diagLog = settings.getDiagLog();
 		Store server = null;
 		Folder sourceFolder = null;
 		try
@@ -213,12 +221,12 @@ public class SyncWorker
 			final boolean useRemoteHash = settings.getCreateRemoteHash();
 			Log.d(TAG, "Using remote hash = " + useRemoteHash);
 
-			Log.i(TAG, "1. Syncing IMAP Messages");
+			Log.i("sync", "1. Syncing IMAP Messages");
 			for (Message m : msgs)
 			{
 				if (m.getFlags().contains(Flag.DELETED))
 				{
-					// Log.d(TAG, "Found deleted message, continue");
+					if(diagLog) Log.d(TAG, "Found deleted message, continue");
 					continue;
 				}
 
@@ -231,7 +239,7 @@ public class SyncWorker
 
 					// 2. check message headers for changes
 					String subject = sync.getMessage().getSubject();
-					// Log.i(TAG, "2. Checking message " + subject);
+					if(diagLog) Log.i(TAG, "2. Checking message " + subject);
 					
 					if(subject == null || "".equals(subject))
 					{
@@ -262,7 +270,7 @@ public class SyncWorker
 							 	"7. already processed from server: skipping");
 							continue;
 						}
-						// Log.d("sync", "7. compare data to figure out what happened");
+						if(diagLog) Log.d("sync", "7. compare data to figure out what happened");
 
 						boolean cacheIsSame = false;
 						if (useRemoteHash)
@@ -276,10 +284,10 @@ public class SyncWorker
 
 						if (cacheIsSame && !DBG_REMOTE_CHANGED)
 						{
-							//Log.d(TAG, "7.a/d cur=localdb (cache is same)");
+							if(diagLog) Log.d(TAG, "7.a/d cur=localdb (cache is same)");
 							if (handler.hasLocalItem(sync))
 							{
-								//Log.d(TAG, "7.a check for local changes and upload them");
+								if(diagLog) Log.d(TAG, "7.a check for local changes and upload them");
 								if (handler.hasLocalChanges(sync) || DBG_LOCAL_CHANGED)
 								{
 									Log.i(TAG, "7.a local changes found: updating ServerItem from Local");
@@ -288,7 +296,7 @@ public class SyncWorker
 								}
 								else
 								{
-									//Log.d(TAG, "7.a NO local changes found => doing nothing");
+									if(diagLog) Log.d(TAG, "7.a NO local changes found => doing nothing");
 									handler.markAsSynced(sync);
 								}
 							}
@@ -301,7 +309,7 @@ public class SyncWorker
 						}
 						else
 						{
-							//Log.d(TAG, "7.b/c check for local changes and \"resolve\" the conflict");
+							if(diagLog) Log.d(TAG, "7.b/c check for local changes and \"resolve\" the conflict");
 							if (handler.hasLocalChanges(sync))
 							{
 								Log.i(TAG, "7.c local changes found: conflicting, updating local item from server");
@@ -333,7 +341,7 @@ public class SyncWorker
 				}
 				if (sync.getCacheEntry() != null)
 				{
-					//Log.d(TAG, "8. remember message as processed (item id=" + sync.getCacheEntry().getLocalId() + ")");
+					if(diagLog) Log.d(TAG, "8. remember message as processed (item id=" + sync.getCacheEntry().getLocalId() + ")");
 					processedEntries.add(sync.getCacheEntry().getLocalId());
 				}
 			}
@@ -353,15 +361,14 @@ public class SyncWorker
 
 				for (int localId : localIDs)
 				{
-					//Log.i(TAG, "9. processing local#" + localId);
+					if(diagLog) Log.i(TAG, "9. processing local#" + localId);
 
 					StatusHandler.writeStatus(String.format(processItemFormat,
 							currentLocalItemNo++, itemsCount));
 
 					if (processedEntries.contains(localId))
 					{
-						// Log.d(TAG,
-						// "9.a already processed from server: skipping");
+						if(diagLog) Log.d("sync", "9.a already processed from server: skipping");
 						continue;
 					}
 
@@ -392,14 +399,14 @@ public class SyncWorker
 			}
 			catch(MessagingException mex) 
 			{
-				Log.e(TAG, mex.toString());
-				status.incrementErrors();
+				Log.e("sync", mex.toString());
+				status.incrementErrors();					
 			}
 		}
 		finally
 		{
 			handler.finalizeSync();
-			Log.e(TAG, "** sync finished");
+			Log.i(TAG, "** sync finished");
 			if (sourceFolder != null) {
 				try {
 					sourceFolder.close(true);

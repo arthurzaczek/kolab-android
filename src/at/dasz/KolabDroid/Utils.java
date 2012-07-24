@@ -238,10 +238,10 @@ public final class Utils
 		{
 			return Integer.parseInt(value);
 		}
-		catch (TimeFormatException tfe)
+		catch (NumberFormatException nfe)
 		{
-			Log.e("sync", "Unable to parse DateTime " + value);
-			tfe.printStackTrace();
+			Log.e("sync", "Unable to parse Integer " + value);
+			nfe.printStackTrace();
 			return defaultValue;
 		}
 	}

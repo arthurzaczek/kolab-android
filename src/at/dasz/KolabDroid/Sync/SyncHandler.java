@@ -32,11 +32,10 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import android.database.Cursor;
 import at.dasz.KolabDroid.Provider.LocalCacheProvider;
-import at.dasz.KolabDroid.Settings.Settings;
 
 /**
- * This interface defines the necessary operations to be able to synchronize a
- * local data store with a kolab imap folder. Common tasks are already
+ * This interface defines the necessary operations to be able to synchronize a 
+ * local data store with a kolab imap folder. Common tasks are already 
  * implemented in the AbstractSyncHandler, which is the recommended base class
  * for all implementors of this interface.
  */
@@ -44,35 +43,31 @@ public interface SyncHandler
 {
 	/**
 	 * Retrieves the current status of this data store.
-	 * 
 	 * @return
 	 */
 	public StatusEntry getStatus();
-
+	
 	/**
 	 * Retrieves a list of all local items.
-	 * 
 	 * @return
 	 */
 	public abstract Set<Integer> getAllLocalItemsIDs();
 
+	
 	/**
 	 * fetches all local items and store them in a local, private cache
-	 * 
-	 * @throws SyncException
+	 * @throws SyncException 
 	 */
 	public abstract void fetchAllLocalItems() throws SyncException;
-
+	
 	/**
 	 * Retrieves a list of all local items.
-	 * 
 	 * @return
 	 */
 	public abstract Cursor getAllLocalItemsCursor();
 
 	/**
-	 * Returns the local ID column index of the specified cursor
-	 * 
+	 * Returns the local ID column index of the specified cursor 
 	 * @param c
 	 * @return
 	 */
@@ -80,36 +75,30 @@ public interface SyncHandler
 
 	/**
 	 * Returns the folder name where the items are stored in the IMAP server.
-	 * 
 	 * @return
 	 */
 	public abstract String getDefaultFolderName();
 
 	/**
-	 * Defines if this SyncHandler should be processed
-	 * 
+	 * Defines if this SyncHandler should be processed 
 	 * @return
 	 */
 	public abstract boolean shouldProcess();
-
+	
 	/**
 	 * Returns the local cache provider for this data store.
-	 * 
 	 * @return
 	 */
 	public abstract LocalCacheProvider getLocalCacheProvider();
 
 	/**
 	 * Returns true, if the specified item exists in the local data store.
-	 * 
-	 * @param sync
-	 *            the SyncContext, the CacheEntry has to be set
+	 * @param sync the SyncContext, the CacheEntry has to be set
 	 * @return
 	 * @throws SyncException
 	 * @throws MessagingException
 	 */
-	public abstract boolean hasLocalItem(SyncContext sync)
-			throws SyncException, MessagingException;
+	public abstract boolean hasLocalItem(SyncContext sync) throws SyncException, MessagingException;
 
 	/**
 	 * Returns true if there are local changes with respect to the specified
@@ -117,11 +106,10 @@ public interface SyncHandler
 	 * 
 	 * @param entry
 	 * @return
-	 * @throws MessagingException
-	 * @throws SyncException
+	 * @throws MessagingException 
+	 * @throws SyncException 
 	 */
-	public abstract boolean hasLocalChanges(SyncContext sync)
-			throws SyncException, MessagingException;
+	public abstract boolean hasLocalChanges(SyncContext sync) throws SyncException, MessagingException;
 
 	/**
 	 * Create a local item and cache entry from the message.
@@ -129,14 +117,13 @@ public interface SyncHandler
 	 * @param message
 	 * @return
 	 * @throws MessagingException
-	 * @throws IOException
-	 * @throws ParserConfigurationException
-	 * @throws SyncException
+	 * @throws IOException 
+	 * @throws ParserConfigurationException 
+	 * @throws SyncException 
 	 */
-	// public abstract void createLocalItemFromServer(SyncContext sync)
-	public abstract void createLocalItemFromServer(Session session,
-			Folder folder, SyncContext sync) throws MessagingException,
-			ParserConfigurationException, IOException, SyncException;
+	//public abstract void createLocalItemFromServer(SyncContext sync)
+	public abstract void createLocalItemFromServer(Session session, Folder folder, SyncContext sync)
+			throws MessagingException, ParserConfigurationException, IOException, SyncException;
 
 	/**
 	 * Upload the item specified by the cache entry to the targetFolder.
@@ -146,13 +133,11 @@ public interface SyncHandler
 	 * @param localId
 	 * @return
 	 * @throws MessagingException
-	 * @throws ParserConfigurationException
-	 * @throws SyncException
+	 * @throws ParserConfigurationException 
+	 * @throws SyncException 
 	 */
 	public abstract void createServerItemFromLocal(Session session,
-			Folder targetFolder, SyncContext sync, int localId)
-			throws MessagingException, ParserConfigurationException,
-			SyncException;
+			Folder targetFolder, SyncContext sync, int localId) throws MessagingException, ParserConfigurationException, SyncException;
 
 	/**
 	 * Update the local item and cache entry with the data from the server.
@@ -161,13 +146,11 @@ public interface SyncHandler
 	 * @param message
 	 * @return
 	 * @throws MessagingException
-	 * @throws IOException
-	 * @throws ParserConfigurationException
-	 * @throws SyncException
+	 * @throws IOException 
+	 * @throws ParserConfigurationException 
+	 * @throws SyncException 
 	 */
-	public abstract void updateLocalItemFromServer(SyncContext sync)
-			throws MessagingException, ParserConfigurationException,
-			IOException, SyncException;
+	public abstract void updateLocalItemFromServer(SyncContext sync) throws MessagingException, ParserConfigurationException, IOException, SyncException;
 
 	/**
 	 * Update the message and cache entry with the local data.
@@ -176,19 +159,18 @@ public interface SyncHandler
 	 * @param message
 	 * @return
 	 * @throws MessagingException
-	 * @throws IOException
-	 * @throws SyncException
-	 * @throws ParserConfigurationException
+	 * @throws IOException 
+	 * @throws SyncException 
+	 * @throws ParserConfigurationException 
 	 */
 	public abstract void updateServerItemFromLocal(Session session,
-			Folder targetFolder, SyncContext sync) throws MessagingException,
-			IOException, SyncException, ParserConfigurationException;
+			Folder targetFolder,SyncContext sync) throws MessagingException, IOException, SyncException, ParserConfigurationException;
 
 	/**
 	 * Delete the local item and cache entry.
 	 * 
 	 * @param entry
-	 * @throws SyncException
+	 * @throws SyncException 
 	 */
 	public abstract void deleteLocalItem(SyncContext sync) throws SyncException;
 
@@ -198,25 +180,11 @@ public interface SyncHandler
 	 * @param entry
 	 * @param message
 	 * @throws MessagingException
-	 * @throws SyncException
+	 * @throws SyncException 
 	 */
 	public abstract void deleteServerItem(SyncContext sync)
 			throws MessagingException, SyncException;
-
-	/**
-	 * Get Main Application Settings, set by the user
-	 * 
-	 * @return Settings
-	 */
-	public abstract Settings getSettings();
-
-	/**
-	 * Set Main Application Settings, set by the user
-	 * 
-	 * @param settings
-	 */
-	public abstract void setSettings(Settings settings);
-
+	
 	/**
 	 * Checks whether the specified CacheEntry and the Message are in sync.
 	 * Creates a HashValue for the Remote Message, needs to retrieve it first
@@ -225,11 +193,9 @@ public interface SyncHandler
 	 * @param message
 	 * @return
 	 * @throws MessagingException
-	 * @throws IOException
+	 * @throws IOException 
 	 */
-	public boolean isSameRemoteHash(CacheEntry cacheEntry, Message message)
-			throws MessagingException, IOException;
-
+	public boolean isSameRemoteHash(CacheEntry cacheEntry, Message message) throws MessagingException, IOException;
 	/**
 	 * Checks whether the specified CacheEntry and the Message are in sync.
 	 * 
@@ -238,8 +204,7 @@ public interface SyncHandler
 	 * @return
 	 * @throws MessagingException
 	 */
-	public boolean isSame(CacheEntry cacheEntry, Message message)
-			throws MessagingException;
+	public boolean isSame(CacheEntry cacheEntry, Message message) throws MessagingException;
 
 	/**
 	 * Optional mark the current item as synced
@@ -247,15 +212,8 @@ public interface SyncHandler
 	public void markAsSynced(SyncContext sync);
 
 	/**
-	 * Called at the end of a Sync Provider can implement finalizing stuff like
-	 * putting the last sync time into the underlying content provider
+	 * Called at the end of a Sync
+	 * Provider can implement finalizing stuff like putting the last sync time into the underlying content provider 
 	 */
 	public void finalizeSync();
-
-	/**
-	 * Configuration method. This lets the handler choose a tag for logging.
-	 * 
-	 * @return a short string for logcat output tagging
-	 */
-	public String getLogTag();
 }

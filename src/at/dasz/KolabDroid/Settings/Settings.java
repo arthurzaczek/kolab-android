@@ -168,4 +168,12 @@ public class Settings {
 	public void setMinSynIntervalMinutes(int minutes) {
 		edit.putInt("MIN_SYNC_INTERVAL_MINUTES", minutes);
 	}
+	
+	public boolean getDiagLog() {
+		return pref.getBoolean("DIAG_LOG", false);
+	}
+
+	public void setDiagLog(boolean value) {
+		edit.putBoolean("DIAG_LOG", value);
+	}
 }

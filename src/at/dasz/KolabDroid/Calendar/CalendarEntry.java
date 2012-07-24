@@ -53,7 +53,7 @@ public class CalendarEntry
 	private String				rRule;
 	private String				exDate;
 	private String				uid;
-	private int					reminderTime = -1;
+	private int					reminderTime = 0; // 0 = no alarm
 
 	public int getId()
 	{
@@ -218,18 +218,20 @@ public class CalendarEntry
 	public String getLocalHash()
 	{
 		ArrayList<String> contents = new ArrayList<String>(4);
-		contents.add(getTitle() == null ? "no title" : getTitle());
+		contents.add(TextUtils.isEmpty(getTitle()) ? "no title" : getTitle());
 		contents.add(getDtstart() == null ? "no start" : "start "
 				+ getDtstart().toMillis(true));
 		contents.add(getDtend() == null ? "no end" : "end "
 				+ getDtend().toMillis(true));
 		contents.add(getAllDay() ? "AllDay" : "Not AllDay");
-		contents.add(getDescription() == null ? "no Description"
+		contents.add(TextUtils.isEmpty(getDescription()) ? "no Description"
 				: getDescription());
-		contents.add(getEventLocation() == null ? "no EventLocation"
+		contents.add(TextUtils.isEmpty(getEventLocation()) ? "no EventLocation"
 				: getEventLocation());
-		contents.add(getrRule() == null ? "no rRule" : getrRule());
-		contents.add(getReminderTime() == -1 ? "no Reminder" : Integer.toString(getReminderTime()));		
+		contents.add(TextUtils.isEmpty(getrRule()) ? "no rRule" : getrRule());
+		// No reminder for now - they change on every system different when the alarm was fired
+		// And worst: they change!
+		// contents.add(getReminderTime() == 0 ? "no Reminder" : Integer.toString(getReminderTime()));		
 		return TextUtils.join("|", contents.toArray());
 	}
 

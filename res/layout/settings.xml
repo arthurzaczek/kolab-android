@@ -38,5 +38,6 @@
 	<CheckBox android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/createRemoteHash" android:text="@string/createRemoteHash"></CheckBox>
 	<TextView android:id="@+id/TextView14" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="@string/syncinterval"></TextView>
 	<Spinner android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/spinnerSyncInterval"></Spinner>
-  </LinearLayout>
+	<CheckBox android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/diagLog" android:text="@string/diagLog"></CheckBox>
+	</LinearLayout>
 </ScrollView>
