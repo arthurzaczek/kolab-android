@@ -31,6 +31,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.CalendarContract;
 import android.provider.CalendarContract.CalendarAlerts;
 import android.provider.CalendarContract.Calendars;
@@ -71,12 +72,38 @@ public class CalendarProvider
 
 	private static Context					ctx						= null;
 	private Account					account					= null;
+	
+	private static boolean preICS = false;
 
 	public CalendarProvider(Context ctx, Account account)
 	{
 		this.cr = ctx.getContentResolver();
 		this.ctx = ctx;
 		this.account = account;
+		
+		if (Build.VERSION.SDK_INT <= 7) // android 2.1
+		{
+			CALENDAR_EVENTS_URI = Uri.parse("content://calendar/events");
+			CALENDAR_ALERT_URI = Uri
+					.parse("content://calendar/calendar_alerts");
+			CALENDAR_REMINDER_URI = Uri.parse("content://calendar/reminders");
+
+			CALENDAR_CALENDARS_URI = Uri.parse("content://calendar/calendars");
+		}
+		else if (Build.VERSION.SDK_INT > 7 && Build.VERSION.SDK_INT <= 10) // >= android 2.2 <= 2.3.3
+		{
+			CALENDAR_EVENTS_URI = Uri
+					.parse("content://com.android.calendar/events");
+			CALENDAR_ALERT_URI = Uri
+					.parse("content://com.android.calendar/calendar_alerts");
+			CALENDAR_REMINDER_URI = Uri
+					.parse("content://com.android.calendar/reminders");
+			CALENDAR_CALENDARS_URI = Uri
+					.parse("content://com.android.calendar/calendars");
+		}
+		
+		if(Build.VERSION.SDK_INT <= 10)
+			preICS = true;
 
 		CALENDAR_EVENTS_URI = addCallerIsSyncAdapterParameter(Events.CONTENT_URI);
 		CALENDAR_ALERT_URI = addCallerIsSyncAdapterParameter(CalendarAlerts.CONTENT_URI);
@@ -86,7 +113,11 @@ public class CalendarProvider
 
 	private static Uri addCallerIsSyncAdapterParameter(Uri uri)
 	{
-		return uri
+		if(preICS)
+			return uri.buildUpon()
+					.appendQueryParameter("caller_is_syncadapter", "true").build();
+		else
+			return uri
 				.buildUpon()
 				.appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER,
 						"true")
@@ -98,14 +129,24 @@ public class CalendarProvider
 
 	public Cursor fetchAllLocalItems()
 	{
-		return cr.query(CALENDAR_EVENTS_URI, CalendarProvider.eventsProjection,
+		if(preICS)
+			return cr.query(CalendarProvider.CALENDAR_EVENTS_URI,
+					CalendarProvider.projection, "calendar_id=?",
+					new String[] { String.valueOf(getCalendarID()) }, null);
+		else
+			return cr.query(CALENDAR_EVENTS_URI, CalendarProvider.eventsProjection,
 				Events.CALENDAR_ID + "=?",
 				new String[] { String.valueOf(getCalendarID()) }, null);
 	}
 
 	public Cursor getAllLocalItemsCursor()
 	{
-		return cr.query(CALENDAR_EVENTS_URI, new String[] { Events._ID },
+		if(preICS)
+			return cr.query(CalendarProvider.CALENDAR_EVENTS_URI,
+					new String[] { CalendarProvider._ID }, "calendar_id=?",
+					new String[] { String.valueOf(getCalendarID()) }, null);
+		else
+			return cr.query(CALENDAR_EVENTS_URI, new String[] { Events._ID },
 				Events.CALENDAR_ID + "=?",
 				new String[] { String.valueOf(getCalendarID()) }, null);
 	}
@@ -115,7 +156,13 @@ public class CalendarProvider
 	{
 		if (id == 0) return null;
 		Uri uri = ContentUris.withAppendedId(CALENDAR_EVENTS_URI, id);
-		Cursor cur = cr.query(uri, eventsProjection, null, null, null);
+		Cursor cur;
+		
+		if(preICS)
+			cur = cr.query(uri, projection, null, null, null);
+		else
+			cur = cr.query(uri, eventsProjection, null, null, null);
+		
 		if (cur == null) throw new SyncException(Integer.toString(id),
 				"cr.query returned null");
 		try
@@ -193,15 +240,31 @@ public class CalendarProvider
 
 			// use reminder which include snoozed events (i.e. moving the alarm
 			// towards the future)
-			Cursor alertCur = cr.query(CALENDAR_REMINDER_URI, null,
+			
+			if(preICS)
+			{
+				Cursor alertCur = cr.query(CALENDAR_REMINDER_URI, null,
+						"event_id=?", new String[] { Integer.toString(e.getId()) },
+						"minutes DESC");
+
+				if (alertCur != null && alertCur.moveToFirst())
+				{
+					int colIdx = alertCur.getColumnIndex("minutes");
+					e.setReminderTime(alertCur.getInt(colIdx));
+				}
+			}
+			else
+			{
+				Cursor alertCur = cr.query(CALENDAR_REMINDER_URI, null,
 					Reminders.EVENT_ID + "=?",
 					new String[] { Integer.toString(e.getId()) },
 					Reminders.MINUTES + " DESC");
 
-			if (alertCur != null && alertCur.moveToFirst())
-			{
-				int colIdx = alertCur.getColumnIndex(Reminders.MINUTES);
-				e.setReminderTime(alertCur.getInt(colIdx));
+				if (alertCur != null && alertCur.moveToFirst())
+				{
+					int colIdx = alertCur.getColumnIndex(Reminders.MINUTES);
+					e.setReminderTime(alertCur.getInt(colIdx));
+				}
 			}
 		}
 
@@ -266,11 +329,6 @@ public class CalendarProvider
 			duration = "P" + seconds + "S";
 		}
 
-		// Not needed for ICS
-		// values.put(Events.ACCOUNT_NAME, account.name);
-		// values.put(Events.ACCOUNT_TYPE, account.type);
-		values.put(Events.DIRTY, 0);
-
 		//values.put("calendar_id", e.getCalendar_id());
 		String timezone;
 		if (allDay) {
@@ -283,19 +341,41 @@ public class CalendarProvider
 		// values.put("eventTimezone", "UTC"); //TODO: put eventTimezone here:
 		// UTC from kolab? Arthur: yes, see comment in writeXml
 
-		values.put(Events.CALENDAR_ID, e.getCalendar_id());
-		values.put(Events.TITLE, e.getTitle());
-		values.put(Events.ALL_DAY, e.getAllDay() ? 1 : 0);
-		values.put(Events.DTSTART, start);
-		values.put(Events.DTEND, end);
-		values.put(Events.DURATION, duration);
-		values.put(Events.DESCRIPTION, e.getDescription());
-		values.put(Events.EVENT_LOCATION, e.getEventLocation());
-		// TODO: not allowed by CalendarContract
-		// values.put(Events.VISIBLE, e.getVisibility());
-		values.put(Events.HAS_ALARM, e.getHasAlarm());
-		values.put(Events.RRULE, e.getrRule());
-		values.put(Events.EXDATE, e.getexDate());
+		if(preICS)
+		{
+			values.put("_sync_account", account.name);
+			values.put("_sync_account_type", account.type);
+			values.put("_sync_dirty", 0);
+			values.put("_sync_time", System.currentTimeMillis());
+	
+			values.put("calendar_id", e.getCalendar_id());			
+			values.put("title", e.getTitle());
+			values.put("allDay", allDay ? 1 : 0);
+			values.put("dtstart", start);
+			values.put("dtend", end);
+			values.put("duration", duration);
+			values.put("description", e.getDescription());
+			values.put("eventLocation", e.getEventLocation());
+			values.put("visibility", e.getVisibility());
+			values.put("hasAlarm", e.getHasAlarm());
+			values.put("rrule", e.getrRule());
+			values.put("exdate", e.getexDate());
+		}
+		else
+		{
+			values.put(Events.DIRTY, 0);
+			values.put(Events.CALENDAR_ID, e.getCalendar_id());			
+			values.put(Events.TITLE, e.getTitle());
+			values.put(Events.ALL_DAY, e.getAllDay() ? 1 : 0);
+			values.put(Events.DTSTART, start);
+			values.put(Events.DTEND, end);
+			values.put(Events.DURATION, duration);
+			values.put(Events.DESCRIPTION, e.getDescription());
+			values.put(Events.EVENT_LOCATION, e.getEventLocation());
+			values.put(Events.HAS_ALARM, e.getHasAlarm());
+			values.put(Events.RRULE, e.getrRule());
+			values.put(Events.EXDATE, e.getexDate());			
+		}				
 
 		if (e.getId() == 0)
 		{
@@ -313,47 +393,104 @@ public class CalendarProvider
 
 		if (e.getHasAlarm() == 1)
 		{
-			// delete existing alerts to replace them with the ones from the
-			// synchronisation
-			cr.delete(CALENDAR_ALERT_URI, CalendarAlerts.EVENT_ID + "=?",
-					new String[] { Integer.toString(e.getId()) });
+			ContentValues alertValues;
+			
+			if(preICS)
+			{
+				// delete existing alerts to replace them with the ones from the
+				// synchronisation
+				cr.delete(CALENDAR_ALERT_URI, "event_id=?",
+						new String[] { Integer.toString(e.getId()) });
 
-			// remove reminder entry
-			cr.delete(CALENDAR_REMINDER_URI, Reminders.EVENT_ID + "=?",
-					new String[] { Integer.toString(e.getId()) });
+				// remove reminder entry
+				cr.delete(CALENDAR_REMINDER_URI, "event_id=?",
+						new String[] { Integer.toString(e.getId()) });
 
-			// create reminder
-			ContentValues reminderValues = new ContentValues();
-			reminderValues.put(Reminders.EVENT_ID, e.getId());
-			reminderValues.put(Reminders.METHOD, Reminders.METHOD_ALERT);
-			reminderValues.put(Reminders.MINUTES, e.getReminderTime());
+				// create reminder
+				ContentValues reminderValues = new ContentValues();
+				reminderValues.put("event_id", e.getId());
+				reminderValues.put("method", 1);
+				reminderValues.put("minutes", e.getReminderTime());
 
-			cr.insert(CALENDAR_REMINDER_URI, reminderValues);
+				cr.insert(CALENDAR_REMINDER_URI, reminderValues);
 
-			// create alert
-			ContentValues alertValues = new ContentValues();
+				// create alert
+				alertValues = new ContentValues();
 
-			alertValues.put(CalendarAlerts.EVENT_ID, e.getId());
-			alertValues.put(CalendarAlerts.BEGIN, start);
-			alertValues.put(CalendarAlerts.END, end);
-			alertValues.put(CalendarAlerts.ALARM_TIME,
-					(start - e.getReminderTime() * 60000));
+				alertValues.put("event_id", e.getId());
+				alertValues.put("begin", start);
+				alertValues.put("end", end);
+				alertValues.put("alarmTime", (start - e.getReminderTime() * 60000));
 
-			alertValues.put(CalendarAlerts.STATE,
-					CalendarAlerts.STATE_SCHEDULED);
+				alertValues.put("state", 0);
+				// SCHEDULED = 0;
+				// FIRED = 1;
+				// DISMISSED = 2;
 
-			alertValues.put(CalendarAlerts.MINUTES, e.getReminderTime());
+				alertValues.put("minutes", e.getReminderTime());
 
-			// we need those values to prevent the exception mentioned below
-			// from occurring
-			Calendar cal = Calendar.getInstance();
-			long now = cal.getTimeInMillis();
-			// TODO: this should be UTC. See
-			// http://stackoverflow.com/a/230383/4918 for transformation code
-			// example
-			alertValues.put(CalendarAlerts.CREATION_TIME, now);
-			alertValues.put(CalendarAlerts.RECEIVED_TIME, now);
-			alertValues.put(CalendarAlerts.NOTIFY_TIME, now);
+				// we need those values to prevent the exception mentioned below
+				// from occuring
+				Calendar cal = Calendar.getInstance();
+				long now = cal.getTimeInMillis();
+				alertValues.put("creationTime", now);
+				alertValues.put("receivedTime", now);
+				alertValues.put("notifyTime", now);
+			}
+			else
+			{			
+				// delete existing alerts to replace them with the ones from the
+				// synchronisation
+				cr.delete(CALENDAR_ALERT_URI, CalendarAlerts.EVENT_ID + "=?",
+						new String[] { Integer.toString(e.getId()) });
+	
+				// remove reminder entry
+				cr.delete(CALENDAR_REMINDER_URI, Reminders.EVENT_ID + "=?",
+						new String[] { Integer.toString(e.getId()) });
+	
+				// create reminder
+				ContentValues reminderValues = new ContentValues();
+				
+				if(preICS)
+				{
+					reminderValues.put("event_id", e.getId());
+					reminderValues.put("method", 1);
+					reminderValues.put("minutes", e.getReminderTime());
+				}
+				else
+				{
+					reminderValues.put(Reminders.EVENT_ID, e.getId());
+					reminderValues.put(Reminders.METHOD, Reminders.METHOD_ALERT);
+					reminderValues.put(Reminders.MINUTES, e.getReminderTime());
+				}
+	
+				cr.insert(CALENDAR_REMINDER_URI, reminderValues);
+	
+				// create alert
+				alertValues = new ContentValues();
+	
+				alertValues.put(CalendarAlerts.EVENT_ID, e.getId());
+				alertValues.put(CalendarAlerts.BEGIN, start);
+				alertValues.put(CalendarAlerts.END, end);
+				alertValues.put(CalendarAlerts.ALARM_TIME,
+						(start - e.getReminderTime() * 60000));
+	
+				alertValues.put(CalendarAlerts.STATE,
+						CalendarAlerts.STATE_SCHEDULED);
+	
+				alertValues.put(CalendarAlerts.MINUTES, e.getReminderTime());
+	
+				// we need those values to prevent the exception mentioned below
+				// from occurring
+				Calendar cal = Calendar.getInstance();
+				long now = cal.getTimeInMillis();
+				// TODO: this should be UTC. See
+				// http://stackoverflow.com/a/230383/4918 for transformation code
+				// example
+				alertValues.put(CalendarAlerts.CREATION_TIME, now);
+				alertValues.put(CalendarAlerts.RECEIVED_TIME, now);
+				alertValues.put(CalendarAlerts.NOTIFY_TIME, now);
+			}
 
 			// TODO: sometimes throws an SQLiteConstraintException error code
 			// 19; constraint failed
@@ -369,10 +506,18 @@ public class CalendarProvider
 	private void dumpAllCalendars()
 	{
 		Log.d(TAG, "name - displayName - _sync_account - _sync_account_type");
-		Cursor cur = cr.query(CalendarProvider.CALENDAR_CALENDARS_URI,
+		
+		Cursor cur;
+		if(preICS)
+			cur = cr.query(CalendarProvider.CALENDAR_CALENDARS_URI,
+					new String[] { "name", "displayName", "_sync_account",
+							"_sync_account_type" }, null, null, null);
+		else
+			cur = cr.query(CalendarProvider.CALENDAR_CALENDARS_URI,
 				new String[] { Calendars.NAME, Calendars.CALENDAR_DISPLAY_NAME,
 						Calendars.ACCOUNT_NAME, Calendars.ACCOUNT_TYPE }, null,
 				null, null);
+		
 		if (cur == null) return;
 		try
 		{
@@ -400,9 +545,15 @@ public class CalendarProvider
 			cr.delete(delUri, null, null);
 		}
 		// make sure we clean up ALL of our calendars
-		cr.delete(CalendarProvider.CALENDAR_CALENDARS_URI,
+		if(preICS)
+			cr.delete(CalendarProvider.CALENDAR_CALENDARS_URI,
+					"_sync_account=? and _sync_account_type=?", new String[] {
+							accountName, accountType });
+		else
+			cr.delete(CalendarProvider.CALENDAR_CALENDARS_URI,
 				Calendars.ACCOUNT_NAME + "=? and " + Calendars.ACCOUNT_TYPE
-						+ "=?", new String[] { accountName, accountType });
+						+ "=?", new String[] { accountName, accountType });		
+			
 	}
 
 	// TODO: we only support one calendar for now
@@ -421,7 +572,12 @@ public class CalendarProvider
 			accountName = account.name;
 		}
 
-		String selection = Calendars.ACCOUNT_NAME + "=? and "
+		String selection;
+		
+		if(preICS)
+			selection = "_sync_account=? and _sync_account_type=?";
+		else
+			selection = Calendars.ACCOUNT_NAME + "=? and "
 				+ Calendars.ACCOUNT_TYPE + "=?";
 
 		Cursor cur = cr.query(CalendarProvider.CALENDAR_CALENDARS_URI, null,
@@ -437,39 +593,75 @@ public class CalendarProvider
 		if (!cur.moveToFirst())
 		{
 			Log.i(TAG, "Creating new KolabDroid calendar");
-			// create one
-			cvs.put(Calendars.ACCOUNT_NAME, accountName);
-			cvs.put(Calendars.ACCOUNT_TYPE, Utils.SYNC_ACCOUNT_TYPE);
-			cvs.put(Calendars.NAME, accountName);
-
-			// TODO: should be user@imap host?
-			cvs.put(Calendars.CALENDAR_DISPLAY_NAME, accountName);
-			// TODO: missing from ICS
-			// cvs.put("selected", 1);
-			cvs.put(Calendars.SYNC_EVENTS, 1);
-			cvs.put(Calendars.CALENDAR_ACCESS_LEVEL, Calendars.CAL_ACCESS_OWNER);
-
-			// TODO: Arthur: Do we need that? I don't think so
-			// cvs.put("url", "http://www.test.de"); // TODO what to put here?
-			// -> reported as invalid by Android >= 3.0.1
-
-			// TODO: how are colors represented?
-			cvs.put(Calendars.CALENDAR_COLOR, -14069085);
-
-			// TODO: where to get timezone for calendar from?
-			cvs.put(Calendars.CALENDAR_TIME_ZONE, "Europe/Berlin");
-
-			// TODO: which owner? use same as for contacts
-			cvs.put(Calendars.OWNER_ACCOUNT, "kolab-android@dasz.at");
-
-			Uri newUri = cr.insert(CALENDAR_CALENDARS_URI, cvs);
-			if (newUri == null)
+			
+			if(preICS)
 			{
-				Log.e(TAG,
-						"Unable to create new Calender, provider returned null uri.");
-				return;
+				// create one
+				cvs.put("_sync_account", accountName);
+				cvs.put("_sync_account_type", Utils.SYNC_ACCOUNT_TYPE);
+				cvs.put("name", accountName);
+				cvs.put("displayName", accountName);
+				cvs.put("selected", 1);
+				cvs.put("sync_events", 1);
+				cvs.put("access_level", 700);
+
+				// TODO: Arthur: Do we need that? I don't think so
+				//cvs.put("url", "http://www.test.de"); // TODO what to put here? -> reported as invalid by Android >= 3.0.1
+				cvs.put("color", -14069085); // TODO: how are colors represented?
+				cvs.put("timezone", "Europe/Berlin"); // TODO: where to get timezone
+														// for
+														// calendar from?
+				cvs.put("ownerAccount", "kolab-android@dasz.at"); // TODO: which
+																	// owner?
+																	// use same as
+																	// for
+																	// contacts
+
+				Uri newUri = cr.insert(CALENDAR_CALENDARS_URI, cvs);
+				if (newUri == null)
+				{
+					Log.e("CalProvider",
+							"Unable to create new Calender, provider returned null uri.");
+					return;
+				}
+				calendarID = ContentUris.parseId(newUri);
+			}				
+			else
+			{			
+				// create one
+				cvs.put(Calendars.ACCOUNT_NAME, accountName);
+				cvs.put(Calendars.ACCOUNT_TYPE, Utils.SYNC_ACCOUNT_TYPE);
+				cvs.put(Calendars.NAME, accountName);
+	
+				// TODO: should be user@imap host?
+				cvs.put(Calendars.CALENDAR_DISPLAY_NAME, accountName);
+				// TODO: missing from ICS
+				// cvs.put("selected", 1);
+				cvs.put(Calendars.SYNC_EVENTS, 1);
+				cvs.put(Calendars.CALENDAR_ACCESS_LEVEL, Calendars.CAL_ACCESS_OWNER);
+	
+				// TODO: Arthur: Do we need that? I don't think so
+				// cvs.put("url", "http://www.test.de"); // TODO what to put here?
+				// -> reported as invalid by Android >= 3.0.1
+	
+				// TODO: how are colors represented?
+				cvs.put(Calendars.CALENDAR_COLOR, -14069085);
+	
+				// TODO: where to get timezone for calendar from?
+				cvs.put(Calendars.CALENDAR_TIME_ZONE, "Europe/Berlin");
+	
+				// TODO: which owner? use same as for contacts
+				cvs.put(Calendars.OWNER_ACCOUNT, "kolab-android@dasz.at");
+	
+				Uri newUri = cr.insert(CALENDAR_CALENDARS_URI, cvs);
+				if (newUri == null)
+				{
+					Log.e(TAG,
+							"Unable to create new Calender, provider returned null uri.");
+					return;
+				}
+				calendarID = ContentUris.parseId(newUri);
 			}
-			calendarID = ContentUris.parseId(newUri);
 		}
 		else
 		{
