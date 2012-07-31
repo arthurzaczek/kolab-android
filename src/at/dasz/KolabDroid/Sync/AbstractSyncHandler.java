@@ -373,6 +373,17 @@ public abstract class AbstractSyncHandler implements SyncHandler
 						return p.getInputStream(); 
 					}
 				}
+			} 
+			else if(diagLog) 
+			{
+				if(content != null)
+				{
+					Log.d(TAG, "  message.getContent() cannot be handeled: " + content.getClass().getName());
+				}
+				else 
+				{
+					Log.d(TAG, "  message.getContent() returned null");
+				}
 			}
 		}
 		if(diagLog) Log.d(TAG, "no XML found");
