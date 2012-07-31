@@ -21,8 +21,6 @@
 
 package at.dasz.KolabDroid;
 
-import javax.activation.DataHandler;
-
 import android.accounts.Account;
 import android.app.Activity;
 import android.content.DialogInterface;
@@ -36,7 +34,6 @@ import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.TextView;
 import android.widget.Toast;
-import at.dasz.KolabDroid.Imap.DchFactory;
 import at.dasz.KolabDroid.Provider.StatusProvider;
 import at.dasz.KolabDroid.Sync.StatusEntry;
 
@@ -53,11 +50,6 @@ public class Main extends Activity implements MainActivity
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-
-		if (!DataHandler.hasDataContentHandlerFactory())
-		{
-			DataHandler.setDataContentHandlerFactory(new DchFactory());
-		}
 
 		setContentView(R.layout.main);
 

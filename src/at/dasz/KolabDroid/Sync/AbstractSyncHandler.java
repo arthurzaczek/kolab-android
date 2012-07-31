@@ -356,11 +356,11 @@ public abstract class AbstractSyncHandler implements SyncHandler
 		}
 		else
 		{
-			if(diagLog) Log.d(TAG, "mainDataSource is a MimeMultipart");
 			// What's the difference?
 			final Object content = message.getContent();
 			if (content instanceof MimeMultipart)
 			{
+				if(diagLog) Log.d(TAG, "content is a MimeMultipart");
 				final MimeMultipart multipart = (MimeMultipart) content;
 				if(diagLog) Log.d(TAG, "  containing " + multipart.getCount() + " items");
 				for (int idx = 0; idx < multipart.getCount(); idx++)
@@ -376,6 +376,7 @@ public abstract class AbstractSyncHandler implements SyncHandler
 			} 
 			else if(diagLog) 
 			{
+				Log.d(TAG, "  mainDataSource cannot be handeled: " + mainDataSource.getClass().getName());
 				if(content != null)
 				{
 					Log.d(TAG, "  message.getContent() cannot be handeled: " + content.getClass().getName());

@@ -26,12 +26,16 @@ import java.util.Locale;
 import javax.activation.DataContentHandler;
 import javax.activation.DataContentHandlerFactory;
 
+import android.util.Log;
+
 import com.sun.mail.handlers.multipart_mixed;
 import com.sun.mail.handlers.text_html;
 import com.sun.mail.handlers.text_plain;
 
 public class DchFactory implements DataContentHandlerFactory
 {
+	private static final String	TAG	= "DchFactory";
+
 	public DataContentHandler createDataContentHandler(String mimeType)
 	{
 		mimeType = mimeType.toLowerCase(Locale.ENGLISH);
@@ -49,6 +53,7 @@ public class DchFactory implements DataContentHandlerFactory
 		}
 		else
 		{
+			Log.d(TAG, "unknown mimetype " + mimeType);
 			return null;
 		}
 	}
