@@ -35,7 +35,6 @@ import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
-import javax.mail.MultipartDataSource;
 import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.Flags.Flag;
@@ -333,16 +332,11 @@ public abstract class AbstractSyncHandler implements SyncHandler
 			throws MessagingException, IOException
 	{
 		if(diagLog) Log.d(TAG, "extractXml");
-		final DataSource mainDataSource = message.getDataHandler().getDataSource();
-		if(mainDataSource == null) {
-			if(diagLog) Log.d(TAG, "getDataSource returned NULL");
-			return null;
-		}
-		if (mainDataSource instanceof MultipartDataSource)
+		final Object content = message.getContent();
+		if (content instanceof Multipart)
 		{
-			if(diagLog) Log.d(TAG, "mainDataSource is a MultipartDataSource");
-			MultipartDataSource multipart = (MultipartDataSource) mainDataSource;
-			if(diagLog) Log.d(TAG, "  containing " + multipart.getCount() + " items");
+			final Multipart multipart = (Multipart) content;
+			if(diagLog) Log.d(TAG, "content is a Multipart containing " + multipart.getCount() + " items");
 			for (int idx = 0; idx < multipart.getCount(); idx++)
 			{
 				final BodyPart p = multipart.getBodyPart(idx);
@@ -353,38 +347,16 @@ public abstract class AbstractSyncHandler implements SyncHandler
 					return p.getInputStream(); 
 				}
 			}
-		}
-		else
+		} 
+		else if(diagLog) 
 		{
-			// What's the difference?
-			final Object content = message.getContent();
-			if (content instanceof MimeMultipart)
+			if(content != null)
 			{
-				if(diagLog) Log.d(TAG, "content is a MimeMultipart");
-				final MimeMultipart multipart = (MimeMultipart) content;
-				if(diagLog) Log.d(TAG, "  containing " + multipart.getCount() + " items");
-				for (int idx = 0; idx < multipart.getCount(); idx++)
-				{
-					final BodyPart p = multipart.getBodyPart(idx);
-					if(diagLog) Log.d(TAG, "  " + idx + ": " + p.getContentType());
-					if (p.isMimeType(getMimeType())) 
-					{ 
-						if(diagLog) Log.d(TAG, "  -> found");
-						return p.getInputStream(); 
-					}
-				}
-			} 
-			else if(diagLog) 
+				Log.d(TAG, "  message.getContent() cannot be handeled: " + content.getClass().getName());
+			}
+			else 
 			{
-				Log.d(TAG, "  mainDataSource cannot be handeled: " + mainDataSource.getClass().getName());
-				if(content != null)
-				{
-					Log.d(TAG, "  message.getContent() cannot be handeled: " + content.getClass().getName());
-				}
-				else 
-				{
-					Log.d(TAG, "  message.getContent() returned null");
-				}
+				Log.d(TAG, "  message.getContent() returned null");
 			}
 		}
 		if(diagLog) Log.d(TAG, "no XML found");
