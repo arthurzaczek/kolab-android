@@ -28,10 +28,7 @@ import java.security.cert.CertificateException;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.activation.CommandInfo;
-import javax.activation.CommandMap;
 import javax.activation.DataHandler;
-import javax.activation.MailcapCommandMap;
 import javax.mail.FetchProfile;
 import javax.mail.Folder;
 import javax.mail.Message;
