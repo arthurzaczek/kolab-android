@@ -521,6 +521,7 @@ public class SettingsView extends Activity implements Runnable
 									public void onClick(DialogInterface dialog,
 											int which)
 									{
+										if(chain == null) return;
 										try
 										{
 											Log.d(LOG_TAG,
