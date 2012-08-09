@@ -128,6 +128,10 @@ public class SyncWorker
 			StatusHandler.writeStatus("Error: " + sqlex.getMessage());
 			status.setFatalErrorMsg(sqlex.toString());
 		}
+		catch(java.lang.IllegalStateException isex) {
+			StatusHandler.writeStatus("Error: " + isex.getMessage());
+			status.setFatalErrorMsg(isex.toString());			
+		}
 		catch (Exception ex)
 		{
 			final String errorFormat = this.context.getResources().getString(
