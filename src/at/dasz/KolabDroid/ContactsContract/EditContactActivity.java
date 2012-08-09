@@ -322,14 +322,22 @@ public class EditContactActivity extends Activity
 		}
 		else
 		{
-			long contactID = ContentUris.parseId(uri);
 			try
 			{
+				long contactID = ContentUris.parseId(uri);
 				mContact = ContactDBHelper.getContactByRawID(contactID,
 						getContentResolver());
 			}
-			catch (SyncException ex)
+			catch (SyncException sex)
 			{
+				Log.e("ECA:", "Error loading contact", sex);
+				Toast.makeText(this, "Error loading contact", Toast.LENGTH_LONG).show();
+				this.finish();
+			}
+			catch(NumberFormatException nfex) 
+			{
+				Log.e("ECA:", "Error parsing Uri", nfex);
+				Toast.makeText(this, "Error parsing Uri", Toast.LENGTH_LONG).show();
 				this.finish();
 			}
 		}
