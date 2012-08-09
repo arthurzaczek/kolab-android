@@ -337,7 +337,7 @@ public class EditContactActivity extends Activity
 			catch(NumberFormatException nfex) 
 			{
 				Log.e("ECA:", "Error parsing Uri", nfex);
-				Toast.makeText(this, "Error parsing Uri", Toast.LENGTH_LONG).show();
+				Toast.makeText(this, "Error parsing Uri: " + uri, Toast.LENGTH_LONG).show();
 				this.finish();
 			}
 		}
